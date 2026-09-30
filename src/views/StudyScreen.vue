@@ -27,7 +27,7 @@
               class="flex-1 py-2 rounded-lg transition flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <Layers class="w-3.5 h-3.5" />
-              <span>Thẻ Flashcard (SRS)</span>
+              <span>Thẻ từ vựng</span>
             </button>
             <button
               @click="switchStudyMode('quiz')"
@@ -42,7 +42,7 @@
           <!-- Loading State -->
           <div v-if="studyLoading" class="py-12 text-center space-y-2">
             <Loader2 class="w-7 h-7 animate-spin text-indigo-600 mx-auto" />
-            <p class="text-xs text-gray-500">Đang tải dữ liệu từ CSDL Aiven...</p>
+            <p class="text-xs text-gray-500">Đang tải nội dung học tập...</p>
           </div>
 
           <!-- STATE A: FLASHCARD MODE (REAL SRS) -->
@@ -51,7 +51,7 @@
               <Layers class="w-10 h-10 text-indigo-300 mx-auto" />
               <h3 class="text-sm font-bold text-gray-800">Chưa có thẻ cần ôn tập</h3>
               <p class="text-xs text-gray-500 max-w-xs mx-auto leading-relaxed">
-                Tất cả thẻ trong CSDL đã được hoàn thành hoặc chưa được tạo.
+                Bạn đã ôn xong các thẻ hiện có hoặc chưa có thẻ mới.
               </p>
               <button @click="loadFlashcardsData" class="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-xs font-bold hover:bg-indigo-100 cursor-pointer">
                 Tải lại danh sách
@@ -59,12 +59,20 @@
             </div>
 
             <div v-else class="space-y-4">
-              <div @click="isFlipped = !isFlipped" class="perspective-1000 w-full h-72 cursor-pointer select-none">
-                <div :class="isFlipped ? 'rotate-y-180' : ''" class="relative w-full h-full duration-500 transform-style-preserve-3d transition-transform">
+              <div
+                @click="isFlipped = !isFlipped"
+                @keydown.enter.self.prevent="isFlipped = !isFlipped"
+                @keydown.space.self.prevent="isFlipped = !isFlipped"
+                tabindex="0"
+                role="group"
+                :aria-label="isFlipped ? 'Quay về mặt trước của flashcard' : 'Lật flashcard để xem nghĩa và ví dụ'"
+                class="flashcard-stage w-full h-72 cursor-pointer select-none outline-none"
+              >
+                <div :class="{ 'is-flipped': isFlipped }" class="flashcard-inner relative w-full h-full">
                   <!-- FRONT SIDE -->
-                  <div class="absolute inset-0 backface-hidden bg-white rounded-3xl p-6 border border-gray-100 shadow-lg flex flex-col justify-between items-center text-center">
+                  <div class="flashcard-face flashcard-front absolute inset-0 bg-white rounded-3xl p-6 border border-violet-100 shadow-lg flex flex-col justify-between items-center text-center">
                     <div class="w-full flex justify-between items-center">
-                      <span class="text-[10px] font-bold px-2.5 py-1 bg-indigo-50 text-indigo-600 rounded-lg">Từ vựng CSDL</span>
+                      <span class="text-[10px] font-bold px-2.5 py-1 bg-indigo-50 text-indigo-600 rounded-lg">Từ vựng</span>
                       <button @click.stop="speakText(currentCard.word)" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-indigo-50 text-gray-600 hover:text-indigo-600 flex items-center justify-center cursor-pointer">
                         <Volume2 class="w-4 h-4" />
                       </button>
@@ -80,10 +88,10 @@
                   </div>
 
                   <!-- BACK SIDE -->
-                  <div class="absolute inset-0 backface-hidden rotate-y-180 bg-gradient-to-br from-indigo-50 via-white to-gray-50 rounded-3xl p-6 border border-indigo-100 shadow-lg flex flex-col justify-between text-left">
+                  <div class="flashcard-face flashcard-back absolute inset-0 bg-gradient-to-br from-violet-100 via-white to-amber-50 rounded-3xl p-6 border border-violet-200 shadow-lg flex flex-col justify-between text-left">
                     <div class="flex justify-between items-center">
                       <span class="text-[10px] font-extrabold px-2.5 py-1 bg-indigo-600 text-white rounded-lg uppercase">Nghĩa tiếng Việt</span>
-                      <span class="text-[10px] font-semibold text-gray-400">Leitner SRS</span>
+                      <span class="text-[10px] font-semibold text-gray-400">Ôn tập thông minh</span>
                     </div>
                     <div class="space-y-2">
                       <h3 class="text-xl font-bold text-gray-900">{{ currentCard.meaning || 'Chưa cập nhật nghĩa' }}</h3>
@@ -132,7 +140,7 @@
               <HelpCircle class="w-10 h-10 text-indigo-300 mx-auto" />
               <h3 class="text-sm font-bold text-gray-800">Chưa có câu hỏi trắc nghiệm</h3>
               <p class="text-xs text-gray-500 max-w-xs mx-auto leading-relaxed">
-                Đề thi này hiện chưa có câu hỏi trong CSDL.
+                Bộ câu hỏi này hiện chưa có câu hỏi.
               </p>
               <button @click="loadQuizzesData" class="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-xs font-bold hover:bg-indigo-100 cursor-pointer">
                 Tải lại danh sách
@@ -322,17 +330,40 @@ const writingSubTab = ctx.writingSubTab;
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
-.perspective-1000 {
+.flashcard-stage {
   perspective: 1000px;
+  perspective-origin: center;
 }
-.transform-style-preserve-3d {
+
+.flashcard-inner {
   transform-style: preserve-3d;
+  transform-origin: center;
+  transition: transform 560ms ease-in-out;
+  will-change: transform;
 }
-.backface-hidden {
+
+.flashcard-inner.is-flipped {
+  transform: rotateY(180deg);
+}
+
+.flashcard-face {
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
-.rotate-y-180 {
+
+.flashcard-back {
   transform: rotateY(180deg);
+}
+
+.flashcard-stage:focus-visible .flashcard-front,
+.flashcard-stage:focus-visible .flashcard-back {
+  outline: 3px solid rgba(139, 92, 246, 0.45);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flashcard-inner {
+    transition-duration: 1ms;
+  }
 }
 </style>

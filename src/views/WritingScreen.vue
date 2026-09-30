@@ -19,7 +19,7 @@
               ></textarea>
               <div class="flex justify-between items-center pt-2 border-t border-gray-100 text-[11px] text-gray-400">
                 <span>{{ wordCount }} words • {{ essayInput.length }} chars</span>
-                <span class="text-indigo-600 font-medium">Hỗ trợ IELTS &amp; GEC Grammar</span>
+                <span class="text-indigo-600 font-medium">Phù hợp luyện viết IELTS và ngữ pháp</span>
               </div>
             </div>
 
@@ -36,7 +36,7 @@
             >
               <Sparkles v-if="!isEvaluating" class="w-4 h-4" />
               <Loader2 v-else class="w-4 h-4 animate-spin" />
-              <span>{{ isEvaluating ? 'AI Gemini đang chấm bài luận...' : 'Chấm điểm & Sửa lỗi với AI' }}</span>
+              <span>{{ isEvaluating ? 'AI đang chấm bài luận...' : 'Chấm điểm & Sửa lỗi với AI' }}</span>
             </button>
           </div>
 

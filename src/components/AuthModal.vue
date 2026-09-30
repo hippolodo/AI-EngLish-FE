@@ -83,7 +83,7 @@ const submit = async () => {
     const detail = error.response?.data?.detail;
     errorMessage.value = Array.isArray(detail)
       ? detail.map((item) => item.msg).join(', ')
-      : detail || 'Không thể kết nối máy chủ. Hãy kiểm tra backend rồi thử lại.';
+      : detail || 'Chưa kết nối được. Vui lòng thử lại sau.';
   } finally {
     loading.value = false;
   }

@@ -13,6 +13,11 @@ export const chatService = {
     return res.data;
   },
 
+  async getConversations() {
+    const res = await apiClient.get('/chat/conversations');
+    return res.data;
+  },
+
   async getConversationDetail(conversationId) {
     const res = await apiClient.get(`/chat/conversations/${conversationId}`);
     return res.data;

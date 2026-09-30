@@ -1,5 +1,5 @@
 <template>
-<div v-if="activeTab === 'chat'" class="flex-1 flex flex-col justify-between h-full min-h-[580px] pb-20 w-full max-w-3xl mx-auto">
+<div v-if="activeTab === 'chat'" class="flex-1 flex flex-col justify-between h-full min-h-[580px] w-full max-w-3xl mx-auto">
           <!-- Chat Scenario Header (Real from Backend) -->
           <div class="px-5 py-3.5 bg-white border-b border-gray-100 flex items-center justify-between shadow-xs">
             <div class="flex items-center space-x-3">
@@ -20,17 +20,64 @@
                   </option>
                 </select>
                 <p class="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
-                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Online • Gemini AI Roleplay
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Sẵn sàng • Luyện hội thoại cùng AI
                 </p>
               </div>
             </div>
-            <button @click="resetChatConversation" title="Khởi động lại hội thoại" class="text-xs text-gray-400 hover:text-gray-700 p-1.5 rounded-lg border border-gray-200 cursor-pointer">
-              <RotateCcw class="w-3.5 h-3.5" />
-            </button>
+            <div class="flex items-center gap-1.5">
+              <button @click="toggleChatHistory" title="Lịch sử trò chuyện" class="inline-flex items-center gap-1.5 rounded-xl border border-violet-100 bg-violet-50 px-2.5 py-2 text-[10px] font-bold text-violet-700 transition hover:bg-violet-100 cursor-pointer">
+                <History class="w-3.5 h-3.5" />
+                <span>Lịch sử</span>
+              </button>
+              <button @click="resetChatConversation" title="Bắt đầu cuộc trò chuyện mới" class="text-xs text-gray-400 hover:text-gray-700 p-2 rounded-xl border border-gray-200 cursor-pointer">
+                <RotateCcw class="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
+          <div v-if="isChatHistoryOpen" class="flex-1 min-h-0 overflow-y-auto bg-gradient-to-b from-violet-50/70 to-white p-4">
+            <div class="mb-3 flex items-center justify-between">
+              <div>
+                <h2 class="text-sm font-extrabold text-slate-800">Các cuộc trò chuyện</h2>
+                <p class="mt-0.5 text-[10px] text-slate-500">Chọn một cuộc trò chuyện để xem lại tin nhắn</p>
+              </div>
+              <button @click="toggleChatHistory" aria-label="Đóng lịch sử" class="rounded-xl border border-violet-100 bg-white p-2 text-slate-500 transition hover:bg-violet-50">
+                <X class="h-4 w-4" />
+              </button>
+            </div>
+
+            <div v-if="chatHistoryLoading" class="py-10 text-center text-xs text-slate-500">
+              <Loader2 class="mx-auto mb-2 h-5 w-5 animate-spin text-violet-600" />
+              Đang tải lịch sử...
+            </div>
+            <p v-else-if="chatHistoryError" class="rounded-2xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">{{ chatHistoryError }}</p>
+            <div v-else-if="chatConversations.length" class="space-y-2">
+              <button
+                v-for="conversation in chatConversations"
+                :key="conversation.id"
+                type="button"
+                class="flex w-full items-center gap-3 rounded-2xl border border-violet-100 bg-white p-3 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-violet-300 hover:shadow-md"
+                @click="openChatConversation(conversation)"
+              >
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-100 to-fuchsia-100 text-violet-600">
+                  <MessageSquare class="h-4 w-4" />
+                </span>
+                <span class="min-w-0 flex-1">
+                  <span class="block truncate text-xs font-extrabold text-slate-800">{{ conversation.scenario_title }}</span>
+                  <span class="mt-1 block text-[10px] text-slate-400">{{ formatConversationDate(conversation.created_at) }}</span>
+                </span>
+                <span class="shrink-0 rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-700">{{ Math.round(conversation.fluency_score || 0) }}%</span>
+              </button>
+            </div>
+            <div v-else class="rounded-2xl border border-dashed border-violet-200 bg-white/80 px-5 py-10 text-center">
+              <History class="mx-auto mb-2 h-7 w-7 text-violet-300" />
+              <p class="text-xs font-bold text-slate-600">Chưa có cuộc trò chuyện nào</p>
+              <p class="mt-1 text-[10px] text-slate-400">Các phiên chat của bạn sẽ xuất hiện ở đây.</p>
+            </div>
           </div>
 
           <!-- Chat Scrollable Messages Area -->
-          <div ref="chatScrollContainer" class="flex-1 p-4 space-y-4 overflow-y-auto no-scrollbar">
+          <div v-else ref="chatScrollContainer" class="flex-1 p-4 space-y-4 overflow-y-auto no-scrollbar">
             <div v-if="chatLoading" class="py-8 text-center text-xs text-gray-500">
               <Loader2 class="w-5 h-5 animate-spin mx-auto text-indigo-600 mb-1" />
               Đang kết nối phiên hội thoại AI...
@@ -89,7 +136,7 @@
           </div>
 
           <!-- Bottom Chat Input Bar -->
-          <div class="p-3 bg-white border-t border-gray-100">
+          <div v-if="!isChatHistoryOpen" class="p-3 bg-white border-t border-gray-100">
             <div class="flex items-center space-x-2">
               <button
                 @click="toggleChatVoice"
@@ -122,11 +169,16 @@
 
 <script setup>
 import { inject } from 'vue';
+import { Bot, History, Loader2, MessageSquare, Mic, RotateCcw, Send, Sparkles, Square, Volume2, X } from 'lucide-vue-next';
 const ctx = inject('screenContext');
 const activeTab = ctx.activeTab;
 const chatInput = ctx.chatInput;
 const chatLoading = ctx.chatLoading;
 const chatMessages = ctx.chatMessages;
+const chatConversations = ctx.chatConversations;
+const chatHistoryError = ctx.chatHistoryError;
+const chatHistoryLoading = ctx.chatHistoryLoading;
+const isChatHistoryOpen = ctx.isChatHistoryOpen;
 const chatRecorder = ctx.chatRecorder;
 const chatScenarioId = ctx.chatScenarioId;
 const chatScrollContainer = ctx.chatScrollContainer;
@@ -207,6 +259,8 @@ const targetIpa = ctx.targetIpa;
 const targetSpeakingText = ctx.targetSpeakingText;
 const targetTranslation = ctx.targetTranslation;
 const toggleChatVoice = ctx.toggleChatVoice;
+const toggleChatHistory = ctx.toggleChatHistory;
+const openChatConversation = ctx.openChatConversation;
 const toggleRecording = ctx.toggleRecording;
 const topics = ctx.topics;
 const totalPracticeCount = ctx.totalPracticeCount;
@@ -218,4 +272,12 @@ const wordCount = ctx.wordCount;
 const writingError = ctx.writingError;
 const writingResult = ctx.writingResult;
 const writingSubTab = ctx.writingSubTab;
+
+const formatConversationDate = (date) => {
+  if (!date) return 'Ngày chưa xác định';
+  return new Date(date).toLocaleString('vi-VN', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit'
+  });
+};
 </script>

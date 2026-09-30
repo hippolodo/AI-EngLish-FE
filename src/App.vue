@@ -277,6 +277,12 @@ const speakingTopicId = ref(null);
 const speakingLessonId = ref(null);
 const speakingLessons = ref([]);
 const speakingLessonsLoading = ref(false);
+const speakingLessonContents = ref([]);
+const selectedSpeakingContentId = ref(null);
+const currentSpeakingSentenceIndex = computed(() => Math.max(
+  0,
+  speakingLessonContents.value.findIndex(content => content.id === selectedSpeakingContentId.value)
+));
 let speakingTopicRequestId = 0;
 let speakingLessonRequestId = 0;
 const targetSpeakingText = ref('Hello, welcome to AI English Learning!');
@@ -295,6 +301,8 @@ const onSpeakingTopicChange = async () => {
   speakingLessonRequestId += 1;
   speakingLessons.value = [];
   speakingLessonId.value = null;
+  speakingLessonContents.value = [];
+  selectedSpeakingContentId.value = null;
   if (!isCustomSpeakingMode.value) targetSpeakingText.value = '';
   targetIpa.value = '';
   targetTranslation.value = '';
@@ -320,18 +328,21 @@ const onSpeakingTopicChange = async () => {
 const onSpeakingLessonChange = async () => {
   if (!speakingLessonId.value) return;
   const requestId = ++speakingLessonRequestId;
+  speakingLessonContents.value = [];
+  selectedSpeakingContentId.value = null;
+  if (!isCustomSpeakingMode.value) targetSpeakingText.value = '';
+  targetIpa.value = '';
+  targetTranslation.value = '';
+  nativeAudioUrl.value = '';
   try {
     const detail = await curriculumService.getLessonDetail(speakingLessonId.value);
     if (requestId !== speakingLessonRequestId) return;
     if (detail && detail.contents && detail.contents.length > 0) {
-      const c = detail.contents[0];
-      if (!isCustomSpeakingMode.value) {
-        targetSpeakingText.value = c.target_text;
-      }
-      targetIpa.value = c.ipa_guide || '';
-      targetTranslation.value = c.hint_translation || '';
-      nativeAudioUrl.value = c.audio_url || '';
+      speakingLessonContents.value = detail.contents;
+      selectSpeakingSentence(detail.contents[0]);
     } else {
+      speakingLessonContents.value = [];
+      selectedSpeakingContentId.value = null;
       const currentL = speakingLessons.value.find(l => l.id === speakingLessonId.value);
       if (currentL && !isCustomSpeakingMode.value) {
         targetSpeakingText.value = currentL.title;
@@ -343,6 +354,23 @@ const onSpeakingLessonChange = async () => {
   } catch (err) {
     console.warn('Lesson detail error:', err);
   }
+};
+
+const selectSpeakingSentence = (content) => {
+  if (!content) return;
+  selectedSpeakingContentId.value = content.id;
+  if (!isCustomSpeakingMode.value) targetSpeakingText.value = content.target_text;
+  targetIpa.value = content.ipa_guide || '';
+  targetTranslation.value = content.hint_translation || '';
+  nativeAudioUrl.value = content.audio_url || '';
+  speakingResult.value = null;
+  speakingError.value = '';
+};
+
+const navigateSpeakingSentence = (offset) => {
+  const nextIndex = currentSpeakingSentenceIndex.value + offset;
+  if (nextIndex < 0 || nextIndex >= speakingLessonContents.value.length) return;
+  selectSpeakingSentence(speakingLessonContents.value[nextIndex]);
 };
 
 const playNativeAudio = () => {
@@ -449,6 +477,10 @@ const conversationId = ref(null);
 const chatMessages = ref([]);
 const chatInput = ref('');
 const chatLoading = ref(false);
+const isChatHistoryOpen = ref(false);
+const chatHistoryLoading = ref(false);
+const chatHistoryError = ref('');
+const chatConversations = ref([]);
 const isBotTyping = ref(false);
 const isChatRecording = ref(false);
 const chatRecorder = new AudioRecorder();
@@ -456,6 +488,41 @@ const chatRecorder = new AudioRecorder();
 const currentChatScenario = computed(() => {
   return scenarios.value.find(s => s.id === chatScenarioId.value);
 });
+
+const loadChatConversations = async () => {
+  chatHistoryLoading.value = true;
+  chatHistoryError.value = '';
+  try {
+    chatConversations.value = await chatService.getConversations() || [];
+  } catch (err) {
+    chatHistoryError.value = err.response?.data?.detail || 'Không tải được lịch sử trò chuyện. Vui lòng thử lại.';
+  } finally {
+    chatHistoryLoading.value = false;
+  }
+};
+
+const toggleChatHistory = async () => {
+  isChatHistoryOpen.value = !isChatHistoryOpen.value;
+  if (isChatHistoryOpen.value) await loadChatConversations();
+};
+
+const openChatConversation = async (conversation) => {
+  chatLoading.value = true;
+  chatHistoryError.value = '';
+  try {
+    const detail = await chatService.getConversationDetail(conversation.id);
+    conversationId.value = detail.id;
+    chatMessages.value = detail.messages || [];
+    const scenario = scenarios.value.find(item => item.title === detail.scenario_title);
+    if (scenario) chatScenarioId.value = scenario.id;
+    isChatHistoryOpen.value = false;
+    await scrollChatToBottom();
+  } catch (err) {
+    chatHistoryError.value = err.response?.data?.detail || 'Không mở được cuộc trò chuyện này. Vui lòng thử lại.';
+  } finally {
+    chatLoading.value = false;
+  }
+};
 
 const loadChatScenarios = async () => {
   chatLoading.value = true;
@@ -753,7 +820,7 @@ const updateClock = () => {
 
 let clockInterval = null;
 
-provide('screenContext', { activeTab, chatInput, chatLoading, chatMessages, chatRecorder, chatScenarioId, chatScrollContainer, checkQuizAnswer, clockInterval, conversationId, copied, copyRewritten, currentCard, currentChatScenario, currentQuestion, currentStudyIndex, currentTime, dashboard, essayInput, flashcards, getActivityBadgeClass, getQuizAnswerClass, getTopicColor, getTopicEmoji, getWordBg, getWordTextColor, homeLoading, isAnalyzingSpeaking, isAuthOpen, isAuthenticated, isBotTyping, isChatRecording, isCustomSpeakingMode, isEvaluating, isFlipped, isProfileOpen, isRecording, isSubmittingQuiz, loadChatScenarios, loadFlashcardsData, loadHomeData, loadQuizzesData, logout, nativeAudioUrl, nextQuizQuestion, onAuthSuccess, onProfileUpdated, onQuizChange, onSpeakingLessonChange, onSpeakingTopicChange, openAuthModal, playNativeAudio, quizChecked, quizQuestions, quizzesList, recorder, resetChatConversation, scenarios, scrollChatToBottom, selectQuizAnswer, selectedQuizAnswer, selectedQuizId, sendChatText, speakBotMessage, speakText, speakingError, speakingLessonId, speakingLessons, speakingLessonsLoading, speakingResult, speakingTopicId, startChatConversation, startTopic, stopAndAnalyzeSpeaking, studyLoading, studyMode, submitCardReview, submitWritingEvaluation, submittedQuizDetail, switchChatScenario, switchStudyMode, targetIpa, targetSpeakingText, targetTranslation, toggleChatVoice, toggleRecording, topics, totalPracticeCount, totalStudyItems, updateClock, userAvatarUrl, userProfile, wordCount, writingError, writingResult, writingSubTab });
+provide('screenContext', { activeTab, chatConversations, chatHistoryError, chatHistoryLoading, chatInput, chatLoading, chatMessages, chatRecorder, chatScenarioId, chatScrollContainer, checkQuizAnswer, clockInterval, conversationId, copied, copyRewritten, currentCard, currentChatScenario, currentQuestion, currentSpeakingSentenceIndex, currentStudyIndex, currentTime, dashboard, essayInput, flashcards, getActivityBadgeClass, getQuizAnswerClass, getTopicColor, getTopicEmoji, getWordBg, getWordTextColor, homeLoading, isAnalyzingSpeaking, isAuthOpen, isAuthenticated, isBotTyping, isChatHistoryOpen, isChatRecording, isCustomSpeakingMode, isEvaluating, isFlipped, isProfileOpen, isRecording, isSubmittingQuiz, loadChatConversations, loadChatScenarios, loadFlashcardsData, loadHomeData, loadQuizzesData, logout, nativeAudioUrl, navigateSpeakingSentence, nextQuizQuestion, onAuthSuccess, onProfileUpdated, onQuizChange, onSpeakingLessonChange, onSpeakingTopicChange, openAuthModal, openChatConversation, playNativeAudio, quizChecked, quizQuestions, quizzesList, recorder, resetChatConversation, scenarios, scrollChatToBottom, selectQuizAnswer, selectSpeakingSentence, selectedQuizAnswer, selectedQuizId, selectedSpeakingContentId, sendChatText, speakBotMessage, speakText, speakingError, speakingLessonContents, speakingLessonId, speakingLessons, speakingLessonsLoading, speakingResult, speakingTopicId, startChatConversation, startTopic, stopAndAnalyzeSpeaking, studyLoading, studyMode, submitCardReview, submitWritingEvaluation, submittedQuizDetail, switchChatScenario, switchStudyMode, targetIpa, targetSpeakingText, targetTranslation, toggleChatHistory, toggleChatVoice, toggleRecording, topics, totalPracticeCount, totalStudyItems, updateClock, userAvatarUrl, userProfile, wordCount, writingError, writingResult, writingSubTab });
 
 onMounted(async () => {
   updateClock();

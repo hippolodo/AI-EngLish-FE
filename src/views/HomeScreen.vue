@@ -30,13 +30,14 @@
           <!-- Loading State for Dashboard -->
           <div v-if="homeLoading" class="py-10 text-center space-y-2">
             <Loader2 class="w-6 h-6 animate-spin text-indigo-600 mx-auto" />
-            <p class="text-xs text-gray-500">Đang tải tiến độ học tập từ CSDL...</p>
+            <p class="text-xs text-gray-500">Đang tải tiến độ học tập...</p>
           </div>
 
           <template v-else>
             <!-- Progress & Stats Card -->
-            <div class="bg-gradient-to-br from-indigo-600 via-indigo-700 to-indigo-800 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden">
-              <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
+            <div class="home-stats-card bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-600 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden">
+              <div class="absolute -right-6 -bottom-6 w-36 h-36 bg-fuchsia-300/25 rounded-full blur-2xl pointer-events-none"></div>
+              <div class="absolute right-12 -top-10 w-24 h-24 bg-amber-300/20 rounded-full blur-xl pointer-events-none"></div>
               <div class="flex justify-between items-start mb-4">
                 <div>
                   <div class="flex items-center gap-1.5 text-indigo-200 text-xs font-medium">
@@ -99,8 +100,8 @@
             <div>
               <div class="flex items-center justify-between mb-3">
                 <div>
-                  <h2 class="text-base font-bold text-gray-900">Chủ đề từ CSDL</h2>
-                  <p class="text-xs text-gray-500">Giáo trình chuẩn hóa theo khung tham chiếu CEFR</p>
+                  <h2 class="text-base font-bold text-gray-900">Chủ đề học tập</h2>
+                  <p class="text-xs text-gray-500">Nội dung được sắp xếp theo trình độ tiếng Anh</p>
                 </div>
                 <span class="text-xs text-indigo-600 font-semibold cursor-pointer hover:underline" @click="loadHomeData">Làm mới</span>
               </div>
@@ -151,7 +152,7 @@
                 <div
                   v-for="topic in visibleTopics"
                   :key="topic.id"
-                  class="bg-white rounded-2xl p-4 border border-gray-100 shadow-xs hover:shadow-md transition-all flex items-center justify-between group"
+                  class="topic-card bg-white rounded-2xl p-4 border border-gray-100 shadow-xs hover:shadow-md transition-all flex items-center justify-between group"
                 >
                   <div class="flex items-center space-x-3.5">
                     <div :class="getTopicColor(topic.level)" class="w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-inner font-bold">
@@ -167,7 +168,7 @@
                       <p class="text-xs text-gray-500 mt-0.5 line-clamp-1">{{ topic.description }}</p>
                       <div class="flex items-center gap-3 mt-1.5 text-[11px] text-gray-400">
                         <span class="flex items-center gap-1"><BookOpen class="w-3 h-3 text-indigo-400" /> Giáo trình</span>
-                        <span class="flex items-center gap-1"><CheckCircle class="w-3 h-3 text-emerald-500" /> CSDL Aiven</span>
+                        <span class="flex items-center gap-1"><CheckCircle class="w-3 h-3 text-emerald-500" /> Bài học có sẵn</span>
                       </div>
                     </div>
                   </div>
