@@ -1,3 +1,100 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: #20213a;
+    background: #eef0ff;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    min-width: 320px;
+    min-height: 100vh;
+    margin: 0;
+    background:
+      radial-gradient(ellipse at 12% 5%, rgba(216, 210, 255, 0.72), transparent 34%),
+      radial-gradient(ellipse at 92% 92%, rgba(201, 247, 233, 0.65), transparent 32%),
+      #eef0ff;
+  }
+
+  button, input, select, textarea {
+    font: inherit;
+  }
+
+  button {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  ::selection {
+    color: #312e81;
+    background: #ddd6fe;
+  }
+}
+
+.app-backdrop {
+  background-image:
+    radial-gradient(circle at 8% 12%, rgba(196, 181, 253, 0.32), transparent 24rem),
+    radial-gradient(circle at 90% 86%, rgba(167, 243, 208, 0.28), transparent 22rem);
+}
+
+.app-shell {
+  box-shadow: 0 28px 90px rgba(53, 45, 112, 0.17);
+}
+
+.app-shell main {
+  background:
+    radial-gradient(ellipse at 100% 0%, rgba(237, 233, 254, 0.42), transparent 30rem),
+    #f8f8ff;
+}
+
+.app-shell nav button {
+  border-radius: 14px;
+}
+
+.app-shell nav button:has(span.absolute) {
+  color: #6d48d8;
+  background: #f1edff;
+}
+
+.app-shell nav button:has(span.absolute) > span.absolute {
+  display: none;
+}
+
+.app-shell input:focus-visible,
+.app-shell select:focus-visible,
+.app-shell textarea:focus-visible,
+.app-shell button:focus-visible {
+  outline: 3px solid rgba(139, 92, 246, 0.35);
+  outline-offset: 2px;
+}
+
+.app-shell .group:hover {
+  transform: translateY(-2px);
+}
+
+.picker-pop-enter-active,
+.picker-pop-leave-active {
+  transition: opacity 140ms ease, transform 140ms ease;
+  transform-origin: top center;
+}
+
+.picker-pop-enter-from,
+.picker-pop-leave-to {
+  opacity: 0;
+  transform: translateY(-5px) scale(0.98);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

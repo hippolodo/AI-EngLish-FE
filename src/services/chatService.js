@@ -7,7 +7,7 @@ export const chatService = {
   },
 
   async startConversation(scenarioId) {
-    const res = await apiClient.post('/chat/start', {
+    const res = await apiClient.post('/chat/conversations', {
       scenario_id: scenarioId
     });
     return res.data;
