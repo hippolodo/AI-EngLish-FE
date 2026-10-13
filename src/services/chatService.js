@@ -1,4 +1,4 @@
-import { apiClient } from './api';
+import { apiClient, getAudioFileName } from './api';
 
 export const chatService = {
   async getScenarios() {
@@ -32,7 +32,7 @@ export const chatService = {
 
   async sendVoiceMessage(conversationId, audioBlob) {
     const formData = new FormData();
-    const fileName = audioBlob instanceof File ? audioBlob.name : 'user_voice.webm';
+    const fileName = getAudioFileName(audioBlob, 'user_voice');
     formData.append('audio_file', audioBlob, fileName);
 
     const res = await apiClient.post(`/chat/conversations/${conversationId}/voice`, formData, {

@@ -32,23 +32,30 @@ export const authService = {
   },
 
   async getProfile() {
-    try {
-      const res = await apiClient.get('/auth/me');
-      if (res.data) {
-        localStorage.setItem('user', JSON.stringify(res.data));
-      }
-      return res.data;
-    } catch (err) {
-      return null;
+    const token = this.getToken();
+    const res = await apiClient.get('/auth/me');
+    if (res.data && token === this.getToken()) {
+      localStorage.setItem('user', JSON.stringify(res.data));
     }
+    return res.data;
   },
 
   async updateTargetLevel(targetLevel) {
+    const token = this.getToken();
     const res = await apiClient.put('/auth/target-level', {
       target_level: targetLevel
     });
-    if (res.data) {
+    if (res.data && token === this.getToken()) {
       localStorage.setItem('user', JSON.stringify(res.data));
+    }
+    return res.data;
+  },
+
+  async updatePreferences(preferences) {
+    const token = this.getToken();
+    const res = await apiClient.put('/auth/preferences', preferences);
+    if (res.data?.user && token === this.getToken()) {
+      localStorage.setItem('user', JSON.stringify(res.data.user));
     }
     return res.data;
   },
@@ -72,6 +79,16 @@ export const authService = {
   },
 
   isAuthenticated() {
-    return !!localStorage.getItem('token');
+    const token = this.getToken();
+    if (!token) return false;
+    try {
+      const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+      const { exp } = JSON.parse(atob(payload.padEnd(Math.ceil(payload.length / 4) * 4, '=')));
+      if (typeof exp === 'number' && exp * 1000 > Date.now()) return true;
+    } catch {
+      // Invalid cached tokens are discarded; the server remains the authority for authentication.
+    }
+    this.logout();
+    return false;
   }
 };

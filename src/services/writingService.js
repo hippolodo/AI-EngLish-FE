@@ -1,11 +1,12 @@
 import { apiClient } from './api';
 
 export const writingService = {
-  async evaluateEssay(text, lessonId = null) {
+  async evaluateEssay(text, lessonId = null, prompt = null) {
     const payload = {
       original_text: text,
       content: text,
-      lesson_id: lessonId
+      lesson_id: lessonId,
+      prompt
     };
     const res = await apiClient.post('/writing/evaluate', payload, {
       timeout: 45000

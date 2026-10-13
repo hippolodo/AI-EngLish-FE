@@ -3,28 +3,58 @@
           <!-- Header -->
           <div class="flex items-center justify-between">
             <div>
-              <span class="text-[10px] uppercase tracking-wider font-extrabold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">Writing Assistant</span>
-              <h1 class="text-lg font-bold text-gray-900 mt-1">AI Essay &amp; Grammar Lab</h1>
+              <span class="text-xs uppercase tracking-wide font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">Writing Assistant</span>
+              <h1 class="text-gray-900 mt-1 text-xl font-bold leading-snug">{{ ctx.currentLesson.value?.type === 'WRITING' ? 'Viết theo đề bài' : 'Luyện viết tự do' }}</h1>
             </div>
           </div>
 
           <!-- Input Area -->
+          <div v-if="ctx.currentLesson.value?.type === 'WRITING'" class="space-y-2 rounded-xl bg-indigo-50 p-4 text-sm text-indigo-900">
+            <div class="flex items-start justify-between gap-3"><h2 class="text-base font-semibold">{{ ctx.currentLesson.value.title }}</h2><button @click="ctx.openWritingTaskPicker" :disabled="isEvaluating" class="shrink-0 rounded-lg bg-white px-3 py-2 text-xs font-semibold text-indigo-700 disabled:opacity-50">Đổi đề</button></div>
+            <div v-for="content in ctx.lessonDetail.value?.contents || []" :key="content.id" class="space-y-2">
+              <p class="pt-2 font-semibold">Đề bài</p><p class="reading-text whitespace-pre-line">{{ content.target_text }}</p>
+              <details v-if="content.hint_translation"><summary class="cursor-pointer text-xs font-medium text-indigo-700">Xem đề bằng tiếng Việt</summary><p class="mt-2 whitespace-pre-line text-slate-600">{{ content.hint_translation }}</p></details>
+              <div v-if="content.task_guidance" class="rounded-lg bg-white/70 p-3"><p class="mb-1 font-semibold">Hướng dẫn viết</p><p class="whitespace-pre-line text-indigo-700">{{ content.task_guidance }}</p></div>
+              <details v-if="content.sample_text" class="rounded-lg bg-white/80 p-3">
+                <summary class="cursor-pointer font-semibold">Xem bài mẫu tham khảo</summary>
+                <p class="mt-2 text-xs text-slate-500">Tham khảo cách triển khai ý; hãy viết bằng lời của bạn.</p>
+                <p class="reading-text mt-2 whitespace-pre-line text-slate-700">{{ content.sample_text }}</p>
+              </details>
+            </div>
+            <p class="text-indigo-700">Viết bản nháp, xem phản hồi rồi sửa và nộp lại. Bản nháp được lưu theo bài.</p>
+          </div>
+          <div v-else class="rounded-xl border border-indigo-100 bg-indigo-50 p-4 text-sm text-indigo-900">
+            <p>Viết đoạn văn, email hoặc nội dung bạn muốn luyện. Phần này góp ý ngôn ngữ, không chấm mức độ bám một đề cụ thể.</p>
+            <button @click="ctx.openWritingTaskPicker" :disabled="isEvaluating" :aria-expanded="ctx.writingPickerOpen.value" aria-controls="writing-task-picker" class="mt-3 rounded-xl bg-indigo-700 px-4 py-2.5 font-semibold text-white transition hover:bg-indigo-800 disabled:opacity-50">Chọn đề từ một chủ đề →</button>
+          </div>
+          <section v-if="ctx.writingPickerOpen.value" id="writing-task-picker" aria-labelledby="writing-picker-title" class="space-y-3 rounded-2xl border border-violet-200 bg-gradient-to-br from-violet-50 to-sky-50 p-4">
+            <div class="flex items-center justify-between gap-3"><h2 id="writing-picker-title" class="text-base font-semibold text-violet-950">Chọn đề viết</h2><button @click="ctx.writingPickerOpen.value = false" class="rounded-lg bg-white px-3 py-2 text-xs font-semibold text-slate-600">Đóng</button></div>
+            <p v-if="ctx.writingPickerLoading.value" role="status" class="flex items-center gap-2 py-3 text-sm text-indigo-700"><Loader2 class="h-4 w-4 animate-spin" />Đang tải đề viết…</p>
+            <div v-else-if="ctx.writingPickerError.value" role="alert" class="rounded-xl bg-rose-50 p-3 text-sm text-rose-700">{{ ctx.writingPickerError.value }} <button @click="ctx.loadWritingTasks" class="font-semibold underline">Thử lại</button></div>
+            <template v-else>
+              <label class="block space-y-1.5 text-sm font-medium text-slate-700"><span>Chủ đề có bài viết</span><select v-model="ctx.writingPickerTopicId.value" class="w-full rounded-xl border border-violet-200 bg-white p-3 text-sm text-slate-800"><option :value="null">Tất cả chủ đề có bài viết</option><option v-for="topic in ctx.writingPickerTopics.value" :key="topic.id" :value="topic.id">{{ topic.title }}</option></select></label>
+              <div class="space-y-2">
+                <button v-for="lesson in ctx.writingPickerLessons.value" :key="lesson.id" @click="ctx.openWritingLesson(lesson)" :disabled="isEvaluating" class="flex w-full items-center gap-3 rounded-xl border border-violet-100 bg-white p-4 text-left shadow-sm transition hover:border-violet-300 hover:bg-violet-50 disabled:opacity-50"><span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-100 text-violet-700"><PenLine class="h-5 w-5" aria-hidden="true" /></span><span class="min-w-0 flex-1"><span class="block text-sm font-semibold text-slate-900">{{ lesson.title }}</span><span class="mt-1 block text-xs text-slate-500">{{ ctx.writingPickerTopics.value.find(topic => topic.id === lesson.topic_id)?.title }}</span></span><ArrowRight class="h-4 w-4 shrink-0 text-violet-600" aria-hidden="true" /></button>
+              </div>
+              <p v-if="!ctx.writingPickerLessons.value.length" class="rounded-xl bg-white p-4 text-sm text-slate-600">Chưa có đề viết ở chủ đề này. Hãy chọn chủ đề khác.</p>
+            </template>
+          </section>
           <div class="space-y-3">
             <div class="bg-white rounded-2xl p-4 border border-gray-200/90 shadow-xs relative focus-within:ring-2 focus-within:ring-indigo-600 focus-within:border-transparent">
               <textarea
-                v-model="essayInput"
+                v-model="essayInput" :readonly="isEvaluating" maxlength="10000"
                 rows="6"
-                class="w-full text-xs text-gray-800 placeholder-gray-400 bg-transparent resize-none focus:outline-none leading-relaxed"
-                placeholder="Nhập đoạn văn hoặc bài luận tiếng Anh bạn muốn AI sửa lỗi và chấm điểm IELTS..."
+                class="w-full text-sm text-gray-800 placeholder-gray-400 bg-transparent resize-none focus:outline-none leading-relaxed"
+                :placeholder="ctx.currentLesson.value?.type === 'WRITING' ? 'Viết bài bằng tiếng Anh theo yêu cầu bên trên…' : 'Nhập đoạn văn, email hoặc bài viết bằng tiếng Anh…'"
               ></textarea>
-              <div class="flex justify-between items-center pt-2 border-t border-gray-100 text-[11px] text-gray-400">
-                <span>{{ wordCount }} words • {{ essayInput.length }} chars</span>
-                <span class="text-indigo-600 font-medium">Phù hợp luyện viết IELTS và ngữ pháp</span>
+              <div class="flex justify-between items-center pt-2 border-t border-gray-100 text-xs text-gray-400">
+                <span>{{ wordCount }} từ · {{ essayInput.length }} ký tự</span>
+                <span class="text-indigo-600 font-medium">{{ isAuthenticated ? 'Bản nháp tự động lưu' : 'Đăng nhập để lưu bản nháp' }}</span>
               </div>
             </div>
 
             <!-- Error message if any -->
-            <div v-if="writingError" class="p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-600">
+            <div v-if="writingError" class="p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-sm text-rose-600">
               ⚠️ {{ writingError }}
             </div>
 
@@ -32,44 +62,51 @@
             <button
               @click="submitWritingEvaluation"
               :disabled="isEvaluating || !essayInput.trim()"
-              class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-600/20 transition flex items-center justify-center gap-2 cursor-pointer"
+              class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white rounded-xl text-sm font-semibold shadow-md shadow-indigo-600/20 transition flex items-center justify-center gap-2 cursor-pointer"
             >
               <Sparkles v-if="!isEvaluating" class="w-4 h-4" />
               <Loader2 v-else class="w-4 h-4 animate-spin" />
-              <span>{{ isEvaluating ? 'AI đang chấm bài luận...' : 'Chấm điểm & Sửa lỗi với AI' }}</span>
+              <span>{{ isEvaluating ? 'Đang đánh giá bài viết…' : 'Nhận góp ý & sửa bài' }}</span>
             </button>
           </div>
 
           <!-- Real Results Dashboard -->
           <div v-if="writingResult" class="space-y-4 pt-1 border-t border-gray-200/70">
+            <p class="text-sm text-slate-500">{{ writingResult.assessment_method === 'rules' ? 'Kết quả kiểm tra lỗi cơ bản; chưa có đánh giá đầy đủ từ AI.' : 'Đánh giá AI là kết quả tham khảo để luyện tập.' }}</p>
+            <div v-if="writingResult.task_feedback" role="status" class="rounded-xl border border-indigo-100 bg-indigo-50 p-4 text-sm text-indigo-900"><p class="mb-1 font-semibold">Nhận xét về bài viết</p><p>{{ writingResult.task_feedback }}</p></div>
+            <p v-if="ctx.currentLesson.value?.type === 'WRITING' && ctx.lessonProgress.value.writing_previous_score != null && writingResult.overall_score != null" class="text-sm text-indigo-700">Lần trước: {{ ctx.lessonProgress.value.writing_previous_score }}/100 · Lần này: {{ ctx.lessonProgress.value.writing_score }}/100. Xem lại phản hồi để so sánh các lỗi đã sửa.</p>
+            <div class="flex gap-3 text-sm font-semibold text-indigo-600">
+              <button @click="ctx.openSaveWord('', essayInput)">Lưu từ cần ôn</button>
+              <button v-if="ctx.currentLesson.value?.type === 'WRITING'" @click="ctx.finishLesson">Hoàn thành & tổng kết →</button>
+            </div>
             <!-- Score Card -->
-            <div class="bg-gradient-to-r from-gray-900 to-indigo-950 rounded-2xl p-4 text-white shadow-md flex items-center justify-between">
+            <div v-if="writingResult.overall_score != null" class="bg-gradient-to-r from-gray-900 to-indigo-950 rounded-2xl p-4 text-white shadow-md flex items-center justify-between">
               <div>
-                <p class="text-[10px] font-semibold text-indigo-300 uppercase tracking-wider">Điểm đánh giá AI</p>
+                <p class="text-xs font-semibold text-indigo-300 uppercase tracking-wide">Điểm đánh giá AI</p>
                 <div class="flex items-baseline gap-2 mt-1">
-                  <span class="text-3xl font-extrabold text-white">{{ writingResult.overall_score }}</span>
-                  <span class="text-xs text-gray-400">/ 100</span>
+                  <span class="text-3xl font-semibold text-white">{{ writingResult.overall_score }}</span>
+                  <span class="text-sm text-gray-500">/ 100</span>
                 </div>
               </div>
               <div class="text-right">
-                <span class="inline-block px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
-                  IELTS Band {{ writingResult.estimated_band || 'N/A' }}
+                <span v-if="writingResult.task_type === 'ielts_task2' && writingResult.estimated_band" class="inline-block px-3 py-1 rounded-full text-sm font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
+                  IELTS Band tham khảo {{ writingResult.estimated_band }}
                 </span>
-                <p class="text-[11px] text-gray-400 mt-1">
+                <p class="text-xs text-gray-500 mt-1">
                   {{ (writingResult.errors || []).length }} lỗi cần sửa
                 </p>
               </div>
             </div>
 
             <!-- Sub Tabs -->
-            <div class="flex bg-gray-200/70 p-1 rounded-xl text-xs font-bold text-gray-600">
+            <div class="flex bg-gray-200/70 p-1 rounded-xl text-sm font-semibold text-gray-600">
               <button
                 @click="writingSubTab = 'grammar'"
                 :class="writingSubTab === 'grammar' ? 'bg-white text-indigo-700 shadow-xs' : 'hover:text-gray-900'"
                 class="flex-1 py-2 rounded-lg transition text-center flex items-center justify-center gap-1 cursor-pointer"
               >
                 <span>Sửa lỗi</span>
-                <span class="px-1.5 py-0.2 rounded-full bg-rose-500 text-white text-[10px]">
+                <span class="px-1.5 py-0.2 rounded-full bg-rose-500 text-white text-xs">
                   {{ (writingResult.errors || []).length }}
                 </span>
               </button>
@@ -85,14 +122,14 @@
                 :class="writingSubTab === 'rewrite' ? 'bg-white text-indigo-700 shadow-xs' : 'hover:text-gray-900'"
                 class="flex-1 py-2 rounded-lg transition text-center cursor-pointer"
               >
-                Bản viết lại chuẩn
+                Gợi ý viết lại
               </button>
             </div>
 
             <!-- Subview 1: Grammar Errors (Real) -->
             <div v-if="writingSubTab === 'grammar'" class="space-y-3">
-              <div v-if="!writingResult.errors || writingResult.errors.length === 0" class="p-6 bg-white rounded-2xl border border-gray-100 text-center text-xs text-emerald-600 font-bold">
-                🎉 Bài viết không có lỗi ngữ pháp! Rất xuất sắc.
+              <div v-if="!writingResult.errors || writingResult.errors.length === 0" class="p-6 bg-white rounded-2xl border border-gray-100 text-center text-sm text-emerald-600 font-semibold">
+                Chưa phát hiện lỗi trong lượt kiểm tra này. Hãy xem thêm góp ý về nội dung và cách diễn đạt.
               </div>
 
               <div
@@ -100,18 +137,18 @@
                 :key="idx"
                 class="bg-white rounded-2xl p-4 border border-gray-100 shadow-xs space-y-2"
               >
-                <div class="flex items-center justify-between text-xs">
-                  <span class="font-bold text-gray-600">Lỗi #{{ idx + 1 }} • {{ err.error_type || 'Syntax Error' }}</span>
-                  <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-rose-50 text-rose-600">Cần sửa</span>
+                <div class="flex items-center justify-between text-sm">
+                  <span class="font-semibold text-gray-600">Lỗi #{{ idx + 1 }} • {{ err.error_type || 'Syntax Error' }}</span>
+                  <span class="px-2 py-0.5 rounded text-xs font-semibold bg-rose-50 text-rose-600">Cần sửa</span>
                 </div>
-                <div class="p-2.5 bg-gray-50 rounded-xl flex items-center justify-between text-xs gap-2">
+                <div class="p-2.5 bg-gray-50 rounded-xl flex items-center justify-between text-sm gap-2">
                   <span class="text-rose-500 line-through font-medium">{{ err.original_fragment }}</span>
                   <ArrowRight class="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                  <span class="text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                  <span class="text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                     {{ err.corrected_fragment }}
                   </span>
                 </div>
-                <div class="p-2.5 bg-amber-50/70 border border-amber-200/80 rounded-xl text-[11px] text-amber-900 leading-relaxed">
+                <div class="p-2.5 bg-amber-50/70 border border-amber-200/80 rounded-xl text-xs text-amber-900 leading-relaxed">
                   <strong class="text-amber-950">Giải thích:</strong> {{ err.explanation }}
                 </div>
               </div>
@@ -119,14 +156,14 @@
 
             <!-- Subview 2: Vocab Upgrades (Real) -->
             <div v-if="writingSubTab === 'vocab'" class="space-y-3">
-              <div v-if="!writingResult.vocabulary_suggestions || writingResult.vocabulary_suggestions.length === 0" class="p-6 bg-white rounded-2xl border border-gray-100 text-center text-xs text-gray-500">
+              <div v-if="!writingResult.vocabulary_suggestions || writingResult.vocabulary_suggestions.length === 0" class="p-6 bg-white rounded-2xl border border-gray-100 text-center text-sm text-gray-500">
                 Không có gợi ý nâng cấp từ vựng thêm.
               </div>
 
               <div
                 v-for="(vocab, idx) in writingResult.vocabulary_suggestions"
                 :key="idx"
-                class="bg-white rounded-2xl p-4 border border-gray-100 shadow-xs text-xs space-y-1"
+                class="bg-white rounded-2xl p-4 border border-gray-100 shadow-xs text-sm space-y-1"
               >
                 <div class="flex items-center gap-1.5 text-indigo-700 font-semibold">
                   <Sparkles class="w-3.5 h-3.5 text-indigo-500" />
@@ -139,17 +176,17 @@
             <!-- Subview 3: Rewritten Essay (Real) -->
             <div v-if="writingSubTab === 'rewrite'" class="bg-white rounded-2xl p-4 border border-gray-100 shadow-xs space-y-3">
               <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                <span class="text-sm font-semibold text-gray-800 flex items-center gap-1.5">
                   <Sparkles class="w-4 h-4 text-indigo-600" />
-                  Bản AI biên tập hoàn thiện
+                  Gợi ý chỉnh sửa bài viết
                 </span>
-                <button @click="copyRewritten" class="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-2.5 py-1 rounded-lg flex items-center gap-1 cursor-pointer">
+                <button @click="copyRewritten" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-2.5 py-1 rounded-lg flex items-center gap-1 cursor-pointer">
                   <Check v-if="copied" class="w-3 h-3" />
                   <Copy v-else class="w-3 h-3" />
                   <span>{{ copied ? 'Đã sao chép!' : 'Sao chép' }}</span>
                 </button>
               </div>
-              <div class="p-3.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-700 leading-relaxed font-normal whitespace-pre-line">
+              <div class="reading-text p-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-700 leading-relaxed font-normal whitespace-pre-line">
                 {{ writingResult.corrected_text }}
               </div>
             </div>
@@ -158,6 +195,7 @@
 </template>
 
 <script setup>
+import { ArrowRight, Check, Copy, Loader2, Sparkles, PenLine } from 'lucide-vue-next';
 import { inject } from 'vue';
 const ctx = inject('screenContext');
 const activeTab = ctx.activeTab;

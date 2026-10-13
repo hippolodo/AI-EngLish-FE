@@ -1,7 +1,7 @@
 <template>
   <div class="grid grid-cols-1 gap-2.5">
     <div ref="topicRoot" class="relative min-w-0">
-      <span class="mb-1.5 block text-[9px] font-extrabold uppercase tracking-[0.14em] text-violet-500">Chủ đề luyện tập</span>
+      <span class="mb-1.5 block text-xs font-semibold uppercase tracking-[0.14em] text-violet-500">Chủ đề luyện tập</span>
       <button
         type="button"
         :aria-expanded="topicOpen"
@@ -14,8 +14,8 @@
           <Layers class="h-4 w-4" />
         </span>
         <span class="min-w-0 flex-1">
-          <span class="block truncate text-xs font-extrabold text-slate-800">{{ selectedTopic?.title || 'Chọn chủ đề' }}</span>
-          <span class="mt-0.5 block truncate text-[10px] font-medium text-slate-400">{{ selectedTopic?.level || 'Khám phá chủ đề học' }}</span>
+          <span class="block truncate text-sm font-semibold text-slate-800">{{ selectedTopic?.title || 'Chọn chủ đề' }}</span>
+          <span class="mt-0.5 block truncate text-xs font-medium text-slate-500">{{ selectedTopic?.level || 'Khám phá chủ đề học' }}</span>
         </span>
         <ChevronDown :class="topicOpen ? 'rotate-180' : ''" class="h-4 w-4 shrink-0 text-violet-500 transition-transform" />
       </button>
@@ -35,19 +35,19 @@
             <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-600">
               <BookOpen class="h-3.5 w-3.5" />
             </span>
-            <span class="min-w-0 flex-1 truncate text-xs font-bold text-slate-700">{{ topic.title }}</span>
-            <span class="shrink-0 rounded-full px-2 py-1 text-[9px] font-bold" :class="levelClass(topic.level)">{{ topic.level }}</span>
+            <span class="min-w-0 flex-1 truncate text-sm font-semibold text-slate-700">{{ topic.title }}</span>
+            <span class="shrink-0 rounded-full px-2 py-1 text-xs font-semibold" :class="levelClass(topic.level)">{{ topic.level }}</span>
             <Check v-if="topic.id === topicId" class="h-3.5 w-3.5 shrink-0 text-violet-600" />
           </button>
-          <p v-if="topics.length === 0" class="px-3 py-4 text-center text-xs text-slate-400">Chưa có chủ đề.</p>
+          <p v-if="topics.length === 0" class="px-3 py-4 text-center text-sm text-slate-500">Chưa có chủ đề.</p>
         </div>
       </Transition>
     </div>
 
     <div ref="lessonRoot" class="relative min-w-0">
-      <span class="mb-1.5 flex items-center justify-between text-[9px] font-extrabold uppercase tracking-[0.14em] text-emerald-600">
+      <span class="mb-1.5 flex items-center justify-between text-xs font-semibold uppercase tracking-[0.14em] text-emerald-600">
         <span>Bài học</span>
-        <span v-if="!loading && lessons.length" class="normal-case tracking-normal text-slate-400">{{ lessons.length }} bài</span>
+        <span v-if="!loading && lessons.length" class="normal-case tracking-normal text-slate-500">{{ lessons.length }} bài</span>
       </span>
       <button
         type="button"
@@ -62,8 +62,8 @@
           <BookOpen class="h-4 w-4" />
         </span>
         <span class="min-w-0 flex-1">
-          <span class="block truncate text-xs font-extrabold text-slate-800">{{ loading ? 'Đang tải bài học...' : selectedLesson?.title || 'Chưa có bài Speaking' }}</span>
-          <span class="mt-0.5 block truncate text-[10px] font-medium text-slate-400">{{ selectedLesson ? `Bài ${selectedLesson.order_index || 1}` : 'Bài học thuộc chủ đề đã chọn' }}</span>
+          <span class="block truncate text-sm font-semibold text-slate-800">{{ loading ? 'Đang tải bài học...' : selectedLesson?.title || 'Chưa có bài Speaking' }}</span>
+          <span class="mt-0.5 block truncate text-xs font-medium text-slate-500">{{ selectedLesson ? `Bài ${selectedLesson.order_index || 1}` : 'Bài học thuộc chủ đề đã chọn' }}</span>
         </span>
         <ChevronDown :class="lessonOpen ? 'rotate-180' : ''" class="h-4 w-4 shrink-0 text-emerald-500 transition-transform" />
       </button>
@@ -80,12 +80,12 @@
             :class="lesson.id === lessonId ? 'bg-emerald-50' : ''"
             @click="selectLesson(lesson)"
           >
-            <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-[10px] font-extrabold text-emerald-700">{{ lesson.order_index || index + 1 }}</span>
-            <span class="min-w-0 flex-1 truncate text-xs font-bold text-slate-700">{{ lesson.title }}</span>
+            <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-xs font-semibold text-emerald-700">{{ lesson.order_index || index + 1 }}</span>
+            <span class="min-w-0 flex-1 truncate text-sm font-semibold text-slate-700">{{ lesson.title }}</span>
             <Check v-if="lesson.id === lessonId" class="h-3.5 w-3.5 shrink-0 text-emerald-600" />
           </button>
-          <p v-if="loading" class="px-3 py-4 text-center text-xs text-slate-400">Đang tải bài học...</p>
-          <p v-else-if="lessons.length === 0" class="px-3 py-4 text-center text-xs text-slate-400">Chủ đề này chưa có bài Speaking.</p>
+          <p v-if="loading" class="px-3 py-4 text-center text-sm text-slate-500">Đang tải bài học...</p>
+          <p v-else-if="lessons.length === 0" class="px-3 py-4 text-center text-sm text-slate-500">Chủ đề này chưa có bài Speaking.</p>
         </div>
       </Transition>
     </div>

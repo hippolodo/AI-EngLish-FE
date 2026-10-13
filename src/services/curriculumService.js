@@ -13,6 +13,10 @@ export const curriculumService = {
     return res.data;
   },
 
+  async getLessons(type = null) {
+    return (await apiClient.get('/curriculum/lessons', { params: type ? { type } : {} })).data;
+  },
+
   // Alias for compatibility
   async getTopicLessons(topicId, type = null) {
     return this.getLessonsByTopic(topicId, type);

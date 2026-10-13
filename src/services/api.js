@@ -22,6 +22,36 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+apiClient.interceptors.response.use(
+  response => response,
+  error => {
+    const token = localStorage.getItem('token');
+    const sentToken = error.config?.headers?.Authorization;
+    const isLogin = /\/auth\/(login|register|token)(?:\?|$)/.test(error.config?.url || '');
+    if (error.response?.status === 401 && !isLogin && token && sentToken === `Bearer ${token}`) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.dispatchEvent(new Event('auth-expired'));
+    }
+    return Promise.reject(error);
+  }
+);
+
+export function getErrorMessage(error, fallback = 'Có lỗi xảy ra. Vui lòng thử lại.') {
+  const detail = error.response?.data?.detail;
+  if (Array.isArray(detail)) return detail.map(item => item.msg).join(', ');
+  if (typeof detail === 'string') return detail;
+  if (error.code === 'ECONNABORTED') return 'Yêu cầu quá thời gian chờ. Vui lòng thử lại.';
+  return error.message && !error.response ? error.message : fallback;
+}
+
+export function getAudioFileName(blob, basename = 'recording') {
+  if (blob instanceof File) return blob.name;
+  const mime = blob.type?.split(';')[0];
+  const extension = { 'audio/mp4': 'm4a', 'audio/ogg': 'ogg', 'audio/wav': 'wav', 'audio/mpeg': 'mp3' }[mime] || 'webm';
+  return `${basename}.${extension}`;
+}
+
 export function getFullAudioUrl(path) {
   if (!path) return '';
   if (path.startsWith('http://') || path.startsWith('https://')) {

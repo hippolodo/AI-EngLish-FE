@@ -3,28 +3,34 @@
           <!-- Header -->
           <div class="flex items-center justify-between">
             <div>
-              <span class="text-[10px] uppercase tracking-wider font-extrabold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">Speaking Lab</span>
-              <h1 class="text-lg font-bold text-gray-900 mt-1">Chẩn đoán Phát âm AI</h1>
+              <span class="text-xs uppercase tracking-wide font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">Speaking Lab</span>
+              <h1 class="text-gray-900 mt-1 text-xl font-bold leading-snug">Luyện đọc & phản hồi</h1>
             </div>
-            <span class="text-xs font-medium text-gray-500 bg-white border border-gray-200 px-2.5 py-1 rounded-full flex items-center gap-1">
+            <span class="text-sm font-medium text-gray-500 bg-white border border-gray-200 px-2.5 py-1 rounded-full flex items-center gap-1">
               <Sparkles class="w-3.5 h-3.5 text-indigo-500" /> Luyện phát âm cùng AI
             </span>
           </div>
 
           <!-- Lesson & Target Picker -->
+          <div v-if="ctx.currentLesson.value?.type === 'SPEAKING'" class="space-y-2 rounded-xl bg-indigo-50 p-3 text-sm text-indigo-800">
+            Đã luyện {{ ctx.lessonProgress.value.completed_content_ids.length }}/{{ speakingLessonContents.length }} câu trong bài.
+            <button @click="ctx.finishLesson" :disabled="!ctx.canFinishLesson.value" class="block font-semibold underline disabled:opacity-40">Hoàn thành & xem tổng kết</button>
+          </div>
           <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-xs space-y-3">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-gray-700">Câu luyện tập:</span>
+              <span class="text-sm font-semibold text-gray-700">Câu luyện tập:</span>
               <button
-                @click="isCustomSpeakingMode = !isCustomSpeakingMode"
-                class="text-[11px] font-semibold text-indigo-600 hover:underline cursor-pointer"
+                v-if="!ctx.currentLesson.value"
+                :disabled="isRecording || isAnalyzingSpeaking" @click="toggleSpeakingMode"
+                class="text-xs font-semibold text-indigo-600 hover:underline cursor-pointer"
               >
                 {{ isCustomSpeakingMode ? 'Chọn từ bài học' : 'Tự nhập câu tự do' }}
               </button>
             </div>
 
+            <fieldset :disabled="isRecording || isAnalyzingSpeaking">
             <TopicLessonDropdowns
-              v-if="!isCustomSpeakingMode"
+              v-if="!isCustomSpeakingMode && !ctx.currentLesson.value"
               :topics="topics"
               :lessons="speakingLessons"
               v-model:topic-id="speakingTopicId"
@@ -33,11 +39,12 @@
               @topic-change="onSpeakingTopicChange"
               @lesson-change="onSpeakingLessonChange"
             />
+            </fieldset>
 
             <div v-if="!isCustomSpeakingMode && speakingLessonContents.length > 0" class="rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50/80 via-white to-amber-50/60 p-3">
               <div class="mb-2 flex items-center justify-between">
-                <span class="text-[10px] font-extrabold uppercase tracking-wider text-violet-700">Luyện từng câu</span>
-                <span class="rounded-full bg-white px-2.5 py-1 text-[10px] font-extrabold text-violet-600 shadow-sm">
+                <span class="text-xs font-semibold uppercase tracking-wide text-violet-700">Luyện từng câu</span>
+                <span class="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-violet-600 shadow-sm">
                   {{ currentSpeakingSentenceIndex + 1 }} / {{ speakingLessonContents.length }}
                 </span>
               </div>
@@ -52,17 +59,17 @@
               <div class="flex items-center justify-between gap-2">
                 <button
                   type="button"
-                  :disabled="currentSpeakingSentenceIndex === 0"
-                  class="inline-flex items-center gap-1 rounded-xl border border-violet-100 bg-white px-3 py-2 text-[11px] font-bold text-violet-700 shadow-sm transition hover:bg-violet-50 disabled:cursor-not-allowed disabled:opacity-40"
+                  :disabled="isRecording || isAnalyzingSpeaking || currentSpeakingSentenceIndex === 0"
+                  class="inline-flex items-center gap-1 rounded-xl border border-violet-100 bg-white px-3 py-2 text-xs font-semibold text-violet-700 shadow-sm transition hover:bg-violet-50 disabled:cursor-not-allowed disabled:opacity-40"
                   @click="navigateSpeakingSentence(-1)"
                 >
                   <ChevronLeft class="h-3.5 w-3.5" /> Trước
                 </button>
-                <span class="text-[10px] font-semibold text-slate-400">Đọc câu hiện tại rồi chuyển câu</span>
+                <span class="text-xs font-semibold text-slate-500">Đọc câu hiện tại rồi chuyển câu</span>
                 <button
                   type="button"
-                  :disabled="currentSpeakingSentenceIndex >= speakingLessonContents.length - 1"
-                  class="inline-flex items-center gap-1 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-500 px-3 py-2 text-[11px] font-bold text-white shadow-md shadow-violet-200 transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-40"
+                  :disabled="isRecording || isAnalyzingSpeaking || currentSpeakingSentenceIndex >= speakingLessonContents.length - 1"
+                  class="inline-flex items-center gap-1 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-500 px-3 py-2 text-xs font-semibold text-white shadow-md shadow-violet-200 transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-40"
                   @click="navigateSpeakingSentence(1)"
                 >
                   Tiếp <ChevronRight class="h-3.5 w-3.5" />
@@ -74,7 +81,7 @@
             <div class="space-y-2">
               <textarea
                 v-model="targetSpeakingText"
-                :readonly="!isCustomSpeakingMode"
+                :readonly="!isCustomSpeakingMode || isRecording || isAnalyzingSpeaking"
                 rows="2"
                 class="w-full text-sm font-semibold text-gray-900 rounded-xl p-3 border leading-relaxed focus:outline-none focus:ring-2 focus:ring-indigo-600"
                 :class="isCustomSpeakingMode ? 'bg-white border-indigo-300' : 'bg-gray-50 border-gray-100 cursor-default'"
@@ -85,17 +92,17 @@
                 <button
                   @click="playNativeAudio"
                   :disabled="!targetSpeakingText"
-                  class="flex items-center gap-1.5 text-xs font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-xl transition cursor-pointer"
+                  class="flex items-center gap-1.5 text-sm font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-xl transition cursor-pointer"
                 >
                   <Volume2 class="w-4 h-4" />
                   <span>Nghe phát âm mẫu</span>
                 </button>
-                <span v-if="targetIpa" class="text-xs font-mono text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                <span v-if="targetIpa" class="text-sm font-sans text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
                   /{{ targetIpa }}/
                 </span>
               </div>
 
-              <p v-if="targetTranslation" class="text-xs text-amber-800 bg-amber-50 p-2 rounded-xl border border-amber-200/60">
+              <p v-if="targetTranslation" class="text-sm text-amber-800 bg-amber-50 p-2 rounded-xl border border-amber-200/60">
                 💡 <strong>Dịch:</strong> {{ targetTranslation }}
               </p>
             </div>
@@ -106,25 +113,25 @@
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
                 <Cpu class="w-4 h-4 text-indigo-600" />
-                <h3 class="text-sm font-bold text-gray-900">Kết quả phân tích âm vị thực tế</h3>
+                <h3 class="text-sm font-semibold text-gray-900">Mức độ khớp lời đọc</h3>
               </div>
               <div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200">
                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span class="text-sm font-extrabold text-emerald-600">{{ Math.round(speakingResult.overall_score) }} / 100</span>
+                <span class="text-sm font-semibold text-emerald-600">{{ Math.round(speakingResult.overall_score) }} / 100</span>
               </div>
             </div>
 
             <!-- Pitch F0 & Recognized Text -->
-            <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="grid grid-cols-2 gap-2 text-sm">
               <div class="p-2.5 bg-gray-50 rounded-xl border border-gray-100">
                 <span class="text-gray-500 block">Cao độ giọng nói:</span>
-                <span class="font-bold text-gray-800 text-sm">
+                <span class="font-semibold text-gray-800 text-sm">
                   {{ speakingResult.average_pitch ? Math.round(speakingResult.average_pitch) + ' Hz' : 'N/A' }}
                 </span>
               </div>
               <div class="p-2.5 bg-gray-50 rounded-xl border border-gray-100">
                 <span class="text-gray-500 block">Kết quả nhận diện:</span>
-                <span class="font-semibold text-gray-800 text-xs truncate block" :title="speakingResult.transcribed_text">
+                <span class="font-semibold text-gray-800 text-sm truncate block" :title="speakingResult.transcribed_text">
                   "{{ speakingResult.transcribed_text || 'Chưa ghi nhận' }}"
                 </span>
               </div>
@@ -132,34 +139,36 @@
 
             <!-- Sentence Breakdown with word highlighting -->
             <div v-if="speakingResult.word_analysis && speakingResult.word_analysis.length > 0" class="p-3.5 bg-gray-50 rounded-xl border border-gray-200/80">
-              <p class="text-[10px] font-semibold text-gray-500 mb-2 uppercase tracking-wide">Chi tiết độ khớp từng từ:</p>
-              <div class="flex flex-wrap gap-2 text-xs leading-loose">
+              <p class="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">Chi tiết độ khớp từng từ:</p>
+              <div class="flex flex-wrap gap-2 text-sm leading-loose">
                 <span
                   v-for="(w, idx) in speakingResult.word_analysis"
                   :key="idx"
                   :style="{ backgroundColor: getWordBg(w), color: getWordTextColor(w) }"
                   class="font-semibold px-2 py-0.5 rounded border border-gray-200/60"
-                  :title="`Phát âm mẫu: /${w.target_ipa}/ - Phát âm của bạn: /${w.user_ipa}/`"
+                  :title="w.error_type || 'Từ được nhận diện khớp với câu mẫu'"
                 >
                   {{ w.word }}
-                  <span class="text-[10px] ml-0.5">{{ w.status === 'CORRECT' ? '✓' : '✕' }}</span>
+                  <span class="text-xs ml-0.5">{{ w.status === 'CORRECT' ? '✓' : '✕' }}</span>
+                  <button @click="ctx.openSaveWord(w.word, targetSpeakingText)" :aria-label="`Lưu từ ${w.word}`" class="ml-1 font-semibold">＋</button>
                 </span>
               </div>
             </div>
+            <p class="text-xs text-slate-500">Kết quả hỗ trợ luyện tập dựa trên nhận diện lời đọc; hãy nghe mẫu và thử lại các từ còn yếu.</p>
 
             <!-- Phonetic Error Tip Box -->
-            <div v-if="speakingResult.ai_feedback" class="p-3 bg-amber-50/70 border border-amber-200/80 rounded-xl text-xs space-y-1">
-              <p class="font-bold text-amber-900 flex items-center gap-1.5">
+            <div v-if="speakingResult.ai_feedback" class="p-3 bg-amber-50/70 border border-amber-200/80 rounded-xl text-sm space-y-1">
+              <p class="font-semibold text-amber-900 flex items-center gap-1.5">
                 <Lightbulb class="w-3.5 h-3.5 text-amber-600" /> Nhận xét từ AI:
               </p>
-              <p class="text-amber-800 text-[11px] leading-relaxed whitespace-pre-line">
+              <p class="text-amber-800 text-xs leading-relaxed whitespace-pre-line">
                 {{ speakingResult.ai_feedback }}
               </p>
             </div>
           </div>
 
           <!-- Error Alert -->
-          <div v-if="speakingError" class="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-600">
+          <div v-if="speakingError" class="p-3 bg-rose-50 border border-rose-200 rounded-xl text-sm text-rose-600">
             ⚠️ {{ speakingError }}
           </div>
 
@@ -182,10 +191,10 @@
               </button>
             </div>
             <div class="text-center">
-              <p class="text-xs font-bold text-gray-800">
+              <p class="text-sm font-semibold text-gray-800">
                 {{ isAnalyzingSpeaking ? 'AI đang đánh giá cách phát âm...' : (isRecording ? 'Đang nghe... Bấm để gửi bài đọc' : 'Nhấn nút để bắt đầu đọc câu mẫu') }}
               </p>
-              <p class="text-[11px] text-gray-400 mt-0.5">
+              <p class="text-xs text-gray-500 mt-0.5">
                 {{ isRecording ? 'Nói to, rõ câu tiếng Anh vào micro' : 'Ghi âm bằng micro, nhận góp ý tự động' }}
               </p>
             </div>
@@ -194,10 +203,17 @@
 </template>
 
 <script setup>
-import { inject } from 'vue';
 import { ChevronLeft, ChevronRight, Cpu, Lightbulb, Loader2, Mic, Sparkles, Square, Volume2 } from 'lucide-vue-next';
+import { inject } from 'vue';
 import TopicLessonDropdowns from '../components/TopicLessonDropdowns.vue';
 const ctx = inject('screenContext');
+const toggleSpeakingMode = () => {
+  ctx.isCustomSpeakingMode.value = !ctx.isCustomSpeakingMode.value;
+  ctx.speakingResult.value = null;
+  ctx.speakingError.value = '';
+  if (!ctx.isCustomSpeakingMode.value) ctx.onSpeakingLessonChange();
+  else { ctx.targetIpa.value = ''; ctx.targetTranslation.value = ''; ctx.nativeAudioUrl.value = ''; }
+};
 const activeTab = ctx.activeTab;
 const chatInput = ctx.chatInput;
 const chatLoading = ctx.chatLoading;

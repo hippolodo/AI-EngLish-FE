@@ -4,17 +4,20 @@
     <div class="w-full max-w-md mx-auto min-h-[100dvh] sm:min-h-[880px] sm:max-h-[920px] bg-[#fbfbff] shadow-2xl relative flex flex-col justify-between overflow-hidden sm:rounded-[32px] border border-white/70 app-shell">
       
       <!-- Top Mobile Status Bar (Cosmetic) -->
-      <div class="bg-white/80 backdrop-blur-md px-5 pt-3 pb-3 flex items-center justify-between text-xs font-semibold text-gray-500 z-30 border-b border-gray-100/80">
+      <div class="bg-white/80 backdrop-blur-md px-5 pt-3 pb-3 flex items-center justify-between text-sm font-semibold text-gray-500 z-30 border-b border-gray-100/80">
         <div class="flex items-center gap-2.5">
           <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-500 text-white flex items-center justify-center shadow-md shadow-violet-200">
             <Sparkles class="w-4 h-4" />
           </div>
-          <div class="leading-tight">
-            <span class="block tracking-tight text-gray-900 font-black text-sm">lingo<span class="text-violet-600">up</span></span>
-            <span class="hidden sm:block text-[10px] text-gray-400 font-medium">English, but make it fun</span>
+          <div class="leading-snug">
+            <span class="block tracking-normal text-gray-900 font-semibold text-sm">lingo<span class="text-violet-600">up</span></span>
+            <span class="hidden sm:block text-xs text-gray-500 font-medium">English, but make it fun</span>
           </div>
         </div>
         <div class="flex items-center space-x-1.5">
+          <button @click="openAuthModal" aria-label="Mở trang cá nhân" title="Trang cá nhân" class="mr-2 rounded-xl p-2 transition" :class="activeTab === 'profile' ? 'bg-indigo-600 text-white' : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'">
+            <UserRound class="h-4 w-4" />
+          </button>
           <span class="mr-1 text-gray-500">{{ currentTime }}</span>
           <Signal class="w-3.5 h-3.5 text-gray-700" />
           <Wifi class="w-3.5 h-3.5 text-gray-700" />
@@ -30,7 +33,19 @@
         <!-- ========================================== -->
         <!-- SCREEN 1: HOME (DASHBOARD - REAL DATA)     -->
         <!-- ========================================== -->
+        <div v-if="journey.error.value" role="status" class="mx-4 mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-800">
+          {{ journey.error.value }} <button @click="journey.sync" class="font-semibold underline">Thử đồng bộ lại</button>
+        </div>
+        <div v-if="currentLesson && activeTab !== 'home' && activeTab !== 'lesson' && activeTab !== 'profile'" class="mx-4 mt-3 flex items-center gap-3 rounded-2xl border border-violet-200/70 bg-gradient-to-r from-indigo-100 via-violet-100 to-rose-50 p-3 shadow-sm shadow-violet-100/60">
+          <button @click="activeTab = 'lesson'" :aria-label="`Quay lại bài học: ${currentLesson.title}`" title="Quay lại bài học" class="flex min-w-0 flex-1 items-center gap-3 rounded-xl text-left transition hover:opacity-80">
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-700 text-white shadow-sm shadow-indigo-300/50"><ArrowLeft class="h-5 w-5" aria-hidden="true" /></span>
+            <span class="min-w-0"><span class="block text-xs font-medium text-indigo-600">Bài đang học</span><span class="mt-0.5 block break-words text-sm font-semibold leading-snug text-violet-950">{{ currentLesson.title }}</span></span>
+          </button>
+          <button @click="leaveLesson" class="flex shrink-0 items-center gap-1.5 rounded-xl border border-white bg-white/90 px-3 py-2.5 text-xs font-semibold text-teal-700 shadow-sm transition hover:border-teal-200 hover:bg-teal-50"><Compass class="h-4 w-4" aria-hidden="true" /><span>Luyện tự do</span></button>
+        </div>
         <HomeScreen />
+        <ProfileScreen />
+        <LessonScreen />
 
         <!-- ========================================== -->
         <!-- SCREEN 2: SPEAKING (PRONUNCIATION REAL)    -->
@@ -60,89 +75,81 @@
       <nav class="sticky bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-100 px-3 py-2.5 z-40 shadow-[0_-8px_30px_rgba(44,35,94,0.08)]">
         <div class="flex items-center justify-around">
           <button
-            @click="activeTab = 'home'"
-            :class="activeTab === 'home' ? 'text-indigo-600 font-bold' : 'text-gray-400 hover:text-gray-600 font-medium'"
+            @click="navigateTab('home')"
+            :class="activeTab === 'home' ? 'text-indigo-600 font-semibold' : 'text-gray-400 hover:text-gray-600 font-medium'"
             class="flex flex-col items-center py-1.5 px-2 transition-all relative cursor-pointer"
           >
             <Home :class="activeTab === 'home' ? 'scale-110 stroke-[2.5]' : ''" class="w-5 h-5 transition-transform duration-200" />
-            <span class="text-[10px] mt-1">Home</span>
+            <span class="text-xs mt-1">Home</span>
             <span v-if="activeTab === 'home'" class="absolute -bottom-1 w-1.5 h-1.5 bg-indigo-600 rounded-full"></span>
           </button>
 
           <button
-            @click="activeTab = 'speaking'"
-            :class="activeTab === 'speaking' ? 'text-indigo-600 font-bold' : 'text-gray-400 hover:text-gray-600 font-medium'"
+            @click="navigateTab('speaking')"
+            :class="activeTab === 'speaking' ? 'text-indigo-600 font-semibold' : 'text-gray-400 hover:text-gray-600 font-medium'"
             class="flex flex-col items-center py-1.5 px-2 transition-all relative cursor-pointer"
           >
             <Mic :class="activeTab === 'speaking' ? 'scale-110 stroke-[2.5]' : ''" class="w-5 h-5 transition-transform duration-200" />
-            <span class="text-[10px] mt-1">Speaking</span>
+            <span class="text-xs mt-1">Speaking</span>
             <span v-if="activeTab === 'speaking'" class="absolute -bottom-1 w-1.5 h-1.5 bg-indigo-600 rounded-full"></span>
           </button>
 
           <button
-            @click="activeTab = 'writing'"
-            :class="activeTab === 'writing' ? 'text-indigo-600 font-bold' : 'text-gray-400 hover:text-gray-600 font-medium'"
+            @click="navigateTab('writing')"
+            :class="activeTab === 'writing' ? 'text-indigo-600 font-semibold' : 'text-gray-400 hover:text-gray-600 font-medium'"
             class="flex flex-col items-center py-1.5 px-2 transition-all relative cursor-pointer"
           >
             <PenTool :class="activeTab === 'writing' ? 'scale-110 stroke-[2.5]' : ''" class="w-5 h-5 transition-transform duration-200" />
-            <span class="text-[10px] mt-1">Writing</span>
+            <span class="text-xs mt-1">Writing</span>
             <span v-if="activeTab === 'writing'" class="absolute -bottom-1 w-1.5 h-1.5 bg-indigo-600 rounded-full"></span>
           </button>
 
           <button
-            @click="activeTab = 'chat'"
-            :class="activeTab === 'chat' ? 'text-indigo-600 font-bold' : 'text-gray-400 hover:text-gray-600 font-medium'"
+            @click="navigateTab('chat')"
+            :class="activeTab === 'chat' ? 'text-indigo-600 font-semibold' : 'text-gray-400 hover:text-gray-600 font-medium'"
             class="flex flex-col items-center py-1.5 px-2 transition-all relative cursor-pointer"
           >
             <MessageSquare :class="activeTab === 'chat' ? 'scale-110 stroke-[2.5]' : ''" class="w-5 h-5 transition-transform duration-200" />
-            <span class="text-[10px] mt-1">AI Chat</span>
+            <span class="text-xs mt-1">AI Chat</span>
             <span v-if="activeTab === 'chat'" class="absolute -bottom-1 w-1.5 h-1.5 bg-indigo-600 rounded-full"></span>
           </button>
 
           <button
-            @click="activeTab = 'study'"
-            :class="activeTab === 'study' ? 'text-indigo-600 font-bold' : 'text-gray-400 hover:text-gray-600 font-medium'"
+            @click="navigateTab('study')"
+            :class="activeTab === 'study' ? 'text-indigo-600 font-semibold' : 'text-gray-400 hover:text-gray-600 font-medium'"
             class="flex flex-col items-center py-1.5 px-2 transition-all relative cursor-pointer"
           >
             <BookOpen :class="activeTab === 'study' ? 'scale-110 stroke-[2.5]' : ''" class="w-5 h-5 transition-transform duration-200" />
-            <span class="text-[10px] mt-1">Study</span>
+            <span class="text-xs mt-1">Luyện tập</span>
             <span v-if="activeTab === 'study'" class="absolute -bottom-1 w-1.5 h-1.5 bg-indigo-600 rounded-full"></span>
           </button>
         </div>
       </nav>
 
-      <ProfileModal
-        :is-open="isProfileOpen"
-        :user="userProfile"
-        :dashboard="dashboard"
-        :is-authenticated="isAuthenticated"
-        @auth="isAuthOpen = true"
-        @close="isProfileOpen = false"
-        @profile-updated="onProfileUpdated"
-        @logout="logout"
-      />
       <AuthModal
         :is-open="isAuthOpen"
         @close="isAuthOpen = false"
         @auth-success="onAuthSuccess"
       />
+      <SaveWordModal :is-open="saveWordOpen" :initial-word="wordToSave" :example="wordExample" @close="saveWordOpen = false" @saved="onWordSaved" />
 
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, nextTick, onMounted, onUnmounted, provide } from 'vue';
+import { ref, computed, watch, nextTick, onMounted, onUnmounted, provide } from 'vue';
+import LessonScreen from './views/LessonScreen.vue';
+import SaveWordModal from './components/SaveWordModal.vue';
+import { learningService } from './services/learningService';
+import { useLearningJourney } from './composables/useLearningJourney';
 import HomeScreen from './views/HomeScreen.vue';
 import SpeakingScreen from './views/SpeakingScreen.vue';
 import WritingScreen from './views/WritingScreen.vue';
 import ChatScreen from './views/ChatScreen.vue';
 import StudyScreen from './views/StudyScreen.vue';
 import {
-  Signal, Wifi, Award, Flame, Bot, BookOpen, CheckCircle, ChevronRight,
-  Sparkles, Volume2, Cpu, Lightbulb, Mic, Square, Loader2, ArrowRight,
-  Copy, Check, RotateCcw, Send, Layers, HelpCircle,
-  RotateCw, XCircle, AlertCircle, Home, PenTool, MessageSquare
+  Signal, Wifi, BookOpen, Sparkles, Mic, Home, PenTool, MessageSquare, UserRound, ArrowLeft, Compass
 } from 'lucide-vue-next';
 
 // Real services
@@ -154,8 +161,8 @@ import { chatService } from './services/chatService';
 import { studyService } from './services/studyService';
 import { authService } from './services/authService';
 import { AudioRecorder } from './services/audioRecorder';
-import { getFullAudioUrl } from './services/api';
-import ProfileModal from './components/ProfileModal.vue';
+import { getFullAudioUrl, getErrorMessage } from './services/api';
+import ProfileScreen from './views/ProfileScreen.vue';
 import AuthModal from './components/AuthModal.vue';
 
 
@@ -166,44 +173,188 @@ const isProfileOpen = ref(false);
 const isAuthOpen = ref(false);
 const isAuthenticated = ref(authService.isAuthenticated());
 const currentTime = ref('');
+let sessionVersion = 0;
+let homeRequestId = 0;
+let chatRequestId = 0;
+let studyRequestId = 0;
+let flashcardDeckRequestId = 0;
 
 // User Profile
 const userProfile = ref(authService.getUser());
+const journey = useLearningJourney(userProfile, isAuthenticated, learningService);
+const selectedTopic = ref(null);
+const topicLessons = ref([]);
+const currentLesson = ref(null);
+const pendingLesson = ref(null);
+const lessonDetail = ref(null);
+const lessonQuizzes = ref([]);
+const lessonDecks = ref([]);
+const lessonLoading = ref(false);
+const lessonError = ref('');
+const lessonStep = ref('practice');
+const studyDeckId = ref(null);
+const studyLessonId = ref(null);
+const studyTopicId = ref(null);
+const saveWordOpen = ref(false);
+const wordToSave = ref('');
+const wordExample = ref('');
+const savedWordMessage = ref('');
+const lessonProgress = computed(() => currentLesson.value ? journey.lesson(currentLesson.value.id) : null);
+const recommendedTopic = computed(() => {
+  const levelTopics = topics.value.filter(topic => topic.level === userProfile.value?.target_level);
+  const candidates = levelTopics.length ? levelTopics : topics.value;
+  const pattern = journey.state.value.goal === 'work' ? /business|work|job|interview|career/i
+    : journey.state.value.goal === 'study' ? /tech|education|academic|environment|science/i
+      : /daily|greet|travel|food|conversation/i;
+  return candidates.find(topic => pattern.test(topic.title)) || candidates[0];
+});
+const navigateTab = tab => {
+  if (tab === activeTab.value && !currentLesson.value) return;
+  if (tab !== 'home') leaveLesson(false);
+  activeTab.value = tab;
+  if (tab === 'study') void (studyMode.value === 'quiz' ? loadQuizzesData() : loadFlashcardsData());
+};
+const chatSummary = ref(null);
+const endChatSession = () => {
+  if (isBotTyping.value || isChatRecording.value || chatLoading.value) return;
+  const turns = chatMessages.value.filter(item => item.sender?.toLowerCase() === 'user');
+  if (!turns.length) return;
+  chatSummary.value = { turns: turns.length, words: turns.reduce((count, item) => count + (item.message_text || '').trim().split(/\s+/).filter(Boolean).length, 0) };
+};
+let lessonRequestId = 0;
+let pauseDrafts = false;
+const canFinishLesson = computed(() => {
+  if (!lessonProgress.value?.practiced) return false;
+  if (currentLesson.value?.type !== 'SPEAKING') return true;
+  return !!lessonDetail.value?.contents?.length && lessonDetail.value.contents.every(item => lessonProgress.value.completed_content_ids.includes(item.id));
+});
 
 const userAvatarUrl = computed(() => {
   const name = userProfile.value?.full_name || dashboard.value?.full_name || 'Learner';
-  return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`;
+  return userProfile.value?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`;
 });
 
 const openAuthModal = () => {
-  isProfileOpen.value = true;
+  activeTab.value = 'profile';
 };
 
 const onProfileUpdated = (profile) => {
+  if (!authService.isAuthenticated() || profile?.id !== userProfile.value?.id) return;
   userProfile.value = profile;
   isAuthenticated.value = authService.isAuthenticated();
+  void loadHomeData();
+};
+
+const requireAuthentication = () => {
+  if (authService.isAuthenticated()) return true;
+  if (isAuthenticated.value) logout();
+  isProfileOpen.value = false;
+  isAuthOpen.value = true;
+  return false;
+};
+
+const resetPersonalData = () => {
+  pauseDrafts = true;
+  sessionVersion += 1;
+  homeRequestId += 1;
+  chatRequestId += 1;
+  studyRequestId += 1;
+  flashcardDeckRequestId += 1;
+  recorder.cleanup();
+  chatRecorder.cleanup();
+  window.speechSynthesis?.cancel();
+  isRecording.value = false;
+  isChatRecording.value = false;
+  isAnalyzingSpeaking.value = false;
+  isEvaluating.value = false;
+  isBotTyping.value = false;
+  isSubmittingQuiz.value = false;
+  quizFeedbackMode.value = 'end';
+  isReviewingCard.value = false;
+  chatLoading.value = false;
+  chatHistoryLoading.value = false;
+  studyLoading.value = false;
+  dashboard.value = null;
+  speakingResult.value = null;
+  speakingError.value = '';
+  essayInput.value = '';
+  writingResult.value = null;
+  writingError.value = '';
+  writingPickerRequestId += 1;
+  writingPickerOpen.value = false;
+  writingPickerLoading.value = false;
+  writingPickerError.value = '';
+  writingTaskCatalog.value = [];
+  writingPickerTopicId.value = null;
+  copied.value = false;
+  conversationId.value = null;
+  chatMessages.value = [];
+  chatInput.value = '';
+  chatConversations.value = [];
+  chatError.value = '';
+  chatHistoryError.value = '';
+  isChatHistoryOpen.value = false;
+  flashcards.value = [];
+  flashcardDecks.value = [];
+  flashcardDecksLoading.value = false;
+  flashcardDecksError.value = '';
+  studyError.value = '';
+  isFlipped.value = false;
+  restartQuiz();
+  currentLesson.value = null;
+  pendingLesson.value = null;
+  lessonDetail.value = null;
+  lessonQuizzes.value = [];
+  lessonDecks.value = [];
+  studyDeckId.value = null;
+  studyLessonId.value = null;
+  studyTopicId.value = null;
+  lessonRequestId += 1;
+  lessonLoading.value = false;
+  saveWordOpen.value = false;
+  savedWordMessage.value = '';
+  reviewSummary.value = null;
+  forgottenCards.value = [];
+  chatSummary.value = null;
+  pauseDrafts = false;
 };
 
 const onAuthSuccess = async () => {
+  const guestDraft = !isAuthenticated.value ? essayInput.value : '';
+  const lessonToOpen = pendingLesson.value;
+  const guestQuiz = !isAuthenticated.value && studyMode.value === 'quiz' ? {
+    answers: { ...quizAnswers.value }, selected: selectedQuizAnswer.value, text: quizInputText.value, index: currentStudyIndex.value
+  } : null;
+  resetPersonalData();
   userProfile.value = authService.getUser();
   isAuthenticated.value = authService.isAuthenticated();
   isAuthOpen.value = false;
-  await loadHomeData();
+  isProfileOpen.value = false;
+  if (guestDraft) essayInput.value = guestDraft;
+  if (guestQuiz) { quizAnswers.value = guestQuiz.answers; selectedQuizAnswer.value = guestQuiz.selected; quizInputText.value = guestQuiz.text; currentStudyIndex.value = guestQuiz.index; }
+  await Promise.all([loadHomeData(), studyMode.value === 'flashcard' ? loadFlashcardsData() : Promise.resolve(), loadChatScenarios()]);
+  if (lessonToOpen) await startLesson(lessonToOpen);
 };
 
 const logout = () => {
   authService.logout();
+  resetPersonalData();
   isAuthenticated.value = false;
   userProfile.value = null;
-  dashboard.value = null;
   isProfileOpen.value = false;
-  loadHomeData();
+  void loadHomeData();
+};
+
+const onSessionExpired = () => {
+  logout();
+  isAuthOpen.value = true;
 };
 
 // ==========================================
 // SCREEN 1: HOME (REAL DATA)
 // ==========================================
 const homeLoading = ref(true);
+const homeError = ref('');
 const dashboard = ref(null);
 const topics = ref([]);
 
@@ -217,33 +368,172 @@ const totalPracticeCount = computed(() => {
 });
 
 const loadHomeData = async () => {
+  const requestId = ++homeRequestId;
+  const version = sessionVersion;
   homeLoading.value = true;
+  homeError.value = '';
   try {
-    const [dash, top] = await Promise.all([
-      authService.isAuthenticated()
-        ? progressService.getDashboard().catch(() => null)
-        : Promise.resolve(null),
-      curriculumService.getTopics().catch(() => [])
+    const [dash, top] = await Promise.allSettled([
+      authService.isAuthenticated() ? progressService.getDashboard() : Promise.resolve(null),
+      curriculumService.getTopics()
     ]);
-    dashboard.value = dash;
-    topics.value = top || [];
-
-    // Pre-populate speaking topic if available
+    if (version !== sessionVersion || requestId !== homeRequestId) return;
+    dashboard.value = dash.status === 'fulfilled' ? dash.value : null;
+    topics.value = top.status === 'fulfilled' ? top.value || [] : [];
+    const failed = [dash, top].find(result => result.status === 'rejected');
+    if (failed) homeError.value = getErrorMessage(failed.reason, 'Không tải được đầy đủ dữ liệu. Vui lòng thử lại.');
     if (topics.value.length > 0 && !speakingTopicId.value) {
       speakingTopicId.value = topics.value[0].id;
       await onSpeakingTopicChange();
     }
-  } catch (err) {
-    console.warn('Load home error:', err);
   } finally {
-    homeLoading.value = false;
+    if (version === sessionVersion && requestId === homeRequestId) homeLoading.value = false;
   }
 };
 
 const startTopic = async (topic) => {
-  speakingTopicId.value = topic.id;
-  await onSpeakingTopicChange();
-  activeTab.value = 'speaking';
+  if (!topic) return;
+  const requestId = ++lessonRequestId;
+  selectedTopic.value = topic;
+  currentLesson.value = null;
+  lessonDetail.value = null;
+  topicLessons.value = [];
+  activeTab.value = 'lesson';
+  lessonLoading.value = true;
+  lessonError.value = '';
+  try {
+    const list = await curriculumService.getLessonsByTopic(topic.id);
+    if (requestId === lessonRequestId) topicLessons.value = list || [];
+  } catch (err) {
+    if (requestId === lessonRequestId) lessonError.value = getErrorMessage(err, 'Không tải được danh sách bài.');
+  } finally {
+    if (requestId === lessonRequestId) lessonLoading.value = false;
+  }
+};
+
+const startLesson = async (lesson, resume = null) => {
+  if (!requireAuthentication()) { pendingLesson.value = lesson; return; }
+  const requestId = ++lessonRequestId;
+  const version = sessionVersion;
+  lessonLoading.value = true;
+  lessonError.value = '';
+  activeTab.value = 'lesson';
+  currentLesson.value = null;
+  try {
+    const detail = await curriculumService.getLessonDetail(lesson.id);
+    const [quizzes, decks] = await Promise.allSettled([
+      Promise.all([studyService.getQuizzes(detail.id), studyService.getQuizzes(null, detail.topic_id)]).then(lists => [...new Map(lists.flat().map(item => [item.id, item])).values()]), studyService.getFlashcardDecks(detail.id)
+    ]);
+    if (version !== sessionVersion || requestId !== lessonRequestId) return;
+    currentLesson.value = detail;
+    lessonDetail.value = detail;
+    lessonQuizzes.value = quizzes.status === 'fulfilled' ? (quizzes.value || [])
+      .filter(q => q.lesson_id === detail.id || (!q.lesson_id && q.topic_id === detail.topic_id))
+      .sort((a, b) => Number(b.lesson_id === detail.id) - Number(a.lesson_id === detail.id) || b.id - a.id) : [];
+    lessonDecks.value = decks.status === 'fulfilled' ? decks.value || [] : [];
+    if (quizzes.status === 'rejected' || decks.status === 'rejected') lessonError.value = 'Đã tải bài học; chưa tải được đầy đủ quiz/bộ từ. Bạn có thể thử lại.';
+    lessonStep.value = resume?.step || 'practice';
+    studyLessonId.value = detail.id;
+    studyTopicId.value = detail.topic_id;
+    if (detail.type === 'SPEAKING') {
+      isCustomSpeakingMode.value = false;
+      speakingTopicId.value = detail.topic_id;
+      speakingLessonId.value = detail.id;
+      speakingLessons.value = topicLessons.value.filter(item => item.type === 'SPEAKING');
+      speakingLessonContents.value = detail.contents || [];
+      targetSpeakingText.value = '';
+      const content = detail.contents?.find(item => item.id === resume?.content_id) || detail.contents?.[0];
+      if (content) selectSpeakingSentence(content);
+    } else {
+      essayInput.value = journey.state.value.writing_drafts[String(detail.id)] || '';
+      writingResult.value = null;
+    }
+    journey.remember(detail.topic_id, detail.id, lessonStep.value, resume?.content_id || null);
+  } catch (err) {
+    if (version === sessionVersion && requestId === lessonRequestId) lessonError.value = getErrorMessage(err, 'Không mở được bài học.');
+  } finally {
+    if (version === sessionVersion && requestId === lessonRequestId) lessonLoading.value = false;
+  }
+};
+
+const continueLearning = async () => {
+  const resume = journey.state.value.resume;
+  if (!resume) { if (recommendedTopic.value) await startTopic(recommendedTopic.value); return; }
+  const topic = topics.value.find(item => item.id === resume.topic_id);
+  if (!topic) return;
+  await startTopic(topic);
+  const lesson = topicLessons.value.find(item => item.id === resume.lesson_id);
+  if (lesson) {
+    await startLesson(lesson, resume);
+    if (resume.step === 'quiz' && currentLesson.value?.id === lesson.id) await openLessonQuiz();
+  }
+};
+
+const beginLessonPractice = () => {
+  if (!currentLesson.value) return;
+  lessonStep.value = 'practice';
+  journey.remember(currentLesson.value.topic_id, currentLesson.value.id);
+  activeTab.value = currentLesson.value.type === 'SPEAKING' ? 'speaking' : 'writing';
+};
+
+const openLessonQuiz = async () => {
+  if (!currentLesson.value || !requireAuthentication()) return;
+  studyMode.value = 'quiz';
+  studyLessonId.value = currentLesson.value.id;
+  studyTopicId.value = currentLesson.value.topic_id;
+  lessonStep.value = 'quiz';
+  journey.remember(currentLesson.value.topic_id, currentLesson.value.id, 'quiz', currentLesson.value.type === 'SPEAKING' ? selectedSpeakingContentId.value : null);
+  activeTab.value = 'study';
+  await loadQuizzesData();
+};
+
+const openLessonDeck = async (deck) => {
+  if (!requireAuthentication()) return;
+  studyDeckId.value = deck.id;
+  studyMode.value = 'flashcard';
+  activeTab.value = 'study';
+  await loadFlashcardsData();
+};
+
+const finishLesson = () => {
+  if (!currentLesson.value || !canFinishLesson.value) return;
+  journey.updateLesson(currentLesson.value.id, progress => { progress.completed = true; });
+  lessonStep.value = 'summary';
+  journey.remember(currentLesson.value.topic_id, currentLesson.value.id, 'summary');
+  activeTab.value = 'lesson';
+};
+
+const nextLesson = async () => {
+  const index = topicLessons.value.findIndex(item => item.id === currentLesson.value?.id);
+  const next = topicLessons.value.slice(index + 1).find(item => !journey.lesson(item.id).completed);
+  if (next) await startLesson(next);
+  else { currentLesson.value = null; activeTab.value = 'lesson'; }
+};
+
+const leaveLesson = (reloadStudy = true) => {
+  currentLesson.value = null;
+  lessonDetail.value = null;
+  studyDeckId.value = null;
+  studyLessonId.value = null;
+  studyTopicId.value = null;
+  if (reloadStudy && activeTab.value === 'study') void (studyMode.value === 'quiz' ? loadQuizzesData() : loadFlashcardsData());
+  if (activeTab.value === 'writing') essayInput.value = journey.state.value.writing_drafts.free || '';
+};
+
+const openSaveWord = (word = '', example = '') => {
+  if (!requireAuthentication()) return;
+  wordToSave.value = typeof word === 'string' ? word : '';
+  wordExample.value = example;
+  saveWordOpen.value = true;
+};
+const onWordSaved = () => { saveWordOpen.value = false; savedWordMessage.value = 'Đã lưu vào bộ từ cá nhân để ôn lại.'; };
+
+const openLessonChat = async () => {
+  const title = selectedTopic.value?.title?.toLowerCase() || '';
+  const scenarioId = /food|restaurant|order/.test(title) ? 'restaurant_order' : /hotel|travel/.test(title) ? 'hotel_checkin' : /job|career|interview/.test(title) ? 'job_interview' : 'daily_smalltalk';
+  if (scenarios.value.some(item => item.id === scenarioId)) chatScenarioId.value = scenarioId;
+  activeTab.value = 'chat';
+  await startChatConversation();
 };
 
 const getTopicColor = (level) => {
@@ -299,6 +589,9 @@ const recorder = new AudioRecorder();
 const onSpeakingTopicChange = async () => {
   const requestId = ++speakingTopicRequestId;
   speakingLessonRequestId += 1;
+  speakingResult.value = null;
+  speakingError.value = '';
+  speakingLessonsLoading.value = false;
   speakingLessons.value = [];
   speakingLessonId.value = null;
   speakingLessonContents.value = [];
@@ -319,7 +612,7 @@ const onSpeakingTopicChange = async () => {
       await onSpeakingLessonChange();
     }
   } catch (err) {
-    console.warn('Load lessons error:', err);
+    if (requestId === speakingTopicRequestId) speakingError.value = getErrorMessage(err, 'Không tải được bài học.');
   } finally {
     if (requestId === speakingTopicRequestId) speakingLessonsLoading.value = false;
   }
@@ -328,6 +621,8 @@ const onSpeakingTopicChange = async () => {
 const onSpeakingLessonChange = async () => {
   if (!speakingLessonId.value) return;
   const requestId = ++speakingLessonRequestId;
+  speakingResult.value = null;
+  speakingError.value = '';
   speakingLessonContents.value = [];
   selectedSpeakingContentId.value = null;
   if (!isCustomSpeakingMode.value) targetSpeakingText.value = '';
@@ -352,19 +647,20 @@ const onSpeakingLessonChange = async () => {
       nativeAudioUrl.value = '';
     }
   } catch (err) {
-    console.warn('Lesson detail error:', err);
+    if (requestId === speakingLessonRequestId) speakingError.value = getErrorMessage(err, 'Không tải được câu luyện tập.');
   }
 };
 
 const selectSpeakingSentence = (content) => {
   if (!content) return;
   selectedSpeakingContentId.value = content.id;
-  if (!isCustomSpeakingMode.value) targetSpeakingText.value = content.target_text;
+  if (!isCustomSpeakingMode.value) targetSpeakingText.value = content.target_text.replace(/^[A-Za-z]+\s*:\s*/, '');
   targetIpa.value = content.ipa_guide || '';
   targetTranslation.value = content.hint_translation || '';
   nativeAudioUrl.value = content.audio_url || '';
   speakingResult.value = null;
   speakingError.value = '';
+  if (currentLesson.value?.id === speakingLessonId.value) journey.remember(currentLesson.value.topic_id, currentLesson.value.id, 'practice', content.id);
 };
 
 const navigateSpeakingSentence = (offset) => {
@@ -384,37 +680,49 @@ const playNativeAudio = () => {
 };
 
 const toggleRecording = async () => {
+  if (isAnalyzingSpeaking.value) return;
   speakingError.value = '';
-  if (isRecording.value) {
-    await stopAndAnalyzeSpeaking();
-  } else {
-    try {
-      await recorder.start();
-      isRecording.value = true;
-    } catch (err) {
-      speakingError.value = 'Không thể mở micro: ' + err.message;
-    }
+  if (isRecording.value) return stopAndAnalyzeSpeaking();
+  if (!targetSpeakingText.value.trim()) {
+    speakingError.value = 'Hãy chọn hoặc nhập câu luyện tập trước khi ghi âm.';
+    return;
+  }
+  if (!requireAuthentication()) return;
+  const version = sessionVersion;
+  try {
+    await recorder.start();
+    if (version !== sessionVersion) { recorder.cleanup(); return; }
+    isRecording.value = true;
+  } catch (err) {
+    if (version === sessionVersion) speakingError.value = getErrorMessage(err, 'Không thể mở micro.');
   }
 };
 
 const stopAndAnalyzeSpeaking = async () => {
+  const version = sessionVersion;
+  const targetText = targetSpeakingText.value.trim();
+  const lessonId = !isCustomSpeakingMode.value ? speakingLessonId.value : null;
+  const contentId = selectedSpeakingContentId.value;
   try {
     const blob = await recorder.stop();
+    if (version !== sessionVersion) return;
     isRecording.value = false;
-    if (!blob) return;
-
+    if (!blob?.size || !requireAuthentication()) return;
     isAnalyzingSpeaking.value = true;
-    const lessonId = !isCustomSpeakingMode.value ? speakingLessonId.value : null;
-    const res = await pronunciationService.analyzePronunciation(
-      blob,
-      targetSpeakingText.value.trim(),
-      lessonId
-    );
+    speakingResult.value = null;
+    const res = await pronunciationService.analyzePronunciation(blob, targetText, lessonId);
+    if (version !== sessionVersion || targetText !== targetSpeakingText.value.trim()) return;
     speakingResult.value = res;
+    if (lessonId && currentLesson.value?.id === lessonId && contentId) journey.updateLesson(lessonId, progress => {
+      progress.practiced = true;
+      if (!progress.completed_content_ids.includes(contentId)) progress.completed_content_ids.push(contentId);
+      progress.speaking_scores[String(contentId)] = res.overall_score;
+    });
+    void loadHomeData();
   } catch (err) {
-    speakingError.value = 'Chấm điểm thất bại: ' + (err.response?.data?.detail || err.message);
+    if (version === sessionVersion) speakingError.value = getErrorMessage(err, 'Chấm điểm thất bại.');
   } finally {
-    isAnalyzingSpeaking.value = false;
+    if (version === sessionVersion) { isRecording.value = false; isAnalyzingSpeaking.value = false; }
   }
 };
 
@@ -437,6 +745,67 @@ const writingResult = ref(null);
 const writingSubTab = ref('grammar');
 const copied = ref(false);
 const writingError = ref('');
+const writingPickerOpen = ref(false);
+const writingPickerLoading = ref(false);
+const writingPickerError = ref('');
+const writingTaskCatalog = ref([]);
+const writingPickerTopicId = ref(null);
+let writingPickerRequestId = 0;
+const writingPickerTopics = computed(() => topics.value.filter(topic => writingTaskCatalog.value.some(lesson => lesson.topic_id === topic.id)));
+const writingPickerLessons = computed(() => writingPickerTopicId.value === null ? writingTaskCatalog.value : writingTaskCatalog.value.filter(lesson => lesson.topic_id === writingPickerTopicId.value));
+
+const loadWritingTasks = async () => {
+  const requestId = ++writingPickerRequestId;
+  const version = sessionVersion;
+  writingPickerLoading.value = true;
+  writingPickerError.value = '';
+  try {
+    const [allTopics, lessons] = await Promise.all([
+      topics.value.length ? Promise.resolve(topics.value) : curriculumService.getTopics(),
+      curriculumService.getLessons('WRITING')
+    ]);
+    if (version !== sessionVersion || requestId !== writingPickerRequestId) return;
+    topics.value = allTopics || [];
+    writingTaskCatalog.value = (lessons || []).filter(lesson => lesson.type === 'WRITING');
+    if (!writingPickerTopics.value.some(topic => topic.id === writingPickerTopicId.value)) writingPickerTopicId.value = null;
+  } catch (err) {
+    if (version === sessionVersion && requestId === writingPickerRequestId) writingPickerError.value = getErrorMessage(err, 'Không tải được danh sách đề viết. Hãy thử lại.');
+  } finally {
+    if (version === sessionVersion && requestId === writingPickerRequestId) writingPickerLoading.value = false;
+  }
+};
+
+const openWritingTaskPicker = async () => {
+  if (isEvaluating.value) return;
+  writingPickerOpen.value = true;
+  if (!writingTaskCatalog.value.length || writingPickerError.value) await loadWritingTasks();
+};
+
+const openWritingLesson = async lesson => {
+  if (isEvaluating.value || writingPickerLoading.value || lesson.type !== 'WRITING') return;
+  const topic = writingPickerTopics.value.find(item => item.id === lesson.topic_id);
+  if (!topic) return;
+  const version = sessionVersion;
+  writingPickerError.value = '';
+  writingPickerLoading.value = true;
+  try {
+    await startTopic(topic);
+    if (version !== sessionVersion || activeTab.value !== 'lesson' || selectedTopic.value?.id !== topic.id) return;
+    if (lessonError.value) { writingPickerError.value = lessonError.value; activeTab.value = 'writing'; return; }
+    await startLesson(lesson);
+    if (version !== sessionVersion || activeTab.value !== 'lesson') return;
+    if (isAuthOpen.value && !currentLesson.value) { activeTab.value = 'writing'; return; }
+    if (currentLesson.value?.id === lesson.id && currentLesson.value.type === 'WRITING') {
+      writingPickerOpen.value = false;
+      beginLessonPractice();
+    } else {
+      writingPickerError.value = lessonError.value || 'Chưa mở được đề bài. Hãy thử lại.';
+      activeTab.value = 'writing';
+    }
+  } finally {
+    if (version === sessionVersion) writingPickerLoading.value = false;
+  }
+};
 
 const wordCount = computed(() => {
   if (!essayInput.value.trim()) return 0;
@@ -444,27 +813,45 @@ const wordCount = computed(() => {
 });
 
 const submitWritingEvaluation = async () => {
-  if (!essayInput.value.trim()) return;
+  if (isEvaluating.value || !essayInput.value.trim() || !requireAuthentication()) return;
+  const version = sessionVersion;
   isEvaluating.value = true;
   writingError.value = '';
+  writingResult.value = null;
+  const lessonId = currentLesson.value?.type === 'WRITING' ? currentLesson.value.id : null;
+  const submittedText = essayInput.value.trim();
   try {
-    const res = await writingService.evaluateEssay(essayInput.value.trim());
+    const prompt = lessonId ? lessonDetail.value?.contents?.map(item => [item.target_text, item.task_guidance].filter(Boolean).join('\n')).join('\n') || currentLesson.value.title : null;
+    const res = await writingService.evaluateEssay(submittedText, lessonId, prompt);
+    const activeWritingLesson = currentLesson.value?.type === 'WRITING' ? currentLesson.value.id : null;
+    if (version !== sessionVersion || activeWritingLesson !== lessonId || essayInput.value.trim() !== submittedText) return;
     writingResult.value = res;
     writingSubTab.value = 'grammar';
+    if (lessonId) journey.updateLesson(lessonId, progress => {
+      progress.practiced = true;
+      progress.writing_previous_score = progress.writing_score;
+      progress.writing_score = res.overall_score ?? null;
+      progress.writing_attempts = (progress.writing_attempts || 0) + 1;
+    });
+    void loadHomeData();
   } catch (err) {
-    writingError.value = 'Chấm bài thất bại: ' + (err.response?.data?.detail || err.message);
+    if (version === sessionVersion) writingError.value = getErrorMessage(err, 'Chấm bài thất bại.');
   } finally {
-    isEvaluating.value = false;
+    if (version === sessionVersion) isEvaluating.value = false;
   }
 };
 
-const copyRewritten = () => {
+const copyRewritten = async () => {
   if (!writingResult.value?.corrected_text) return;
-  navigator.clipboard.writeText(writingResult.value.corrected_text);
-  copied.value = true;
-  setTimeout(() => {
-    copied.value = false;
-  }, 1800);
+  const version = sessionVersion;
+  try {
+    await navigator.clipboard.writeText(writingResult.value.corrected_text);
+    if (version !== sessionVersion) return;
+    copied.value = true;
+    setTimeout(() => { if (version === sessionVersion) copied.value = false; }, 1800);
+  } catch (err) {
+    if (version === sessionVersion) writingError.value = 'Không thể sao chép. Hãy chọn văn bản để sao chép thủ công.';
+  }
 };
 
 // ==========================================
@@ -477,6 +864,7 @@ const conversationId = ref(null);
 const chatMessages = ref([]);
 const chatInput = ref('');
 const chatLoading = ref(false);
+const chatError = ref('');
 const isChatHistoryOpen = ref(false);
 const chatHistoryLoading = ref(false);
 const chatHistoryError = ref('');
@@ -490,27 +878,36 @@ const currentChatScenario = computed(() => {
 });
 
 const loadChatConversations = async () => {
+  if (!requireAuthentication()) return;
+  const version = sessionVersion;
   chatHistoryLoading.value = true;
   chatHistoryError.value = '';
   try {
-    chatConversations.value = await chatService.getConversations() || [];
+    const list = await chatService.getConversations();
+    if (version === sessionVersion) chatConversations.value = list || [];
   } catch (err) {
-    chatHistoryError.value = err.response?.data?.detail || 'Không tải được lịch sử trò chuyện. Vui lòng thử lại.';
+    if (version === sessionVersion) chatHistoryError.value = getErrorMessage(err, 'Không tải được lịch sử trò chuyện.');
   } finally {
-    chatHistoryLoading.value = false;
+    if (version === sessionVersion) chatHistoryLoading.value = false;
   }
 };
 
 const toggleChatHistory = async () => {
+  if (chatLoading.value || isBotTyping.value || isChatRecording.value || !requireAuthentication()) return;
   isChatHistoryOpen.value = !isChatHistoryOpen.value;
   if (isChatHistoryOpen.value) await loadChatConversations();
 };
 
 const openChatConversation = async (conversation) => {
+  if (chatLoading.value || isBotTyping.value || isChatRecording.value || !requireAuthentication()) return;
+  const version = sessionVersion;
+  const requestId = ++chatRequestId;
   chatLoading.value = true;
   chatHistoryError.value = '';
+  chatError.value = '';
   try {
     const detail = await chatService.getConversationDetail(conversation.id);
+    if (version !== sessionVersion || requestId !== chatRequestId) return;
     conversationId.value = detail.id;
     chatMessages.value = detail.messages || [];
     const scenario = scenarios.value.find(item => item.title === detail.scenario_title);
@@ -518,50 +915,55 @@ const openChatConversation = async (conversation) => {
     isChatHistoryOpen.value = false;
     await scrollChatToBottom();
   } catch (err) {
-    chatHistoryError.value = err.response?.data?.detail || 'Không mở được cuộc trò chuyện này. Vui lòng thử lại.';
+    if (version === sessionVersion && requestId === chatRequestId) chatHistoryError.value = getErrorMessage(err, 'Không mở được cuộc trò chuyện.');
   } finally {
-    chatLoading.value = false;
+    if (version === sessionVersion && requestId === chatRequestId) chatLoading.value = false;
   }
 };
 
 const loadChatScenarios = async () => {
+  const requestId = ++chatRequestId;
   chatLoading.value = true;
+  chatError.value = '';
   try {
     const list = await chatService.getScenarios();
+    if (requestId !== chatRequestId) return;
     scenarios.value = list || [];
-    if (scenarios.value.length > 0) {
-      if (!scenarios.value.some(s => s.id === chatScenarioId.value)) {
-        chatScenarioId.value = scenarios.value[0].id;
-      }
-      await startChatConversation();
+    if (scenarios.value.length && !scenarios.value.some(s => s.id === chatScenarioId.value)) {
+      chatScenarioId.value = scenarios.value[0].id;
     }
   } catch (err) {
-    console.warn('Chat scenarios error:', err);
+    if (requestId === chatRequestId) chatError.value = getErrorMessage(err, 'Không tải được kịch bản hội thoại.');
   } finally {
-    chatLoading.value = false;
+    if (requestId === chatRequestId) chatLoading.value = false;
   }
 };
 
 const startChatConversation = async () => {
-  if (!chatScenarioId.value) return;
-  isBotTyping.value = false;
+  if (!chatScenarioId.value || chatLoading.value || isBotTyping.value || isChatRecording.value || !requireAuthentication()) return;
+  const version = sessionVersion;
+  const requestId = ++chatRequestId;
+  chatLoading.value = true;
+  chatError.value = '';
+  conversationId.value = null;
+  chatSummary.value = null;
+  chatMessages.value = [];
+  isChatHistoryOpen.value = false;
   try {
     const conv = await chatService.startConversation(chatScenarioId.value);
+    if (version !== sessionVersion || requestId !== chatRequestId) return;
     conversationId.value = conv.id;
     chatMessages.value = conv.messages || [];
     await scrollChatToBottom();
   } catch (err) {
-    console.warn('Start conversation error:', err);
+    if (version === sessionVersion && requestId === chatRequestId) chatError.value = getErrorMessage(err, 'Không bắt đầu được cuộc trò chuyện.');
+  } finally {
+    if (version === sessionVersion && requestId === chatRequestId) chatLoading.value = false;
   }
 };
 
-const switchChatScenario = async () => {
-  await startChatConversation();
-};
-
-const resetChatConversation = async () => {
-  await startChatConversation();
-};
+const switchChatScenario = () => startChatConversation();
+const resetChatConversation = () => startChatConversation();
 
 const scrollChatToBottom = async () => {
   await nextTick();
@@ -572,53 +974,56 @@ const scrollChatToBottom = async () => {
 
 const sendChatText = async () => {
   const text = chatInput.value.trim();
-  if (!text || isBotTyping.value || !conversationId.value) return;
-
-  chatInput.value = '';
-  chatMessages.value.push({
-    sender: 'user',
-    message_text: text
-  });
-  await scrollChatToBottom();
-
+  if (!text || chatLoading.value || isBotTyping.value || isChatRecording.value || !conversationId.value || !requireAuthentication()) return;
+  const version = sessionVersion;
+  const id = conversationId.value;
+  // Keep the draft until the server confirms success; failed requests remain retryable.
   isBotTyping.value = true;
+  chatError.value = '';
   try {
-    const reply = await chatService.sendMessage(conversationId.value, text);
-    chatMessages.value.push(reply);
+    const reply = await chatService.sendMessage(id, text);
+    if (version !== sessionVersion || id !== conversationId.value) return;
+    chatMessages.value.push({ sender: 'user', message_text: text }, reply);
+    if (chatInput.value.trim() === text) chatInput.value = '';
     await scrollChatToBottom();
+    void loadHomeData();
   } catch (err) {
-    console.warn('Send message error:', err);
+    if (version === sessionVersion) chatError.value = getErrorMessage(err, 'Không gửi được tin nhắn. Bạn có thể thử lại.');
   } finally {
-    isBotTyping.value = false;
+    if (version === sessionVersion) isBotTyping.value = false;
   }
 };
 
 const toggleChatVoice = async () => {
+  if (chatLoading.value || isBotTyping.value || !conversationId.value || !requireAuthentication()) return;
+  const version = sessionVersion;
+  const id = conversationId.value;
+  chatError.value = '';
   if (isChatRecording.value) {
+    isBotTyping.value = true;
     try {
       const blob = await chatRecorder.stop();
+      if (version !== sessionVersion) return;
       isChatRecording.value = false;
-      if (!blob || !conversationId.value) return;
-
-      isBotTyping.value = true;
-      const turnResult = await chatService.sendVoiceMessage(conversationId.value, blob);
-      if (turnResult) {
-        if (turnResult.user_message) chatMessages.value.push(turnResult.user_message);
-        if (turnResult.bot_message) chatMessages.value.push(turnResult.bot_message);
-        await scrollChatToBottom();
-      }
+      if (!blob?.size) return;
+      const result = await chatService.sendVoiceMessage(id, blob);
+      if (version !== sessionVersion || id !== conversationId.value) return;
+      if (result?.user_message) chatMessages.value.push(result.user_message);
+      if (result?.bot_message) chatMessages.value.push(result.bot_message);
+      await scrollChatToBottom();
+      void loadHomeData();
     } catch (err) {
-      console.warn('Voice chat error:', err);
+      if (version === sessionVersion) chatError.value = getErrorMessage(err, 'Không gửi được ghi âm.');
     } finally {
-      isBotTyping.value = false;
-      isChatRecording.value = false;
+      if (version === sessionVersion) { isBotTyping.value = false; isChatRecording.value = false; }
     }
   } else {
     try {
       await chatRecorder.start();
+      if (version !== sessionVersion) { chatRecorder.cleanup(); return; }
       isChatRecording.value = true;
     } catch (err) {
-      alert('Không thể truy cập microphone: ' + err.message);
+      if (version === sessionVersion) chatError.value = getErrorMessage(err, 'Không thể truy cập microphone.');
     }
   }
 };
@@ -638,164 +1043,315 @@ const speakBotMessage = (msg) => {
 // SCREEN 5: STUDY (FLASHCARD & QUIZ REAL)
 // ==========================================
 const studyMode = ref('flashcard');
+const forgottenCards = ref([]);
+const reviewSummary = ref(null);
+const reviewedCount = ref(0);
 const studyLoading = ref(false);
+const studyError = ref('');
 const currentStudyIndex = ref(0);
 const isFlipped = ref(false);
-
-// Flashcards
+const isReviewingCard = ref(false);
 const flashcards = ref([]);
-const currentCard = computed(() => flashcards.value[currentStudyIndex.value] || {});
+const flashcardDecks = ref([]);
+const flashcardDecksLoading = ref(false);
+const flashcardDecksError = ref('');
+const availableFlashcardDecks = computed(() => currentLesson.value ? lessonDecks.value : flashcardDecks.value);
 
-// Quizzes
+const loadFlashcardDecks = async () => {
+  if (!authService.isAuthenticated()) return;
+  const version = sessionVersion;
+  const requestId = ++flashcardDeckRequestId;
+  flashcardDecksLoading.value = true;
+  flashcardDecksError.value = '';
+  try {
+    const decks = await studyService.getFlashcardDecks();
+    if (version !== sessionVersion || requestId !== flashcardDeckRequestId) return;
+    flashcardDecks.value = decks || [];
+  } catch (err) {
+    if (version === sessionVersion && requestId === flashcardDeckRequestId) flashcardDecksError.value = getErrorMessage(err, 'Không tải được danh sách bộ từ.');
+  } finally {
+    if (version === sessionVersion && requestId === flashcardDeckRequestId) flashcardDecksLoading.value = false;
+  }
+};
+
+const onStudyDeckChange = async () => {
+  if (studyLoading.value || isReviewingCard.value || isSubmittingQuiz.value) return;
+  if (studyDeckId.value !== null && !availableFlashcardDecks.value.some(deck => deck.id === studyDeckId.value)) return;
+  await loadFlashcardsData();
+};
+const currentCard = computed(() => flashcards.value[currentStudyIndex.value] || {});
 const quizzesList = ref([]);
 const selectedQuizId = ref(null);
 const quizQuestions = ref([]);
 const currentQuestion = computed(() => quizQuestions.value[currentStudyIndex.value] || {});
 const selectedQuizAnswer = ref(null);
-const quizChecked = ref(false);
+const quizInputText = ref('');
+const quizAnswers = ref({});
+const quizResult = ref(null);
+const quizFeedbackMode = ref('end');
+const quizFeedback = ref({});
+const quizFeedbackLoading = ref(false);
+let quizAttemptVersion = 0;
+const quizChecked = computed(() => !!quizResult.value || (quizFeedbackMode.value === 'immediate' && !!quizFeedback.value[currentQuestion.value.id]));
 const isSubmittingQuiz = ref(false);
-const submittedQuizDetail = ref(null);
+const submittedQuizDetail = computed(() => quizResult.value?.details?.find(item => item.question_id === currentQuestion.value.id) || quizFeedback.value[currentQuestion.value.id] || null);
+const canAnswerQuiz = computed(() => currentQuestion.value.question_type === 'FILL_BLANK' ? !!quizInputText.value.trim() : !!selectedQuizAnswer.value);
+const quizModeLocked = computed(() => isSubmittingQuiz.value || quizFeedbackLoading.value || !!quizResult.value || canAnswerQuiz.value || Object.keys(quizAnswers.value).length > 0);
+const setQuizFeedbackMode = mode => {
+  if (!quizModeLocked.value && ['end', 'immediate'].includes(mode)) quizFeedbackMode.value = mode;
+};
+const totalStudyItems = computed(() => studyMode.value === 'flashcard' ? flashcards.value.length : quizQuestions.value.length);
 
-const totalStudyItems = computed(() => {
-  return studyMode.value === 'flashcard' ? flashcards.value.length : quizQuestions.value.length;
-});
+const restartQuiz = () => {
+  quizAttemptVersion += 1;
+  quizFeedback.value = {};
+  quizFeedbackLoading.value = false;
+  isSubmittingQuiz.value = false;
+  quizAnswers.value = {};
+  quizResult.value = null;
+  selectedQuizAnswer.value = null;
+  quizInputText.value = '';
+  currentStudyIndex.value = 0;
+};
+
+const restoreQuizAnswer = () => {
+  const saved = quizAnswers.value[currentQuestion.value.id];
+  selectedQuizAnswer.value = currentQuestion.value.answers?.find(answer => answer.id === saved?.selected_answer_id) || null;
+  quizInputText.value = saved?.user_input_text || '';
+};
 
 const switchStudyMode = async (mode) => {
+  if (isSubmittingQuiz.value || quizFeedbackLoading.value || isReviewingCard.value || studyLoading.value || mode === studyMode.value) return;
   studyMode.value = mode;
   currentStudyIndex.value = 0;
+  studyError.value = '';
   isFlipped.value = false;
-  selectedQuizAnswer.value = null;
-  quizChecked.value = false;
-  submittedQuizDetail.value = null;
-
-  if (mode === 'flashcard' && flashcards.value.length === 0) {
+  if (mode === 'flashcard') {
+    if (currentLesson.value && !lessonDecks.value.length) { flashcards.value = []; studyError.value = 'Bài chưa có bộ từ riêng. Chọn Luyện tự do để ôn toàn bộ thẻ.'; return; }
+    if (currentLesson.value) studyDeckId.value = lessonDecks.value[0].id;
     await loadFlashcardsData();
-  } else if (mode === 'quiz' && quizQuestions.value.length === 0) {
-    await loadQuizzesData();
   }
+  else if (studyLessonId.value || !quizQuestions.value.length) await loadQuizzesData();
+  else restoreQuizAnswer();
 };
 
 const loadFlashcardsData = async () => {
+  flashcards.value = [];
+  forgottenCards.value = [];
+  reviewSummary.value = null;
+  reviewedCount.value = 0;
+  currentStudyIndex.value = 0;
+  isFlipped.value = false;
+  if (!authService.isAuthenticated()) return;
+  // Fetch the selector independently so a catalog failure never hides valid cards.
+  if (!currentLesson.value) void loadFlashcardDecks();
+  const version = sessionVersion;
+  const requestId = ++studyRequestId;
   studyLoading.value = true;
+  studyError.value = '';
   try {
-    const list = await studyService.getCardsForReview();
+    const list = await studyService.getCardsForReview(studyDeckId.value);
+    if (version !== sessionVersion || requestId !== studyRequestId) return;
     flashcards.value = list || [];
     currentStudyIndex.value = 0;
   } catch (err) {
-    console.warn('Load flashcards error:', err);
+    if (version === sessionVersion && requestId === studyRequestId) studyError.value = getErrorMessage(err, 'Không tải được thẻ ôn tập.');
   } finally {
-    studyLoading.value = false;
+    if (version === sessionVersion && requestId === studyRequestId) studyLoading.value = false;
   }
 };
 
 const submitCardReview = async (isRemembered) => {
+  if (isReviewingCard.value || studyLoading.value || !currentCard.value.id || !requireAuthentication()) return;
+  const version = sessionVersion;
+  const cardId = currentCard.value.id;
   const card = currentCard.value;
-  isFlipped.value = false;
-  if (card && card.id) {
-    try {
-      await studyService.reviewCard(card.id, isRemembered);
-    } catch (err) {
-      console.warn('Card review error:', err);
-    }
-  }
-
-  if (currentStudyIndex.value < flashcards.value.length - 1) {
-    currentStudyIndex.value++;
-  } else {
-    currentStudyIndex.value = 0;
+  isReviewingCard.value = true;
+  studyError.value = '';
+  try {
+    await studyService.reviewCard(cardId, isRemembered);
+    if (version !== sessionVersion) return;
+    flashcards.value = flashcards.value.filter(card => card.id !== cardId);
+    reviewedCount.value += 1;
+    if (!isRemembered && !forgottenCards.value.some(item => item.id === cardId)) forgottenCards.value.push(card);
+    if (!flashcards.value.length) reviewSummary.value = { total: reviewedCount.value, retry: forgottenCards.value.length };
+    currentStudyIndex.value = Math.min(currentStudyIndex.value, Math.max(0, flashcards.value.length - 1));
+    isFlipped.value = false;
+  } catch (err) {
+    if (version === sessionVersion) studyError.value = getErrorMessage(err, 'Không lưu được kết quả ôn. Thẻ vẫn được giữ để thử lại.');
+  } finally {
+    if (version === sessionVersion) isReviewingCard.value = false;
   }
 };
 
 const loadQuizzesData = async () => {
+  const version = sessionVersion;
+  const requestId = ++studyRequestId;
   studyLoading.value = true;
+  studyError.value = '';
+  quizQuestions.value = [];
+  restartQuiz();
   try {
-    const list = await studyService.getQuizzes();
+    const list = studyLessonId.value ? lessonQuizzes.value : await studyService.getQuizzes();
+    if (version !== sessionVersion || requestId !== studyRequestId) return;
     quizzesList.value = list || [];
-    if (quizzesList.value.length > 0) {
-      selectedQuizId.value = quizzesList.value[0].id;
-      await onQuizChange();
-    }
+    selectedQuizId.value = quizzesList.value[0]?.id || null;
+    if (selectedQuizId.value) await onQuizChange();
   } catch (err) {
-    console.warn('Load quizzes error:', err);
+    if (version === sessionVersion && requestId === studyRequestId) studyError.value = getErrorMessage(err, 'Không tải được đề kiểm tra.');
   } finally {
-    studyLoading.value = false;
+    if (version === sessionVersion && requestId === studyRequestId) studyLoading.value = false;
   }
 };
 
 const onQuizChange = async () => {
+  if (isSubmittingQuiz.value) return;
+  const version = sessionVersion;
+  const requestId = ++studyRequestId;
+  quizQuestions.value = [];
+  restartQuiz();
+  studyError.value = '';
+  studyLoading.value = false;
   if (!selectedQuizId.value) return;
   studyLoading.value = true;
-  selectedQuizAnswer.value = null;
-  quizChecked.value = false;
-  submittedQuizDetail.value = null;
-  currentStudyIndex.value = 0;
   try {
     const detail = await studyService.getQuizDetail(selectedQuizId.value);
-    if (detail && detail.questions) {
-      quizQuestions.value = detail.questions;
-    }
+    if (version !== sessionVersion || requestId !== studyRequestId) return;
+    quizQuestions.value = [...(detail?.questions || [])].sort((a, b) => a.order_index - b.order_index);
+    const saved = journey.state.value.quiz_drafts[String(selectedQuizId.value)];
+    if (saved) { quizAnswers.value = saved.answers || {}; currentStudyIndex.value = Math.min(saved.index || 0, Math.max(0, quizQuestions.value.length - 1)); restoreQuizAnswer(); }
   } catch (err) {
-    console.warn('Quiz detail error:', err);
+    if (version === sessionVersion && requestId === studyRequestId) studyError.value = getErrorMessage(err, 'Không tải được câu hỏi.');
   } finally {
-    studyLoading.value = false;
+    if (version === sessionVersion && requestId === studyRequestId) studyLoading.value = false;
   }
 };
 
-const selectQuizAnswer = (ans) => {
-  if (quizChecked.value) return;
-  selectedQuizAnswer.value = ans;
+const selectQuizAnswer = async (answer) => {
+  if (quizChecked.value || isSubmittingQuiz.value || quizFeedbackLoading.value) return;
+  selectedQuizAnswer.value = answer;
+  if (quizFeedbackMode.value === 'immediate') await checkQuizAnswer();
 };
 
 const checkQuizAnswer = async () => {
-  if (!selectedQuizAnswer.value || !currentQuestion.value || !selectedQuizId.value) return;
-  isSubmittingQuiz.value = true;
-  try {
-    const payload = [
-      {
-        question_id: currentQuestion.value.id,
-        selected_answer_id: selectedQuizAnswer.value.id
-      }
-    ];
-    const res = await studyService.submitQuiz(selectedQuizId.value, payload);
-    if (res && res.details && res.details.length > 0) {
-      submittedQuizDetail.value = res.details[0];
+  if (isSubmittingQuiz.value || quizFeedbackLoading.value || quizChecked.value || !canAnswerQuiz.value || !currentQuestion.value.id || !requireAuthentication()) return;
+  const question = currentQuestion.value;
+  quizAnswers.value[question.id] = question.question_type === 'FILL_BLANK'
+    ? { question_id: question.id, user_input_text: quizInputText.value.trim() }
+    : { question_id: question.id, selected_answer_id: selectedQuizAnswer.value.id };
+  if (quizFeedbackMode.value === 'immediate') {
+    const version = sessionVersion;
+    const attempt = quizAttemptVersion;
+    const quizId = selectedQuizId.value;
+    quizFeedbackLoading.value = true;
+    studyError.value = '';
+    try {
+      const feedback = await studyService.checkQuizAnswer(quizId, quizAnswers.value[question.id]);
+      if (version !== sessionVersion || attempt !== quizAttemptVersion || quizId !== selectedQuizId.value) return;
+      quizFeedback.value[question.id] = feedback;
+    } catch (err) {
+      if (version === sessionVersion && attempt === quizAttemptVersion) studyError.value = getErrorMessage(err, 'Chưa kiểm tra được đáp án. Hãy thử lại.');
+    } finally {
+      if (version === sessionVersion && attempt === quizAttemptVersion) quizFeedbackLoading.value = false;
     }
-    quizChecked.value = true;
-  } catch (err) {
-    quizChecked.value = true;
-    submittedQuizDetail.value = {
-      is_correct: false,
-      explanation: err.response?.data?.detail || err.message
-    };
-  } finally {
-    isSubmittingQuiz.value = false;
+    return;
   }
-};
-
-const nextQuizQuestion = () => {
-  selectedQuizAnswer.value = null;
-  quizChecked.value = false;
-  submittedQuizDetail.value = null;
   if (currentStudyIndex.value < quizQuestions.value.length - 1) {
-    currentStudyIndex.value++;
-  } else {
+    currentStudyIndex.value += 1;
+    restoreQuizAnswer();
+    return;
+  }
+  await submitQuizAttempt();
+};
+
+const submitQuizAttempt = async () => {
+  if (isSubmittingQuiz.value || quizResult.value || !requireAuthentication()) return;
+  if (quizQuestions.value.some(question => !quizAnswers.value[question.id])) return;
+  const version = sessionVersion;
+  const attempt = quizAttemptVersion;
+  isSubmittingQuiz.value = true;
+  studyError.value = '';
+  try {
+    const result = await studyService.submitQuiz(selectedQuizId.value, quizQuestions.value.map(q => quizAnswers.value[q.id]));
+    if (version !== sessionVersion || attempt !== quizAttemptVersion) return;
+    quizResult.value = result;
+    journey.update(data => { delete data.quiz_drafts[String(selectedQuizId.value)]; });
+    if (studyLessonId.value) journey.updateLesson(studyLessonId.value, progress => { progress.quiz_score = result.score; });
     currentStudyIndex.value = 0;
+    restoreQuizAnswer();
+  } catch (err) {
+    if (version === sessionVersion && attempt === quizAttemptVersion) studyError.value = getErrorMessage(err, 'Chưa nộp được bài. Đáp án đã chọn được giữ lại để thử lại.');
+  } finally {
+    if (version === sessionVersion && attempt === quizAttemptVersion) isSubmittingQuiz.value = false;
   }
 };
 
-const getQuizAnswerClass = (ans) => {
-  if (!quizChecked.value) {
-    return selectedQuizAnswer.value?.id === ans.id
-      ? 'border-indigo-600 bg-indigo-50/70 text-indigo-900 shadow-xs'
-      : 'border-gray-200 bg-white hover:border-gray-300 text-gray-800';
+const previousQuizQuestion = () => {
+  if (isSubmittingQuiz.value || quizFeedbackLoading.value || currentStudyIndex.value === 0) return;
+  if (!quizChecked.value && canAnswerQuiz.value) {
+    const q = currentQuestion.value;
+    quizAnswers.value[q.id] = q.question_type === 'FILL_BLANK'
+      ? { question_id: q.id, user_input_text: quizInputText.value.trim() }
+      : { question_id: q.id, selected_answer_id: selectedQuizAnswer.value.id };
   }
-  if (selectedQuizAnswer.value?.id === ans.id) {
-    return submittedQuizDetail.value?.is_correct
-      ? 'border-emerald-500 bg-emerald-50 text-emerald-900 font-bold'
-      : 'border-rose-500 bg-rose-50 text-rose-900';
-  }
+  currentStudyIndex.value -= 1;
+  restoreQuizAnswer();
+};
+
+const nextQuizQuestion = async () => {
+  if (isSubmittingQuiz.value || quizFeedbackLoading.value) return;
+  if (quizFeedbackMode.value === 'immediate' && !quizResult.value && !quizChecked.value) return;
+  if (currentStudyIndex.value < quizQuestions.value.length - 1) {
+    currentStudyIndex.value += 1;
+    restoreQuizAnswer();
+  } else if (quizFeedbackMode.value === 'immediate' && !quizResult.value) await submitQuizAttempt();
+  else restartQuiz();
+};
+
+const getQuizAnswerClass = (answer) => {
+  if (!quizChecked.value) return selectedQuizAnswer.value?.id === answer.id
+    ? 'border-indigo-600 bg-indigo-50/70 text-indigo-900 shadow-xs'
+    : 'border-gray-200 bg-white hover:border-gray-300 text-gray-800';
+  if (submittedQuizDetail.value?.correct_answer_id === answer.id) return 'border-emerald-500 bg-emerald-50 text-emerald-900';
+  if (selectedQuizAnswer.value?.id === answer.id) return submittedQuizDetail.value?.is_correct
+    ? 'border-emerald-500 bg-emerald-50 text-emerald-900 font-bold'
+    : 'border-rose-500 bg-rose-50 text-rose-900';
   return 'border-gray-200 bg-white text-gray-400 opacity-60';
 };
+
+const retryForgottenCards = () => {
+  flashcards.value = [...forgottenCards.value];
+  forgottenCards.value = [];
+  reviewSummary.value = null;
+  currentStudyIndex.value = 0;
+  isFlipped.value = false;
+};
+
+watch(activeTab, (tab, previous) => {
+  if (previous === 'speaking' && tab !== 'speaking') { recorder.cleanup(); isRecording.value = false; }
+  if (previous === 'chat' && tab !== 'chat') { chatRecorder.cleanup(); isChatRecording.value = false; }
+  window.speechSynthesis?.cancel();
+}, { flush: 'sync' });
+
+watch(essayInput, text => {
+  if (pauseDrafts || !isAuthenticated.value) return;
+  const key = currentLesson.value?.type === 'WRITING' ? String(currentLesson.value.id) : 'free';
+  journey.update(data => { data.writing_drafts[key] = text.slice(0, 10000); });
+}, { flush: 'sync' });
+
+watch(journey.loading, loading => {
+  if (!loading && isAuthenticated.value && !currentLesson.value && !essayInput.value) essayInput.value = journey.state.value.writing_drafts.free || '';
+}, { flush: 'sync' });
+
+watch([quizAnswers, quizInputText, selectedQuizAnswer, currentStudyIndex], () => {
+  if (pauseDrafts || quizChecked.value || !selectedQuizId.value || studyMode.value !== 'quiz') return;
+  const answers = JSON.parse(JSON.stringify(quizAnswers.value));
+  const q = currentQuestion.value;
+  if (q.id && canAnswerQuiz.value) answers[q.id] = q.question_type === 'FILL_BLANK'
+    ? { question_id: q.id, user_input_text: quizInputText.value.trim() }
+    : { question_id: q.id, selected_answer_id: selectedQuizAnswer.value.id };
+  journey.update(data => { data.quiz_drafts[String(selectedQuizId.value)] = { answers, index: currentStudyIndex.value }; });
+}, { deep: true });
 
 // ==========================================
 // UTILITIES
@@ -820,20 +1376,32 @@ const updateClock = () => {
 
 let clockInterval = null;
 
-provide('screenContext', { activeTab, chatConversations, chatHistoryError, chatHistoryLoading, chatInput, chatLoading, chatMessages, chatRecorder, chatScenarioId, chatScrollContainer, checkQuizAnswer, clockInterval, conversationId, copied, copyRewritten, currentCard, currentChatScenario, currentQuestion, currentSpeakingSentenceIndex, currentStudyIndex, currentTime, dashboard, essayInput, flashcards, getActivityBadgeClass, getQuizAnswerClass, getTopicColor, getTopicEmoji, getWordBg, getWordTextColor, homeLoading, isAnalyzingSpeaking, isAuthOpen, isAuthenticated, isBotTyping, isChatHistoryOpen, isChatRecording, isCustomSpeakingMode, isEvaluating, isFlipped, isProfileOpen, isRecording, isSubmittingQuiz, loadChatConversations, loadChatScenarios, loadFlashcardsData, loadHomeData, loadQuizzesData, logout, nativeAudioUrl, navigateSpeakingSentence, nextQuizQuestion, onAuthSuccess, onProfileUpdated, onQuizChange, onSpeakingLessonChange, onSpeakingTopicChange, openAuthModal, openChatConversation, playNativeAudio, quizChecked, quizQuestions, quizzesList, recorder, resetChatConversation, scenarios, scrollChatToBottom, selectQuizAnswer, selectSpeakingSentence, selectedQuizAnswer, selectedQuizId, selectedSpeakingContentId, sendChatText, speakBotMessage, speakText, speakingError, speakingLessonContents, speakingLessonId, speakingLessons, speakingLessonsLoading, speakingResult, speakingTopicId, startChatConversation, startTopic, stopAndAnalyzeSpeaking, studyLoading, studyMode, submitCardReview, submitWritingEvaluation, submittedQuizDetail, switchChatScenario, switchStudyMode, targetIpa, targetSpeakingText, targetTranslation, toggleChatHistory, toggleChatVoice, toggleRecording, topics, totalPracticeCount, totalStudyItems, updateClock, userAvatarUrl, userProfile, wordCount, writingError, writingResult, writingSubTab });
+provide('screenContext', { writingPickerOpen, writingPickerLoading, writingPickerError, writingPickerTopicId, writingPickerTopics, writingPickerLessons, loadWritingTasks, openWritingTaskPicker, openWritingLesson, quizFeedbackMode, quizFeedbackLoading, quizModeLocked, setQuizFeedbackMode, flashcardDecks, flashcardDecksLoading, flashcardDecksError, availableFlashcardDecks, loadFlashcardDecks, onStudyDeckChange, navigateTab, chatSummary, endChatSession, journey, selectedTopic, topicLessons, currentLesson, lessonDetail, lessonQuizzes, lessonDecks, lessonLoading, lessonError, lessonStep, lessonProgress, canFinishLesson, recommendedTopic, startLesson, continueLearning, beginLessonPractice, openLessonQuiz, openLessonDeck, finishLesson, nextLesson, leaveLesson, openSaveWord, savedWordMessage, openLessonChat, reviewSummary, retryForgottenCards, studyDeckId, homeError, studyError, chatError, isReviewingCard, quizInputText, quizResult, canAnswerQuiz, previousQuizQuestion, restartQuiz, requireAuthentication, activeTab, chatConversations, chatHistoryError, chatHistoryLoading, chatInput, chatLoading, chatMessages, chatRecorder, chatScenarioId, chatScrollContainer, checkQuizAnswer, clockInterval, conversationId, copied, copyRewritten, currentCard, currentChatScenario, currentQuestion, currentSpeakingSentenceIndex, currentStudyIndex, currentTime, dashboard, essayInput, flashcards, getActivityBadgeClass, getQuizAnswerClass, getTopicColor, getTopicEmoji, getWordBg, getWordTextColor, homeLoading, isAnalyzingSpeaking, isAuthOpen, isAuthenticated, isBotTyping, isChatHistoryOpen, isChatRecording, isCustomSpeakingMode, isEvaluating, isFlipped, isProfileOpen, isRecording, isSubmittingQuiz, loadChatConversations, loadChatScenarios, loadFlashcardsData, loadHomeData, loadQuizzesData, logout, nativeAudioUrl, navigateSpeakingSentence, nextQuizQuestion, onAuthSuccess, onProfileUpdated, onQuizChange, onSpeakingLessonChange, onSpeakingTopicChange, openAuthModal, openChatConversation, playNativeAudio, quizChecked, quizQuestions, quizzesList, recorder, resetChatConversation, scenarios, scrollChatToBottom, selectQuizAnswer, selectedQuizAnswer, selectedQuizId, selectedSpeakingContentId, sendChatText, speakBotMessage, speakText, speakingError, speakingLessonContents, speakingLessonId, speakingLessons, speakingLessonsLoading, speakingResult, speakingTopicId, startChatConversation, startTopic, stopAndAnalyzeSpeaking, studyLoading, studyMode, submitCardReview, submitWritingEvaluation, submittedQuizDetail, switchChatScenario, switchStudyMode, targetIpa, targetSpeakingText, targetTranslation, toggleChatHistory, toggleChatVoice, toggleRecording, topics, totalPracticeCount, totalStudyItems, updateClock, userAvatarUrl, userProfile, wordCount, writingError, writingResult, writingSubTab });
 
 onMounted(async () => {
   updateClock();
   clockInterval = setInterval(updateClock, 30000);
-  await loadHomeData();
-  await loadChatScenarios();
-  await loadFlashcardsData();
+  window.addEventListener('auth-expired', onSessionExpired);
+  if (authService.isAuthenticated()) {
+    const version = sessionVersion;
+    try {
+      const profile = await authService.getProfile();
+      if (version === sessionVersion) userProfile.value = profile;
+    } catch (err) {
+      // The response interceptor handles invalid sessions. Network failures keep the cached profile.
+    }
+  }
+  await Promise.all([loadHomeData(), loadChatScenarios(), loadFlashcardsData()]);
 });
 
 onUnmounted(() => {
+  sessionVersion += 1;
   if (clockInterval) clearInterval(clockInterval);
+  window.removeEventListener('auth-expired', onSessionExpired);
   recorder.cleanup();
   chatRecorder.cleanup();
+  window.speechSynthesis?.cancel();
 });
+
 </script>
 

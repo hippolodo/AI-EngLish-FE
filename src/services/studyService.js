@@ -1,8 +1,8 @@
 ﻿import { apiClient } from './api';
 
 export const studyService = {
-  async getFlashcardDecks() {
-    const res = await apiClient.get('/flashcards/decks');
+  async getFlashcardDecks(lessonId = null) {
+    const res = await apiClient.get('/flashcards/decks', { params: lessonId ? { lesson_id: lessonId } : {} });
     return res.data;
   },
 
@@ -17,6 +17,10 @@ export const studyService = {
       is_remembered: isRemembered
     });
     return res.data;
+  },
+
+  async saveWord(word, meaning, example = '') {
+    return (await apiClient.post('/flashcards/saved', { word, meaning, hint_example: example })).data;
   },
 
   async getQuizzes(lessonId = null, topicId = null) {
@@ -37,5 +41,9 @@ export const studyService = {
       answers: answers
     });
     return res.data;
+  },
+
+  async checkQuizAnswer(quizId, answer) {
+    return (await apiClient.post(`/quizzes/${quizId}/check`, answer)).data;
   }
 };
