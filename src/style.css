@@ -4,10 +4,10 @@
 
 @layer base {
   :root {
-    font-family: theme('fontFamily.sans');
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 16px;
-    color: #1e293b;
-    background: #f8fafc;
+    color: #1e2026;
+    background: #fcfdfe;
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
@@ -15,12 +15,14 @@
   }
 
   body {
-    font-size: 0.9375rem;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 1rem;
     line-height: 1.6;
     min-width: 320px;
     min-height: 100vh;
     margin: 0;
-    background: #f8fafc;
+    background: #fcfdfe;
+    color: #1e2026;
   }
 
   ::-webkit-scrollbar {
