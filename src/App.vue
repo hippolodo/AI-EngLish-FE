@@ -2,126 +2,106 @@
   <div class="min-h-screen bg-[#f8fafc] flex flex-col lg:flex-row font-sans text-slate-800 antialiased selection:bg-indigo-100 selection:text-indigo-800">
     
     <!-- DESKTOP / TABLET SIDEBAR NAVIGATION (Sticky on Left) -->
-    <aside class="hidden lg:flex w-64 xl:w-72 flex-col justify-between bg-white border-r border-slate-200/80 shrink-0 sticky top-0 h-screen py-6 px-4 z-30 shadow-xs">
+    <aside class="hidden lg:flex w-56 xl:w-60 flex-col justify-between bg-white border-r border-slate-100 shrink-0 sticky top-0 h-screen py-6 px-4 z-30">
       <!-- Top Branding -->
       <div class="space-y-6">
-        <div class="flex items-center gap-3 px-2">
-          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-violet-500 text-white flex items-center justify-center shadow-lg shadow-indigo-500/25">
-            <Sparkles class="w-5 h-5" />
-          </div>
-          <div>
-            <div class="flex items-center gap-1.5">
-              <span class="text-lg font-black tracking-tight text-slate-900">lingo<span class="text-indigo-600">up</span></span>
-              <span class="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">AI PRO</span>
+        <!-- Minimalist Stylized Logo -->
+        <div class="px-2 pt-1 pb-1">
+          <div class="flex items-center gap-2 cursor-pointer" @click="navigateTab('home')">
+            <div class="w-8 h-8 flex items-center justify-center text-blue-600">
+              <svg class="w-7 h-7" viewBox="0 0 28 28" fill="none">
+                <path d="M6 7C10 10.5 10 17.5 6 21" stroke="#2563eb" stroke-width="3.5" stroke-linecap="round"/>
+                <path d="M12 4C18 9 18 19 12 24" stroke="#2563eb" stroke-width="3.5" stroke-linecap="round"/>
+                <path d="M18 1C26 7.5 26 20.5 18 27" stroke="#2563eb" stroke-width="3.5" stroke-linecap="round"/>
+              </svg>
             </div>
-            <p class="text-[11px] text-slate-400 font-medium">Luyện Tiếng Anh Thông Minh</p>
           </div>
         </div>
 
         <!-- Navigation Menu -->
-        <nav class="space-y-1">
+        <nav class="space-y-1.5">
           <button
             @click="navigateTab('home')"
-            :class="activeTab === 'home' ? 'bg-indigo-50/90 text-indigo-700 font-bold border-indigo-200 shadow-2xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-semibold'"
-            class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl border border-transparent transition cursor-pointer text-sm"
+            :class="activeTab === 'home' ? 'bg-slate-100 text-slate-900 font-semibold' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50 font-medium'"
+            class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl transition cursor-pointer text-sm"
           >
-            <div class="flex items-center gap-3">
-              <Home :class="activeTab === 'home' ? 'text-indigo-600' : 'text-slate-400'" class="w-5 h-5" />
-              <span>Trang chủ</span>
-            </div>
-            <span v-if="activeTab === 'home'" class="w-1.5 h-1.5 rounded-full bg-indigo-600"></span>
+            <LayoutGrid class="w-5 h-5 shrink-0" />
+            <span>Home</span>
+          </button>
+
+          <button
+            @click="activeTab = 'lesson'"
+            :class="activeTab === 'lesson' ? 'bg-slate-100 text-slate-900 font-semibold' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50 font-medium'"
+            class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl transition cursor-pointer text-sm"
+          >
+            <GraduationCap class="w-5 h-5 shrink-0" />
+            <span>Courses</span>
           </button>
 
           <button
             @click="navigateTab('speaking')"
-            :class="activeTab === 'speaking' ? 'bg-indigo-50/90 text-indigo-700 font-bold border-indigo-200 shadow-2xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-semibold'"
-            class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl border border-transparent transition cursor-pointer text-sm"
+            :class="activeTab === 'speaking' ? 'bg-slate-100 text-slate-900 font-semibold' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50 font-medium'"
+            class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl transition cursor-pointer text-sm"
           >
-            <div class="flex items-center gap-3">
-              <Mic :class="activeTab === 'speaking' ? 'text-indigo-600' : 'text-slate-400'" class="w-5 h-5" />
-              <span>Luyện phát âm</span>
-            </div>
-            <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-bold">GOP AI</span>
-          </button>
-
-          <button
-            @click="navigateTab('writing')"
-            :class="activeTab === 'writing' ? 'bg-indigo-50/90 text-indigo-700 font-bold border-indigo-200 shadow-2xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-semibold'"
-            class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl border border-transparent transition cursor-pointer text-sm"
-          >
-            <div class="flex items-center gap-3">
-              <PenTool :class="activeTab === 'writing' ? 'text-indigo-600' : 'text-slate-400'" class="w-5 h-5" />
-              <span>Luyện viết AI</span>
-            </div>
-            <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-purple-100 text-purple-800 font-bold">Gemini</span>
+            <Mic class="w-5 h-5 shrink-0" />
+            <span>Sentence Mode</span>
           </button>
 
           <button
             @click="navigateTab('chat')"
-            :class="activeTab === 'chat' ? 'bg-indigo-50/90 text-indigo-700 font-bold border-indigo-200 shadow-2xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-semibold'"
-            class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl border border-transparent transition cursor-pointer text-sm"
+            :class="activeTab === 'chat' ? 'bg-slate-100 text-slate-900 font-semibold' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50 font-medium'"
+            class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl transition cursor-pointer text-sm"
           >
-            <div class="flex items-center gap-3">
-              <MessageSquare :class="activeTab === 'chat' ? 'text-indigo-600' : 'text-slate-400'" class="w-5 h-5" />
-              <span>Hội thoại AI</span>
-            </div>
-            <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-800 font-bold">12+ Chủ đề</span>
+            <MessageSquare class="w-5 h-5 shrink-0" />
+            <span>Chat</span>
           </button>
 
           <button
             @click="navigateTab('study')"
-            :class="activeTab === 'study' ? 'bg-indigo-50/90 text-indigo-700 font-bold border-indigo-200 shadow-2xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-semibold'"
-            class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl border border-transparent transition cursor-pointer text-sm"
+            :class="activeTab === 'study' ? 'bg-slate-100 text-slate-900 font-semibold' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50 font-medium'"
+            class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl transition cursor-pointer text-sm"
           >
-            <div class="flex items-center gap-3">
-              <BookOpen :class="activeTab === 'study' ? 'text-indigo-600' : 'text-slate-400'" class="w-5 h-5" />
-              <span>Flashcard & Quiz</span>
-            </div>
-            <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-indigo-100 text-indigo-800 font-bold">SRS</span>
+            <Layers class="w-5 h-5 shrink-0" />
+            <span>Flashcards</span>
+          </button>
+
+          <button
+            @click="navigateTab('writing')"
+            :class="activeTab === 'writing' ? 'bg-slate-100 text-slate-900 font-semibold' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50 font-medium'"
+            class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl transition cursor-pointer text-sm"
+          >
+            <PenTool class="w-5 h-5 shrink-0" />
+            <span>Writing</span>
           </button>
 
           <button
             @click="navigateTab('profile')"
-            :class="activeTab === 'profile' ? 'bg-indigo-50/90 text-indigo-700 font-bold border-indigo-200 shadow-2xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-semibold'"
-            class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl border border-transparent transition cursor-pointer text-sm"
+            :class="activeTab === 'profile' ? 'bg-slate-100 text-slate-900 font-semibold' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50 font-medium'"
+            class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl transition cursor-pointer text-sm"
           >
-            <div class="flex items-center gap-3">
-              <UserRound :class="activeTab === 'profile' ? 'text-indigo-600' : 'text-slate-400'" class="w-5 h-5" />
-              <span>Hồ sơ học viên</span>
-            </div>
+            <TrendingUp class="w-5 h-5 shrink-0" />
+            <span>Progress</span>
           </button>
         </nav>
       </div>
 
-      <!-- Sidebar Motivation Widget & User Footer -->
-      <div class="space-y-3 pt-4 border-t border-slate-100">
-        <!-- Streak Motivation Card -->
-        <div class="p-3.5 rounded-2xl bg-gradient-to-br from-indigo-50 via-purple-50/60 to-amber-50/60 border border-indigo-100/80 shadow-2xs">
-          <div class="flex items-center justify-between text-xs">
-            <span class="font-bold text-indigo-950 flex items-center gap-1.5">
-              <span>🔥</span> Chuỗi học tập
-            </span>
-            <span class="font-extrabold text-amber-600">{{ dashboard?.streak || 0 }} ngày</span>
-          </div>
-          <p class="text-[11px] text-slate-500 mt-1">
-            {{ totalPracticeCount ? `Đã hoàn thành ${totalPracticeCount} bài luyện` : 'Học mỗi ngày để tích lũy kiến thức!' }}
-          </p>
-        </div>
-
-        <!-- User Profile Pill -->
-        <div
+      <!-- Bottom Menu (Gift & Account) -->
+      <div class="space-y-1.5 pt-4 border-t border-slate-100">
+        <button
           @click="openAuthModal"
-          class="flex items-center justify-between p-2 rounded-2xl hover:bg-slate-100 transition cursor-pointer"
+          class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl text-pink-600 hover:bg-pink-50 transition cursor-pointer text-sm font-semibold"
         >
-          <div class="flex items-center gap-2.5 min-w-0">
-            <img :src="userAvatarUrl" alt="" class="w-9 h-9 rounded-full border border-slate-200 bg-white shrink-0 object-cover" />
-            <div class="min-w-0">
-              <p class="text-xs font-bold text-slate-900 truncate">{{ userProfile?.full_name || 'Khách học thử' }}</p>
-              <p class="text-[11px] text-slate-500 truncate">{{ isAuthenticated ? (userProfile?.email || 'Đã đăng nhập') : 'Bấm để đăng nhập' }}</p>
-            </div>
-          </div>
-          <ChevronRight class="w-4 h-4 text-slate-400 shrink-0" />
-        </div>
+          <Gift class="w-5 h-5 shrink-0 text-pink-500" />
+          <span>A gift for you</span>
+        </button>
+
+        <button
+          @click="openAuthModal"
+          class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition cursor-pointer text-sm font-medium"
+        >
+          <UserRound class="w-5 h-5 shrink-0 text-slate-400" />
+          <span class="truncate">{{ isAuthenticated ? (userProfile?.full_name || 'Account') : 'Account' }}</span>
+        </button>
       </div>
     </aside>
 
@@ -272,7 +252,8 @@ import WritingScreen from './views/WritingScreen.vue';
 import ChatScreen from './views/ChatScreen.vue';
 import StudyScreen from './views/StudyScreen.vue';
 import {
-  Signal, Wifi, BookOpen, Sparkles, Mic, Home, PenTool, MessageSquare, UserRound, ArrowLeft, Compass, ChevronRight
+  Signal, Wifi, BookOpen, Sparkles, Mic, Home, PenTool, MessageSquare, UserRound, ArrowLeft, Compass, ChevronRight,
+  LayoutGrid, GraduationCap, Layers, TrendingUp, Gift, Star
 } from 'lucide-vue-next';
 
 // Real services
