@@ -2,18 +2,22 @@
   <div class="min-h-screen bg-[#f8fafc] flex flex-col lg:flex-row font-sans text-slate-800 antialiased selection:bg-indigo-100 selection:text-indigo-800">
     
     <!-- DESKTOP / TABLET SIDEBAR NAVIGATION (Sticky on Left) -->
-    <aside class="hidden lg:flex w-56 xl:w-60 flex-col justify-between bg-white border-r border-slate-100 shrink-0 sticky top-0 h-screen py-6 px-4 z-30">
+    <!-- DESKTOP / TABLET SIDEBAR NAVIGATION (Sticky on Left) -->
+    <aside class="hidden lg:flex w-64 xl:w-72 flex-col justify-between bg-white border-r border-slate-200/80 shrink-0 sticky top-0 h-screen py-6 px-4 z-30 shadow-2xs">
       <!-- Top Branding -->
       <div class="space-y-6">
-        <!-- Minimalist Stylized Logo -->
+        <!-- Logo & App Name -->
         <div class="px-2 pt-1 pb-1">
-          <div class="flex items-center gap-2 cursor-pointer" @click="navigateTab('home')">
-            <div class="w-8 h-8 flex items-center justify-center text-blue-600">
-              <svg class="w-7 h-7" viewBox="0 0 28 28" fill="none">
-                <path d="M6 7C10 10.5 10 17.5 6 21" stroke="#2563eb" stroke-width="3.5" stroke-linecap="round"/>
-                <path d="M12 4C18 9 18 19 12 24" stroke="#2563eb" stroke-width="3.5" stroke-linecap="round"/>
-                <path d="M18 1C26 7.5 26 20.5 18 27" stroke="#2563eb" stroke-width="3.5" stroke-linecap="round"/>
-              </svg>
+          <div class="flex items-center gap-3 cursor-pointer" @click="navigateTab('home')">
+            <div class="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-black shadow-md shadow-blue-500/20">
+              <Sparkles class="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="text-xl font-black tracking-tight text-slate-900">lingo<span class="text-blue-600">up</span></span>
+                <span class="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200">AI</span>
+              </div>
+              <p class="text-xs text-slate-400 font-medium">Luyện Tiếng Anh Thông Minh</p>
             </div>
           </div>
         </div>
@@ -22,86 +26,95 @@
         <nav class="space-y-1.5">
           <button
             @click="navigateTab('home')"
-            :class="activeTab === 'home' ? 'bg-slate-100 text-slate-900 font-semibold' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50 font-medium'"
-            class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl transition cursor-pointer text-sm"
+            :class="activeTab === 'home' ? 'bg-slate-100 text-slate-900 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium'"
+            class="w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl transition cursor-pointer text-sm"
           >
-            <LayoutGrid class="w-5 h-5 shrink-0" />
-            <span>Home</span>
-          </button>
-
-          <button
-            @click="activeTab = 'lesson'"
-            :class="activeTab === 'lesson' ? 'bg-slate-100 text-slate-900 font-semibold' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50 font-medium'"
-            class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl transition cursor-pointer text-sm"
-          >
-            <GraduationCap class="w-5 h-5 shrink-0" />
-            <span>Courses</span>
+            <LayoutGrid class="w-5 h-5 shrink-0" :class="activeTab === 'home' ? 'text-blue-600' : 'text-slate-400'" />
+            <span>Trang chủ</span>
           </button>
 
           <button
             @click="navigateTab('speaking')"
-            :class="activeTab === 'speaking' ? 'bg-slate-100 text-slate-900 font-semibold' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50 font-medium'"
-            class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl transition cursor-pointer text-sm"
+            :class="activeTab === 'speaking' ? 'bg-slate-100 text-slate-900 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium'"
+            class="w-full flex items-center justify-between px-4 py-3 rounded-2xl transition cursor-pointer text-sm"
           >
-            <Mic class="w-5 h-5 shrink-0" />
-            <span>Sentence Mode</span>
+            <div class="flex items-center gap-3.5">
+              <Mic class="w-5 h-5 shrink-0" :class="activeTab === 'speaking' ? 'text-blue-600' : 'text-slate-400'" />
+              <span>Luyện phát âm</span>
+            </div>
+            <span class="text-[11px] px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-bold">GOP</span>
           </button>
 
           <button
             @click="navigateTab('chat')"
-            :class="activeTab === 'chat' ? 'bg-slate-100 text-slate-900 font-semibold' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50 font-medium'"
-            class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl transition cursor-pointer text-sm"
+            :class="activeTab === 'chat' ? 'bg-slate-100 text-slate-900 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium'"
+            class="w-full flex items-center justify-between px-4 py-3 rounded-2xl transition cursor-pointer text-sm"
           >
-            <MessageSquare class="w-5 h-5 shrink-0" />
-            <span>Chat</span>
-          </button>
-
-          <button
-            @click="navigateTab('study')"
-            :class="activeTab === 'study' ? 'bg-slate-100 text-slate-900 font-semibold' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50 font-medium'"
-            class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl transition cursor-pointer text-sm"
-          >
-            <Layers class="w-5 h-5 shrink-0" />
-            <span>Flashcards</span>
+            <div class="flex items-center gap-3.5">
+              <MessageSquare class="w-5 h-5 shrink-0" :class="activeTab === 'chat' ? 'text-blue-600' : 'text-slate-400'" />
+              <span>Hội thoại AI</span>
+            </div>
+            <span class="text-[11px] px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 font-bold">12+</span>
           </button>
 
           <button
             @click="navigateTab('writing')"
-            :class="activeTab === 'writing' ? 'bg-slate-100 text-slate-900 font-semibold' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50 font-medium'"
-            class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl transition cursor-pointer text-sm"
+            :class="activeTab === 'writing' ? 'bg-slate-100 text-slate-900 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium'"
+            class="w-full flex items-center justify-between px-4 py-3 rounded-2xl transition cursor-pointer text-sm"
           >
-            <PenTool class="w-5 h-5 shrink-0" />
-            <span>Writing</span>
+            <div class="flex items-center gap-3.5">
+              <PenTool class="w-5 h-5 shrink-0" :class="activeTab === 'writing' ? 'text-blue-600' : 'text-slate-400'" />
+              <span>Luyện viết AI</span>
+            </div>
+          </button>
+
+          <button
+            @click="navigateTab('study')"
+            :class="activeTab === 'study' ? 'bg-slate-100 text-slate-900 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium'"
+            class="w-full flex items-center justify-between px-4 py-3 rounded-2xl transition cursor-pointer text-sm"
+          >
+            <div class="flex items-center gap-3.5">
+              <Layers class="w-5 h-5 shrink-0" :class="activeTab === 'study' ? 'text-blue-600' : 'text-slate-400'" />
+              <span>Flashcard & Quiz</span>
+            </div>
+            <span class="text-[11px] px-2 py-0.5 rounded-md bg-sky-50 text-sky-700 font-bold">SRS</span>
+          </button>
+
+          <button
+            @click="activeTab = 'lesson'"
+            :class="activeTab === 'lesson' ? 'bg-slate-100 text-slate-900 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium'"
+            class="w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl transition cursor-pointer text-sm"
+          >
+            <GraduationCap class="w-5 h-5 shrink-0" :class="activeTab === 'lesson' ? 'text-blue-600' : 'text-slate-400'" />
+            <span>Chủ đề bài học</span>
           </button>
 
           <button
             @click="navigateTab('profile')"
-            :class="activeTab === 'profile' ? 'bg-slate-100 text-slate-900 font-semibold' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50 font-medium'"
-            class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl transition cursor-pointer text-sm"
+            :class="activeTab === 'profile' ? 'bg-slate-100 text-slate-900 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium'"
+            class="w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl transition cursor-pointer text-sm"
           >
-            <TrendingUp class="w-5 h-5 shrink-0" />
-            <span>Progress</span>
+            <TrendingUp class="w-5 h-5 shrink-0" :class="activeTab === 'profile' ? 'text-blue-600' : 'text-slate-400'" />
+            <span>Tiến độ học tập</span>
           </button>
         </nav>
       </div>
 
-      <!-- Bottom Menu (Gift & Account) -->
-      <div class="space-y-1.5 pt-4 border-t border-slate-100">
-        <button
+      <!-- User Account Footer -->
+      <div class="pt-4 border-t border-slate-100">
+        <div
           @click="openAuthModal"
-          class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl text-pink-600 hover:bg-pink-50 transition cursor-pointer text-sm font-semibold"
+          class="flex items-center justify-between p-2.5 rounded-2xl hover:bg-slate-100 transition cursor-pointer"
         >
-          <Gift class="w-5 h-5 shrink-0 text-pink-500" />
-          <span>A gift for you</span>
-        </button>
-
-        <button
-          @click="openAuthModal"
-          class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition cursor-pointer text-sm font-medium"
-        >
-          <UserRound class="w-5 h-5 shrink-0 text-slate-400" />
-          <span class="truncate">{{ isAuthenticated ? (userProfile?.full_name || 'Account') : 'Account' }}</span>
-        </button>
+          <div class="flex items-center gap-3 min-w-0">
+            <img :src="userAvatarUrl" alt="" class="w-10 h-10 rounded-full border border-slate-200 bg-white shrink-0 object-cover" />
+            <div class="min-w-0">
+              <p class="text-sm font-bold text-slate-900 truncate">{{ userProfile?.full_name || 'Khách học thử' }}</p>
+              <p class="text-xs text-slate-500 truncate">{{ isAuthenticated ? (userProfile?.email || 'Đã đăng nhập') : 'Bấm để đăng nhập' }}</p>
+            </div>
+          </div>
+          <ChevronRight class="w-4 h-4 text-slate-400 shrink-0" />
+        </div>
       </div>
     </aside>
 
