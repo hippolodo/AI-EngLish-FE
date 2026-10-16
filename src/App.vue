@@ -1,127 +1,250 @@
 <template>
-  <div class="min-h-screen bg-[#eef0ff] flex items-center justify-center p-0 sm:p-4 font-sans app-backdrop">
-    <!-- Centered Mobile Container -->
-    <div class="w-full max-w-md mx-auto min-h-[100dvh] sm:min-h-[880px] sm:max-h-[920px] bg-[#fbfbff] shadow-2xl relative flex flex-col justify-between overflow-hidden sm:rounded-[32px] border border-white/70 app-shell">
-      
-      <!-- Top Mobile Status Bar (Cosmetic) -->
-      <div class="bg-white/80 backdrop-blur-md px-5 pt-3 pb-3 flex items-center justify-between text-sm font-semibold text-gray-500 z-30 border-b border-gray-100/80">
-        <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-500 text-white flex items-center justify-center shadow-md shadow-violet-200">
-            <Sparkles class="w-4 h-4" />
+  <div class="min-h-screen bg-[#f8fafc] flex flex-col lg:flex-row font-sans text-slate-800 antialiased selection:bg-indigo-100 selection:text-indigo-800">
+    
+    <!-- DESKTOP / TABLET SIDEBAR NAVIGATION (Sticky on Left) -->
+    <aside class="hidden lg:flex w-64 xl:w-72 flex-col justify-between bg-white border-r border-slate-200/80 shrink-0 sticky top-0 h-screen py-6 px-4 z-30 shadow-xs">
+      <!-- Top Branding -->
+      <div class="space-y-6">
+        <div class="flex items-center gap-3 px-2">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-violet-500 text-white flex items-center justify-center shadow-lg shadow-indigo-500/25">
+            <Sparkles class="w-5 h-5" />
           </div>
-          <div class="leading-snug">
-            <span class="block tracking-normal text-gray-900 font-semibold text-sm">lingo<span class="text-violet-600">up</span></span>
-            <span class="hidden sm:block text-xs text-gray-500 font-medium">English, but make it fun</span>
-          </div>
-        </div>
-        <div class="flex items-center space-x-1.5">
-          <button @click="openAuthModal" aria-label="Mở trang cá nhân" title="Trang cá nhân" class="mr-2 rounded-xl p-2 transition" :class="activeTab === 'profile' ? 'bg-indigo-600 text-white' : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'">
-            <UserRound class="h-4 w-4" />
-          </button>
-          <span class="mr-1 text-gray-500">{{ currentTime }}</span>
-          <Signal class="w-3.5 h-3.5 text-gray-700" />
-          <Wifi class="w-3.5 h-3.5 text-gray-700" />
-          <div class="w-5 h-2.5 border border-gray-600 rounded-sm p-0.5 flex items-center">
-            <div class="bg-gray-800 h-full w-full rounded-xs"></div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span class="text-lg font-black tracking-tight text-slate-900">lingo<span class="text-indigo-600">up</span></span>
+              <span class="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">AI PRO</span>
+            </div>
+            <p class="text-[11px] text-slate-400 font-medium">Luyện Tiếng Anh Thông Minh</p>
           </div>
         </div>
-      </div>
 
-      <!-- Main Scrollable Screen Content Container -->
-      <main class="flex-1 overflow-y-auto no-scrollbar relative flex flex-col">
-        
-        <!-- ========================================== -->
-        <!-- SCREEN 1: HOME (DASHBOARD - REAL DATA)     -->
-        <!-- ========================================== -->
-        <div v-if="journey.error.value" role="status" class="mx-4 mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-800">
-          {{ journey.error.value }} <button @click="journey.sync" class="font-semibold underline">Thử đồng bộ lại</button>
-        </div>
-        <div v-if="currentLesson && activeTab !== 'home' && activeTab !== 'lesson' && activeTab !== 'profile'" class="mx-4 mt-3 flex items-center gap-3 rounded-2xl border border-violet-200/70 bg-gradient-to-r from-indigo-100 via-violet-100 to-rose-50 p-3 shadow-sm shadow-violet-100/60">
-          <button @click="activeTab = 'lesson'" :aria-label="`Quay lại bài học: ${currentLesson.title}`" title="Quay lại bài học" class="flex min-w-0 flex-1 items-center gap-3 rounded-xl text-left transition hover:opacity-80">
-            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-700 text-white shadow-sm shadow-indigo-300/50"><ArrowLeft class="h-5 w-5" aria-hidden="true" /></span>
-            <span class="min-w-0"><span class="block text-xs font-medium text-indigo-600">Bài đang học</span><span class="mt-0.5 block break-words text-sm font-semibold leading-snug text-violet-950">{{ currentLesson.title }}</span></span>
-          </button>
-          <button @click="leaveLesson" class="flex shrink-0 items-center gap-1.5 rounded-xl border border-white bg-white/90 px-3 py-2.5 text-xs font-semibold text-teal-700 shadow-sm transition hover:border-teal-200 hover:bg-teal-50"><Compass class="h-4 w-4" aria-hidden="true" /><span>Luyện tự do</span></button>
-        </div>
-        <HomeScreen />
-        <ProfileScreen />
-        <LessonScreen />
-
-        <!-- ========================================== -->
-        <!-- SCREEN 2: SPEAKING (PRONUNCIATION REAL)    -->
-        <!-- ========================================== -->
-        <SpeakingScreen />
-
-        <!-- ========================================== -->
-        <!-- SCREEN 3: WRITING (AI ESSAY REAL)          -->
-        <!-- ========================================== -->
-        <WritingScreen />
-
-        <!-- ========================================== -->
-        <!-- SCREEN 4: CHAT (AI ROLEPLAY REAL)          -->
-        <!-- ========================================== -->
-        <ChatScreen />
-
-        <!-- ========================================== -->
-        <!-- SCREEN 5: STUDY (FLASHCARD & QUIZ REAL)    -->
-        <!-- ========================================== -->
-        <StudyScreen />
-
-      </main>
-
-      <!-- ========================================== -->
-      <!-- STICKY BOTTOM NAVIGATION BAR (5 TABS)      -->
-      <!-- ========================================== -->
-      <nav class="sticky bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-100 px-3 py-2.5 z-40 shadow-[0_-8px_30px_rgba(44,35,94,0.08)]">
-        <div class="flex items-center justify-around">
+        <!-- Navigation Menu -->
+        <nav class="space-y-1">
           <button
             @click="navigateTab('home')"
-            :class="activeTab === 'home' ? 'text-indigo-600 font-semibold' : 'text-gray-400 hover:text-gray-600 font-medium'"
-            class="flex flex-col items-center py-1.5 px-2 transition-all relative cursor-pointer"
+            :class="activeTab === 'home' ? 'bg-indigo-50/90 text-indigo-700 font-bold border-indigo-200 shadow-2xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-semibold'"
+            class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl border border-transparent transition cursor-pointer text-sm"
           >
-            <Home :class="activeTab === 'home' ? 'scale-110 stroke-[2.5]' : ''" class="w-5 h-5 transition-transform duration-200" />
-            <span class="text-xs mt-1">Home</span>
-            <span v-if="activeTab === 'home'" class="absolute -bottom-1 w-1.5 h-1.5 bg-indigo-600 rounded-full"></span>
+            <div class="flex items-center gap-3">
+              <Home :class="activeTab === 'home' ? 'text-indigo-600' : 'text-slate-400'" class="w-5 h-5" />
+              <span>Trang chủ</span>
+            </div>
+            <span v-if="activeTab === 'home'" class="w-1.5 h-1.5 rounded-full bg-indigo-600"></span>
           </button>
 
           <button
             @click="navigateTab('speaking')"
-            :class="activeTab === 'speaking' ? 'text-indigo-600 font-semibold' : 'text-gray-400 hover:text-gray-600 font-medium'"
-            class="flex flex-col items-center py-1.5 px-2 transition-all relative cursor-pointer"
+            :class="activeTab === 'speaking' ? 'bg-indigo-50/90 text-indigo-700 font-bold border-indigo-200 shadow-2xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-semibold'"
+            class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl border border-transparent transition cursor-pointer text-sm"
           >
-            <Mic :class="activeTab === 'speaking' ? 'scale-110 stroke-[2.5]' : ''" class="w-5 h-5 transition-transform duration-200" />
-            <span class="text-xs mt-1">Speaking</span>
-            <span v-if="activeTab === 'speaking'" class="absolute -bottom-1 w-1.5 h-1.5 bg-indigo-600 rounded-full"></span>
+            <div class="flex items-center gap-3">
+              <Mic :class="activeTab === 'speaking' ? 'text-indigo-600' : 'text-slate-400'" class="w-5 h-5" />
+              <span>Luyện phát âm</span>
+            </div>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-bold">GOP AI</span>
           </button>
 
           <button
             @click="navigateTab('writing')"
-            :class="activeTab === 'writing' ? 'text-indigo-600 font-semibold' : 'text-gray-400 hover:text-gray-600 font-medium'"
-            class="flex flex-col items-center py-1.5 px-2 transition-all relative cursor-pointer"
+            :class="activeTab === 'writing' ? 'bg-indigo-50/90 text-indigo-700 font-bold border-indigo-200 shadow-2xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-semibold'"
+            class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl border border-transparent transition cursor-pointer text-sm"
           >
-            <PenTool :class="activeTab === 'writing' ? 'scale-110 stroke-[2.5]' : ''" class="w-5 h-5 transition-transform duration-200" />
-            <span class="text-xs mt-1">Writing</span>
-            <span v-if="activeTab === 'writing'" class="absolute -bottom-1 w-1.5 h-1.5 bg-indigo-600 rounded-full"></span>
+            <div class="flex items-center gap-3">
+              <PenTool :class="activeTab === 'writing' ? 'text-indigo-600' : 'text-slate-400'" class="w-5 h-5" />
+              <span>Luyện viết AI</span>
+            </div>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-purple-100 text-purple-800 font-bold">Gemini</span>
           </button>
 
           <button
             @click="navigateTab('chat')"
-            :class="activeTab === 'chat' ? 'text-indigo-600 font-semibold' : 'text-gray-400 hover:text-gray-600 font-medium'"
-            class="flex flex-col items-center py-1.5 px-2 transition-all relative cursor-pointer"
+            :class="activeTab === 'chat' ? 'bg-indigo-50/90 text-indigo-700 font-bold border-indigo-200 shadow-2xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-semibold'"
+            class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl border border-transparent transition cursor-pointer text-sm"
           >
-            <MessageSquare :class="activeTab === 'chat' ? 'scale-110 stroke-[2.5]' : ''" class="w-5 h-5 transition-transform duration-200" />
-            <span class="text-xs mt-1">AI Chat</span>
-            <span v-if="activeTab === 'chat'" class="absolute -bottom-1 w-1.5 h-1.5 bg-indigo-600 rounded-full"></span>
+            <div class="flex items-center gap-3">
+              <MessageSquare :class="activeTab === 'chat' ? 'text-indigo-600' : 'text-slate-400'" class="w-5 h-5" />
+              <span>Hội thoại AI</span>
+            </div>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-800 font-bold">12+ Chủ đề</span>
           </button>
 
           <button
             @click="navigateTab('study')"
-            :class="activeTab === 'study' ? 'text-indigo-600 font-semibold' : 'text-gray-400 hover:text-gray-600 font-medium'"
-            class="flex flex-col items-center py-1.5 px-2 transition-all relative cursor-pointer"
+            :class="activeTab === 'study' ? 'bg-indigo-50/90 text-indigo-700 font-bold border-indigo-200 shadow-2xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-semibold'"
+            class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl border border-transparent transition cursor-pointer text-sm"
           >
-            <BookOpen :class="activeTab === 'study' ? 'scale-110 stroke-[2.5]' : ''" class="w-5 h-5 transition-transform duration-200" />
-            <span class="text-xs mt-1">Luyện tập</span>
-            <span v-if="activeTab === 'study'" class="absolute -bottom-1 w-1.5 h-1.5 bg-indigo-600 rounded-full"></span>
+            <div class="flex items-center gap-3">
+              <BookOpen :class="activeTab === 'study' ? 'text-indigo-600' : 'text-slate-400'" class="w-5 h-5" />
+              <span>Flashcard & Quiz</span>
+            </div>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-indigo-100 text-indigo-800 font-bold">SRS</span>
+          </button>
+
+          <button
+            @click="navigateTab('profile')"
+            :class="activeTab === 'profile' ? 'bg-indigo-50/90 text-indigo-700 font-bold border-indigo-200 shadow-2xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-semibold'"
+            class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl border border-transparent transition cursor-pointer text-sm"
+          >
+            <div class="flex items-center gap-3">
+              <UserRound :class="activeTab === 'profile' ? 'text-indigo-600' : 'text-slate-400'" class="w-5 h-5" />
+              <span>Hồ sơ học viên</span>
+            </div>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Sidebar Motivation Widget & User Footer -->
+      <div class="space-y-3 pt-4 border-t border-slate-100">
+        <!-- Streak Motivation Card -->
+        <div class="p-3.5 rounded-2xl bg-gradient-to-br from-indigo-50 via-purple-50/60 to-amber-50/60 border border-indigo-100/80 shadow-2xs">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-bold text-indigo-950 flex items-center gap-1.5">
+              <span>🔥</span> Chuỗi học tập
+            </span>
+            <span class="font-extrabold text-amber-600">{{ dashboard?.streak || 0 }} ngày</span>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-1">
+            {{ totalPracticeCount ? `Đã hoàn thành ${totalPracticeCount} bài luyện` : 'Học mỗi ngày để tích lũy kiến thức!' }}
+          </p>
+        </div>
+
+        <!-- User Profile Pill -->
+        <div
+          @click="openAuthModal"
+          class="flex items-center justify-between p-2 rounded-2xl hover:bg-slate-100 transition cursor-pointer"
+        >
+          <div class="flex items-center gap-2.5 min-w-0">
+            <img :src="userAvatarUrl" alt="" class="w-9 h-9 rounded-full border border-slate-200 bg-white shrink-0 object-cover" />
+            <div class="min-w-0">
+              <p class="text-xs font-bold text-slate-900 truncate">{{ userProfile?.full_name || 'Khách học thử' }}</p>
+              <p class="text-[11px] text-slate-500 truncate">{{ isAuthenticated ? (userProfile?.email || 'Đã đăng nhập') : 'Bấm để đăng nhập' }}</p>
+            </div>
+          </div>
+          <ChevronRight class="w-4 h-4 text-slate-400 shrink-0" />
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN RIGHT CONTENT COLUMN -->
+    <div class="flex-1 flex flex-col min-w-0 min-h-screen">
+      
+      <!-- TOP GLOBAL APP BAR (Desktop & Mobile) -->
+      <header class="sticky top-0 z-20 bg-white/85 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between shadow-2xs">
+        <!-- Left: Brand (Mobile) or Breadcrumb (Desktop) -->
+        <div class="flex items-center gap-3 min-w-0">
+          <!-- Mobile Brand Logo -->
+          <div class="flex items-center gap-2 lg:hidden">
+            <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 text-white flex items-center justify-center shadow-xs">
+              <Sparkles class="w-4 h-4" />
+            </div>
+            <span class="text-base font-black tracking-tight text-slate-900">lingo<span class="text-indigo-600">up</span></span>
+          </div>
+
+          <!-- Desktop Page Context Title -->
+          <div class="hidden lg:flex items-center gap-2 text-sm">
+            <span class="font-bold text-slate-800 text-base">
+              {{ activeTab === 'home' ? 'Trang chủ' : activeTab === 'speaking' ? 'Luyện phát âm AI (Speaking Lab)' : activeTab === 'writing' ? 'Trợ lý luyện viết AI (Writing Coach)' : activeTab === 'chat' ? 'Hội thoại đóng vai (AI Roleplay Chat)' : activeTab === 'study' ? 'Ôn tập Flashcard & Quiz' : 'Hồ sơ học viên' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Right: Actions, Streak & Profile -->
+        <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+          <!-- Active Lesson Pill (if studying) -->
+          <div v-if="currentLesson && activeTab !== 'home' && activeTab !== 'lesson' && activeTab !== 'profile'" class="hidden sm:flex items-center gap-2 px-3 py-1 bg-violet-50 border border-violet-200 rounded-xl text-xs">
+            <button @click="activeTab = 'lesson'" class="font-bold text-violet-800 hover:underline truncate max-w-[180px]">
+              Bài đang học: {{ currentLesson.title }}
+            </button>
+            <button @click="leaveLesson" class="text-slate-400 hover:text-slate-600 font-bold ml-1">✕</button>
+          </div>
+
+          <!-- Streak Badge -->
+          <div class="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border border-amber-200/80 rounded-xl text-xs font-bold text-amber-700 shadow-2xs">
+            <span>🔥</span>
+            <span>{{ dashboard?.streak || 0 }} ngày</span>
+          </div>
+
+          <!-- Profile / Login Button -->
+          <button
+            @click="openAuthModal"
+            class="flex items-center gap-2 p-1 sm:px-3 sm:py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 transition cursor-pointer shadow-2xs"
+          >
+            <img :src="userAvatarUrl" alt="" class="w-6 h-6 rounded-full border border-slate-200 object-cover" />
+            <span class="hidden sm:inline">{{ isAuthenticated ? (userProfile?.full_name || 'Tài khoản') : 'Đăng nhập' }}</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Active Lesson Alert for Mobile -->
+      <div v-if="currentLesson && activeTab !== 'home' && activeTab !== 'lesson' && activeTab !== 'profile'" class="sm:hidden mx-4 mt-3 flex items-center justify-between gap-2 p-2.5 bg-violet-50 border border-violet-200 rounded-xl text-xs">
+        <button @click="activeTab = 'lesson'" class="font-bold text-violet-800 truncate">
+          Bài đang học: {{ currentLesson.title }}
+        </button>
+        <button @click="leaveLesson" class="text-slate-500 font-bold px-1.5 py-0.5 rounded hover:bg-violet-100">✕</button>
+      </div>
+
+      <!-- MAIN PAGE CONTENT (Full-width, responsive, spacious) -->
+      <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 lg:pb-8">
+        <div v-if="journey.error.value" role="status" class="mb-4 rounded-2xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800 flex items-center justify-between">
+          <span>{{ journey.error.value }}</span>
+          <button @click="journey.sync" class="font-bold underline cursor-pointer">Thử đồng bộ lại</button>
+        </div>
+
+        <HomeScreen />
+        <ProfileScreen />
+        <LessonScreen />
+        <SpeakingScreen />
+        <WritingScreen />
+        <ChatScreen />
+        <StudyScreen />
+      </main>
+
+      <!-- MOBILE BOTTOM NAVIGATION BAR (lg:hidden) -->
+      <nav class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 px-3 py-2 z-40 shadow-[0_-8px_30px_rgba(44,35,94,0.08)]">
+        <div class="flex items-center justify-around">
+          <button
+            @click="navigateTab('home')"
+            :class="activeTab === 'home' ? 'text-indigo-600 font-bold' : 'text-slate-400 font-medium'"
+            class="flex flex-col items-center py-1 px-2 text-xs transition cursor-pointer"
+          >
+            <Home :class="activeTab === 'home' ? 'scale-110 stroke-[2.5]' : ''" class="w-5 h-5 transition-transform" />
+            <span class="mt-1">Home</span>
+          </button>
+
+          <button
+            @click="navigateTab('speaking')"
+            :class="activeTab === 'speaking' ? 'text-indigo-600 font-bold' : 'text-slate-400 font-medium'"
+            class="flex flex-col items-center py-1 px-2 text-xs transition cursor-pointer"
+          >
+            <Mic :class="activeTab === 'speaking' ? 'scale-110 stroke-[2.5]' : ''" class="w-5 h-5 transition-transform" />
+            <span class="mt-1">Phát âm</span>
+          </button>
+
+          <button
+            @click="navigateTab('writing')"
+            :class="activeTab === 'writing' ? 'text-indigo-600 font-bold' : 'text-slate-400 font-medium'"
+            class="flex flex-col items-center py-1 px-2 text-xs transition cursor-pointer"
+          >
+            <PenTool :class="activeTab === 'writing' ? 'scale-110 stroke-[2.5]' : ''" class="w-5 h-5 transition-transform" />
+            <span class="mt-1">Luyện viết</span>
+          </button>
+
+          <button
+            @click="navigateTab('chat')"
+            :class="activeTab === 'chat' ? 'text-indigo-600 font-bold' : 'text-slate-400 font-medium'"
+            class="flex flex-col items-center py-1 px-2 text-xs transition cursor-pointer"
+          >
+            <MessageSquare :class="activeTab === 'chat' ? 'scale-110 stroke-[2.5]' : ''" class="w-5 h-5 transition-transform" />
+            <span class="mt-1">Hội thoại</span>
+          </button>
+
+          <button
+            @click="navigateTab('study')"
+            :class="activeTab === 'study' ? 'text-indigo-600 font-bold' : 'text-slate-400 font-medium'"
+            class="flex flex-col items-center py-1 px-2 text-xs transition cursor-pointer"
+          >
+            <BookOpen :class="activeTab === 'study' ? 'scale-110 stroke-[2.5]' : ''" class="w-5 h-5 transition-transform" />
+            <span class="mt-1">Ôn tập</span>
           </button>
         </div>
       </nav>
@@ -149,7 +272,7 @@ import WritingScreen from './views/WritingScreen.vue';
 import ChatScreen from './views/ChatScreen.vue';
 import StudyScreen from './views/StudyScreen.vue';
 import {
-  Signal, Wifi, BookOpen, Sparkles, Mic, Home, PenTool, MessageSquare, UserRound, ArrowLeft, Compass
+  Signal, Wifi, BookOpen, Sparkles, Mic, Home, PenTool, MessageSquare, UserRound, ArrowLeft, Compass, ChevronRight
 } from 'lucide-vue-next';
 
 // Real services

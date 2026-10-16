@@ -1,5 +1,5 @@
 <template>
-<div v-if="activeTab === 'study'" class="p-5 space-y-5 pb-24 w-full max-w-3xl mx-auto">
+  <div v-if="activeTab === 'study'" class="space-y-6 pb-24 w-full max-w-5xl mx-auto">
           <!-- Header & Flow Progress -->
           <div class="space-y-2">
             <div class="flex items-center justify-between">

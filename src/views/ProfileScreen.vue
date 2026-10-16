@@ -1,5 +1,5 @@
 <template>
-  <section v-if="activeTab === 'profile'" class="space-y-5 p-5 pb-24">
+  <section v-if="activeTab === 'profile'" class="w-full max-w-4xl mx-auto space-y-6 pb-24">
     <header class="flex items-center justify-between">
       <div><p class="text-sm font-semibold uppercase tracking-wide text-indigo-600">Tài khoản</p><h1 class="mt-1 text-slate-900 text-xl font-bold leading-snug">Trang cá nhân</h1></div>
       <button @click="activeTab = 'home'" aria-label="Về trang chủ" class="rounded-xl border border-indigo-100 bg-white p-2 text-indigo-600"><Home class="h-5 w-5" /></button>

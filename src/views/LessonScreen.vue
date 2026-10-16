@@ -1,5 +1,5 @@
 <template>
-  <section v-if="activeTab === 'lesson'" class="space-y-4 p-5 pb-24">
+  <section v-if="activeTab === 'lesson'" class="w-full max-w-5xl mx-auto space-y-6 pb-24">
     <button @click="currentLesson ? backToTopic() : activeTab = 'home'" class="text-sm font-semibold text-indigo-600">← {{ currentLesson ? 'Các bài trong chủ đề' : 'Trang chủ' }}</button>
     <p class="text-sm font-semibold text-indigo-500">{{ selectedTopic?.level }} · {{ selectedTopic?.title }}</p>
     <h1 class="text-slate-900 text-xl font-bold leading-snug">{{ currentLesson?.title || 'Chọn bài học' }}</h1>

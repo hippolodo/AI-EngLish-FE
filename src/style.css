@@ -6,8 +6,8 @@
   :root {
     font-family: theme('fontFamily.sans');
     font-size: 16px;
-    color: #20213a;
-    background: #eef0ff;
+    color: #1e293b;
+    background: #f8fafc;
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
@@ -20,25 +20,22 @@
     min-width: 320px;
     min-height: 100vh;
     margin: 0;
-    background:
-      radial-gradient(ellipse at 12% 5%, rgba(216, 210, 255, 0.78), transparent 34%),
-      radial-gradient(ellipse at 92% 92%, rgba(201, 247, 233, 0.72), transparent 32%),
-      radial-gradient(ellipse at 55% 44%, rgba(255, 228, 230, 0.38), transparent 40%),
-      #eef0ff;
+    background: #f8fafc;
   }
 
-  html, body, .app-shell, .app-shell * {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
   }
-
-  html::-webkit-scrollbar,
-  body::-webkit-scrollbar,
-  .app-shell::-webkit-scrollbar,
-  .app-shell *::-webkit-scrollbar {
-    display: none;
-    width: 0;
-    height: 0;
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
   }
 
   button, input, select, textarea {
@@ -51,19 +48,8 @@
 
   ::selection {
     color: #312e81;
-    background: #ddd6fe;
+    background: #e0e7ff;
   }
-}
-
-.app-backdrop {
-  background-image:
-    radial-gradient(circle at 8% 12%, rgba(196, 181, 253, 0.32), transparent 24rem),
-    radial-gradient(circle at 90% 86%, rgba(167, 243, 208, 0.28), transparent 22rem);
-}
-
-.app-shell {
-  font-variant-numeric: tabular-nums;
-  box-shadow: 0 28px 90px rgba(53, 45, 112, 0.17);
 }
 
 /* Consistent form text, including mobile browsers that zoom inputs below 16px. */

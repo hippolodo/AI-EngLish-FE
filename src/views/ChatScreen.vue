@@ -1,5 +1,5 @@
 <template>
-<div v-if="activeTab === 'chat'" class="flex-1 flex flex-col justify-between h-full min-h-[580px] w-full max-w-3xl mx-auto">
+  <div v-if="activeTab === 'chat'" class="flex-1 flex flex-col justify-between h-[calc(100vh-140px)] min-h-[600px] w-full max-w-5xl mx-auto bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
           <!-- Chat Scenario Header (Real from Backend with Topic Explorer) -->
           <div class="px-4 sm:px-5 py-3 bg-white border-b border-gray-100 flex items-center justify-between shadow-xs">
             <div class="flex items-center space-x-3 min-w-0">
