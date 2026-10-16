@@ -6,9 +6,17 @@ export const chatService = {
     return res.data;
   },
 
-  async startConversation(scenarioId) {
+  async startConversation(scenarioId, customTopic = null) {
     const res = await apiClient.post('/chat/conversations', {
-      scenario_id: scenarioId
+      scenario_id: scenarioId || 'custom',
+      custom_topic: customTopic || null
+    });
+    return res.data;
+  },
+
+  async generateCustomScenario(topic) {
+    const res = await apiClient.post('/chat/scenarios/generate', {
+      topic: topic
     });
     return res.data;
   },
