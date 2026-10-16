@@ -1089,8 +1089,8 @@ const scrollChatToBottom = async () => {
   }
 };
 
-const sendChatText = async () => {
-  const text = chatInput.value.trim();
+const sendChatText = async (customText = null) => {
+  const text = (typeof customText === 'string' && customText.trim()) ? customText.trim() : chatInput.value.trim();
   if (!text || chatLoading.value || isBotTyping.value || isChatRecording.value || !conversationId.value || !requireAuthentication()) return;
   const version = sessionVersion;
   const id = conversationId.value;
@@ -1116,6 +1116,9 @@ const sendChatText = async () => {
     if (version !== sessionVersion || id !== conversationId.value) return;
 
     if (reply) {
+      if (reply.user_feedback) {
+        userMsgObj.feedback = reply.user_feedback;
+      }
       chatMessages.value.push(reply);
       await scrollChatToBottom();
     }
