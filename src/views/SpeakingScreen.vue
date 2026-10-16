@@ -109,59 +109,239 @@
           </div>
 
           <!-- AI Evaluation Results (Real from API) -->
-          <div v-if="speakingResult" class="bg-white rounded-2xl p-5 border border-gray-100 shadow-xs space-y-4">
-            <div class="flex items-center justify-between">
+          <div v-if="speakingResult" class="bg-white rounded-2xl p-5 border border-gray-100 shadow-md space-y-5">
+            <!-- Header Summary with Score & Audio Comparison -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-gray-100">
+              <div class="flex items-center gap-2.5">
+                <div
+                  class="w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-lg shadow-xs"
+                  :class="speakingResult.overall_score >= 80 ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : speakingResult.overall_score >= 60 ? 'bg-amber-50 text-amber-600 border border-amber-200' : 'bg-rose-50 text-rose-600 border border-rose-200'"
+                >
+                  {{ Math.round(speakingResult.overall_score) }}
+                </div>
+                <div>
+                  <h3 class="text-sm font-bold text-gray-900">
+                    {{ speakingResult.overall_score >= 80 ? '🌟 Phát âm rất tốt' : speakingResult.overall_score >= 60 ? '💡 Phát âm khá tốt, cần chỉnh một số âm' : '⚠️ Cần luyện tập thêm' }}
+                  </h3>
+                  <p class="text-xs text-gray-500">
+                    Điểm tổng quát: <span class="font-semibold text-gray-700">{{ Math.round(speakingResult.overall_score) }}/100</span> · Cao độ: <span class="font-semibold text-gray-700">{{ speakingResult.average_pitch ? Math.round(speakingResult.average_pitch) + ' Hz' : 'N/A' }}</span>
+                  </p>
+                </div>
+              </div>
+
+              <!-- Audio Player Toolbar (Listen to Native vs Listen to User) -->
               <div class="flex items-center gap-2">
-                <Cpu class="w-4 h-4 text-indigo-600" />
-                <h3 class="text-sm font-semibold text-gray-900">Mức độ khớp lời đọc</h3>
-              </div>
-              <div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span class="text-sm font-semibold text-emerald-600">{{ Math.round(speakingResult.overall_score) }} / 100</span>
+                <button
+                  @click="playNativeAudio"
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition shadow-2xs cursor-pointer"
+                  title="Nghe phát âm chuẩn bản xứ"
+                >
+                  <Volume2 class="w-3.5 h-3.5" />
+                  <span>Nghe mẫu</span>
+                </button>
+
+                <button
+                  v-if="speakingResult.audio_user_url"
+                  @click="playUserAudio"
+                  :disabled="isPlayingUserAudio"
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition shadow-2xs cursor-pointer disabled:opacity-50"
+                  title="Nghe lại bản thu âm của bạn"
+                >
+                  <Headphones class="w-3.5 h-3.5" :class="{ 'animate-bounce': isPlayingUserAudio }" />
+                  <span>{{ isPlayingUserAudio ? 'Đang phát...' : 'Nghe giọng bạn' }}</span>
+                </button>
               </div>
             </div>
 
-            <!-- Pitch F0 & Recognized Text -->
-            <div class="grid grid-cols-2 gap-2 text-sm">
-              <div class="p-2.5 bg-gray-50 rounded-xl border border-gray-100">
-                <span class="text-gray-500 block">Cao độ giọng nói:</span>
-                <span class="font-semibold text-gray-800 text-sm">
-                  {{ speakingResult.average_pitch ? Math.round(speakingResult.average_pitch) + ' Hz' : 'N/A' }}
-                </span>
-              </div>
-              <div class="p-2.5 bg-gray-50 rounded-xl border border-gray-100">
-                <span class="text-gray-500 block">Kết quả nhận diện:</span>
-                <span class="font-semibold text-gray-800 text-sm truncate block" :title="speakingResult.transcribed_text">
-                  "{{ speakingResult.transcribed_text || 'Chưa ghi nhận' }}"
-                </span>
-              </div>
+            <!-- What the system heard -->
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+              <span class="text-slate-500 font-medium">Hệ thống nghe được:</span>
+              <span class="font-semibold text-slate-800 text-right italic truncate" :title="speakingResult.transcribed_text">
+                "{{ speakingResult.transcribed_text || 'Chưa ghi nhận' }}"
+              </span>
             </div>
 
-            <!-- Sentence Breakdown with word highlighting -->
-            <div v-if="speakingResult.word_analysis && speakingResult.word_analysis.length > 0" class="p-3.5 bg-gray-50 rounded-xl border border-gray-200/80">
-              <p class="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">Chi tiết độ khớp từng từ:</p>
-              <div class="flex flex-wrap gap-2 text-sm leading-loose">
-                <span
+            <!-- Interactive Sentence Matrix (Click a word to inspect) -->
+            <div v-if="speakingResult.word_analysis && speakingResult.word_analysis.length > 0" class="space-y-2">
+              <div class="flex items-center justify-between text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                <span class="flex items-center gap-1.5">
+                  <Info class="w-3.5 h-3.5 text-indigo-500" />
+                  Bấm vào từng từ để xem chi tiết âm sai & cách sửa:
+                </span>
+                <span v-if="selectedWord" class="text-indigo-600 font-normal normal-case">
+                  (đang chọn: <strong class="font-bold uppercase">{{ selectedWord.word }}</strong>)
+                </span>
+              </div>
+
+              <div class="p-4 bg-gray-50/80 rounded-2xl border border-gray-200/80 flex flex-wrap gap-2.5 items-stretch">
+                <button
                   v-for="(w, idx) in speakingResult.word_analysis"
                   :key="idx"
-                  :style="{ backgroundColor: getWordBg(w), color: getWordTextColor(w) }"
-                  class="font-semibold px-2 py-0.5 rounded border border-gray-200/60"
-                  :title="w.error_type || 'Từ được nhận diện khớp với câu mẫu'"
+                  @click="selectedWordIndex = idx"
+                  type="button"
+                  class="group relative flex flex-col items-center justify-between px-3 py-2 rounded-xl border transition-all cursor-pointer text-left"
+                  :class="[
+                    selectedWordIndex === idx ? 'ring-2 ring-indigo-500 ring-offset-1 scale-105 shadow-md z-10' : 'hover:scale-102 hover:shadow-xs',
+                    w.status === 'CORRECT' ? 'bg-emerald-50/90 border-emerald-300 text-emerald-900' :
+                    w.status === 'WEAK' ? 'bg-amber-50/90 border-amber-300 text-amber-900' :
+                    'bg-rose-50/90 border-rose-300 text-rose-900'
+                  ]"
                 >
-                  {{ w.word }}
-                  <span class="text-xs ml-0.5">{{ w.status === 'CORRECT' ? '✓' : '✕' }}</span>
-                  <button @click="ctx.openSaveWord(w.word, targetSpeakingText)" :aria-label="`Lưu từ ${w.word}`" class="ml-1 font-semibold">＋</button>
-                </span>
+                  <!-- Word Text -->
+                  <span class="font-bold text-sm leading-tight flex items-center gap-1">
+                    {{ w.word }}
+                    <span v-if="w.status === 'CORRECT'" class="text-xs text-emerald-600">✓</span>
+                    <span v-else-if="w.status === 'WEAK'" class="text-xs text-amber-600">⚠️</span>
+                    <span v-else class="text-xs text-rose-600">✕</span>
+                  </span>
+
+                  <!-- Target IPA -->
+                  <span v-if="w.target_ipa" class="text-[11px] font-sans opacity-70 mt-0.5">
+                    /{{ w.target_ipa }}/
+                  </span>
+
+                  <!-- Score badge pill -->
+                  <span
+                    class="mt-1.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold"
+                    :class="w.status === 'CORRECT' ? 'bg-emerald-200/70 text-emerald-800' : w.status === 'WEAK' ? 'bg-amber-200/70 text-amber-800' : 'bg-rose-200/70 text-rose-800'"
+                  >
+                    {{ w.score !== null ? Math.round(w.score) + '%' : '0%' }}
+                  </span>
+                </button>
               </div>
             </div>
-            <p class="text-xs text-slate-500">Kết quả hỗ trợ luyện tập dựa trên nhận diện lời đọc; hãy nghe mẫu và thử lại các từ còn yếu.</p>
 
-            <!-- Phonetic Error Tip Box -->
-            <div v-if="speakingResult.ai_feedback" class="p-3 bg-amber-50/70 border border-amber-200/80 rounded-xl text-sm space-y-1">
-              <p class="font-semibold text-amber-900 flex items-center gap-1.5">
-                <Lightbulb class="w-3.5 h-3.5 text-amber-600" /> Nhận xét từ AI:
+            <!-- Word Diagnostic Inspector Box (Soi chi tiết từ đang chọn) -->
+            <div v-if="selectedWord" class="p-4 rounded-2xl border transition-all"
+              :class="selectedWord.status === 'CORRECT' ? 'bg-emerald-50/40 border-emerald-200' : selectedWord.status === 'WEAK' ? 'bg-amber-50/40 border-amber-200' : 'bg-rose-50/40 border-rose-200'"
+            >
+              <!-- Inspector Header -->
+              <div class="flex items-center justify-between pb-3 border-b border-gray-200/60">
+                <div class="flex items-center gap-2">
+                  <span class="text-lg font-black text-gray-900 tracking-wide">{{ selectedWord.word }}</span>
+                  <span v-if="selectedWord.target_ipa" class="text-sm font-sans text-gray-600 bg-white/80 px-2 py-0.5 rounded-lg border border-gray-200">
+                    /{{ selectedWord.target_ipa }}/
+                  </span>
+                  <span
+                    class="text-xs font-semibold px-2.5 py-0.5 rounded-full"
+                    :class="selectedWord.status === 'CORRECT' ? 'bg-emerald-100 text-emerald-700' : selectedWord.status === 'WEAK' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'"
+                  >
+                    {{ selectedWord.status === 'CORRECT' ? '✓ Đạt chuẩn' : selectedWord.status === 'WEAK' ? '⚠️ Cần cải thiện' : '✕ Chưa đạt' }} ({{ selectedWord.score !== null ? Math.round(selectedWord.score) : 0 }}%)
+                  </span>
+                </div>
+
+                <div class="flex items-center gap-1.5">
+                  <button
+                    @click="playWordAudio(selectedWord.word)"
+                    class="inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 bg-white hover:bg-indigo-50 border border-indigo-200 px-2.5 py-1.5 rounded-xl shadow-2xs transition cursor-pointer"
+                    title="Nghe mẫu riêng từ này"
+                  >
+                    <Volume2 class="w-3.5 h-3.5" /> Nghe từ này
+                  </button>
+                  <button
+                    @click="ctx.openSaveWord(selectedWord.word, targetSpeakingText)"
+                    class="inline-flex items-center gap-1 text-xs font-semibold text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 px-2.5 py-1.5 rounded-xl shadow-2xs transition cursor-pointer"
+                    title="Lưu từ vào sổ từ vựng"
+                  >
+                    <BookmarkPlus class="w-3.5 h-3.5 text-amber-600" /> Lưu từ
+                  </button>
+                </div>
+              </div>
+
+              <!-- Phoneme-by-Phoneme Visualizer -->
+              <div v-if="selectedWord.phonemes && selectedWord.phonemes.length > 0" class="pt-3 space-y-1.5">
+                <span class="text-xs font-bold text-gray-700 block">Soi chi tiết từng âm trong từ:</span>
+                <div class="grid grid-flow-col auto-cols-fr gap-1.5">
+                  <div
+                    v-for="(p, pIdx) in selectedWord.phonemes"
+                    :key="pIdx"
+                    class="p-2 rounded-xl text-center border flex flex-col items-center justify-between"
+                    :class="p.status === 'CORRECT' ? 'bg-white border-emerald-300' : p.status === 'WEAK' ? 'bg-white border-amber-300' : 'bg-white border-rose-300'"
+                  >
+                    <span
+                      class="text-base font-black"
+                      :class="p.status === 'CORRECT' ? 'text-emerald-600' : p.status === 'WEAK' ? 'text-amber-600' : 'text-rose-600'"
+                    >
+                      {{ p.char }}
+                    </span>
+                    <span class="text-[10px] font-bold mt-0.5 text-gray-600">
+                      {{ Math.round(p.score) }}%
+                    </span>
+                    <!-- Status dot/indicator -->
+                    <span
+                      class="w-full h-1 rounded-full mt-1.5"
+                      :class="p.status === 'CORRECT' ? 'bg-emerald-500' : p.status === 'WEAK' ? 'bg-amber-500' : 'bg-rose-500'"
+                    ></span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Detailed Error Diagnosis & Articulatory Guide -->
+              <div class="pt-3 space-y-2">
+                <div v-if="selectedWord.error_type" class="p-2.5 rounded-xl bg-white/90 border border-amber-200 text-xs flex items-start gap-2 text-amber-900">
+                  <AlertCircle class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <div>
+                    <strong class="font-bold">Lỗi phát hiện:</strong> {{ selectedWord.error_type }}
+                  </div>
+                </div>
+
+                <!-- Actionable Articulatory Guide -->
+                <div class="p-3 rounded-xl bg-white/90 border border-indigo-100 text-xs space-y-1">
+                  <p class="font-bold text-indigo-950 flex items-center gap-1.5">
+                    <Lightbulb class="w-3.5 h-3.5 text-indigo-600" />
+                    <span>Hướng dẫn khẩu hình & vị trí đặt lưỡi:</span>
+                  </p>
+                  <p class="text-gray-700 leading-relaxed">
+                    {{ getArticulatoryGuide(selectedWord) }}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Actionable Summary List of Words Needing Improvement -->
+            <div v-if="problemWords.length > 0" class="space-y-2 pt-2">
+              <h4 class="text-xs font-bold text-gray-800 uppercase tracking-wide flex items-center gap-1.5">
+                <AlertCircle class="w-3.5 h-3.5 text-rose-500" />
+                <span>Danh sách từ cần sửa lỗi ({{ problemWords.length }} từ):</span>
+              </h4>
+              <div class="space-y-1.5">
+                <div
+                  v-for="(pw, pIdx) in problemWords"
+                  :key="pIdx"
+                  @click="selectWordByObject(pw)"
+                  class="flex items-center justify-between p-2.5 rounded-xl border bg-white hover:bg-gray-50 transition cursor-pointer text-xs"
+                  :class="pw.status === 'INCORRECT' ? 'border-rose-200' : 'border-amber-200'"
+                >
+                  <div class="flex items-center gap-2">
+                    <span
+                      class="px-2 py-0.5 rounded-md font-bold"
+                      :class="pw.status === 'INCORRECT' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'"
+                    >
+                      {{ pw.word }}
+                    </span>
+                    <span v-if="pw.target_ipa" class="text-gray-500 font-sans">/{{ pw.target_ipa }}/</span>
+                    <span class="text-gray-700 font-medium ml-1">
+                      {{ pw.error_type || 'Phát âm chưa chuẩn' }}
+                    </span>
+                  </div>
+                  <button class="text-indigo-600 font-bold hover:underline shrink-0 cursor-pointer">
+                    Xem cách sửa →
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div v-else class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center gap-2">
+              <CheckCircle2 class="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>Tuyệt vời! Bạn đã phát âm chính xác và rõ ràng toàn bộ các từ trong câu.</span>
+            </div>
+
+            <!-- Phonetic Error Tip Box (Gemini AI Coach) -->
+            <div v-if="speakingResult.ai_feedback" class="p-3.5 bg-gradient-to-r from-amber-50/80 to-orange-50/80 border border-amber-200/80 rounded-2xl text-xs space-y-1.5">
+              <p class="font-bold text-amber-900 flex items-center gap-1.5">
+                <Sparkles class="w-3.5 h-3.5 text-amber-600" /> Nhận xét tổng kết từ AI Coach:
               </p>
-              <p class="text-amber-800 text-xs leading-relaxed whitespace-pre-line">
+              <p class="text-amber-900 leading-relaxed whitespace-pre-line font-medium">
                 {{ speakingResult.ai_feedback }}
               </p>
             </div>
@@ -203,10 +383,29 @@
 </template>
 
 <script setup>
-import { ChevronLeft, ChevronRight, Cpu, Lightbulb, Loader2, Mic, Sparkles, Square, Volume2 } from 'lucide-vue-next';
-import { inject } from 'vue';
+import {
+  AlertCircle,
+  BookmarkPlus,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Cpu,
+  Headphones,
+  Info,
+  Lightbulb,
+  Loader2,
+  Mic,
+  Sparkles,
+  Square,
+  Volume2,
+  XCircle,
+} from 'lucide-vue-next';
+import { computed, inject, ref, watch } from 'vue';
 import TopicLessonDropdowns from '../components/TopicLessonDropdowns.vue';
+import { getFullAudioUrl } from '../services/api';
+
 const ctx = inject('screenContext');
+
 const toggleSpeakingMode = () => {
   ctx.isCustomSpeakingMode.value = !ctx.isCustomSpeakingMode.value;
   ctx.speakingResult.value = null;
@@ -214,6 +413,159 @@ const toggleSpeakingMode = () => {
   if (!ctx.isCustomSpeakingMode.value) ctx.onSpeakingLessonChange();
   else { ctx.targetIpa.value = ''; ctx.targetTranslation.value = ''; ctx.nativeAudioUrl.value = ''; }
 };
+
+// Interactive Diagnostic State
+const selectedWordIndex = ref(0);
+const isPlayingUserAudio = ref(false);
+let userAudioPlayer = null;
+
+const speakingResult = ctx.speakingResult;
+
+const selectedWord = computed(() => {
+  const words = speakingResult.value?.word_analysis;
+  if (!words || words.length === 0) return null;
+  const idx = selectedWordIndex.value;
+  return words[idx] || words[0];
+});
+
+const problemWords = computed(() => {
+  const words = speakingResult.value?.word_analysis;
+  if (!words) return [];
+  return words.filter((w) => w.status === 'INCORRECT' || w.status === 'WEAK');
+});
+
+watch(
+  () => speakingResult.value,
+  (newResult) => {
+    if (!newResult || !newResult.word_analysis || newResult.word_analysis.length === 0) {
+      selectedWordIndex.value = 0;
+      return;
+    }
+    const firstProblemIdx = newResult.word_analysis.findIndex(
+      (w) => w.status === 'INCORRECT' || w.status === 'WEAK'
+    );
+    selectedWordIndex.value = firstProblemIdx >= 0 ? firstProblemIdx : 0;
+  },
+  { immediate: true }
+);
+
+const selectWord = (index) => {
+  selectedWordIndex.value = index;
+};
+
+const selectWordByObject = (pw) => {
+  const words = speakingResult.value?.word_analysis;
+  if (!words) return;
+  const idx = words.findIndex((w) => w === pw || (w.word === pw.word && w.start_time === pw.start_time));
+  if (idx >= 0) {
+    selectedWordIndex.value = idx;
+  }
+};
+
+const playUserAudio = () => {
+  const userAudioUrl = speakingResult.value?.audio_user_url;
+  if (!userAudioUrl) return;
+
+  if (userAudioPlayer) {
+    userAudioPlayer.pause();
+    userAudioPlayer.currentTime = 0;
+  }
+
+  const fullUrl = getFullAudioUrl(userAudioUrl);
+  userAudioPlayer = new Audio(fullUrl);
+  isPlayingUserAudio.value = true;
+
+  userAudioPlayer.onended = () => {
+    isPlayingUserAudio.value = false;
+  };
+  userAudioPlayer.onerror = () => {
+    isPlayingUserAudio.value = false;
+  };
+
+  userAudioPlayer.play().catch(() => {
+    isPlayingUserAudio.value = false;
+  });
+};
+
+const playWordAudio = (word) => {
+  if (!word) return;
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(word);
+    utterance.lang = 'en-US';
+    utterance.rate = 0.8;
+    window.speechSynthesis.speak(utterance);
+  } else if (ctx.speakText) {
+    ctx.speakText(word);
+  }
+};
+
+const ARTICULATORY_GUIDES = {
+  th: "Đặt đầu lưỡi vào giữa hai hàm răng trên và dưới, đẩy luồng hơi nhẹ ra ngoài (vô thanh trong 'think', hữu thanh rung dây thanh trong 'this/with').",
+  s: "Khép nhẹ hai hàm răng, đưa đầu lưỡi lại gần chân răng trên, thổi luồng hơi sắc /s/ xì qua kẽ răng.",
+  sh: "Chu môi tròn về phía trước, đưa thân lưỡi cong lên vòm miệng, thổi hơi mạnh tạo âm /ʃ/ ('ship', 'should').",
+  ch: "Bắt đầu với vị trí của /t/, sau đó bật mạnh luồng hơi tạo âm /tʃ/ ('chair', 'much').",
+  t: "Đặt đầu lưỡi chạm vào phần gờ nướu trên phía sau răng, nén hơi rồi bật dứt khoát luồng hơi /t/ ra.",
+  d: "Tương tự như /t/ nhưng rung dây thanh quản khi bật âm ra /d/ ('and', 'backend', 'world').",
+  k: "Nâng phần cuống lưỡi chạm vào vòm miệng mềm, nén khí rồi hạ lưỡi xuống bật luồng hơi mạnh /k/.",
+  g: "Tương tự /k/ nhưng rung dây thanh quản /g/.",
+  p: "Mím chặt hai môi lại để chặn luồng hơi, sau đó mở môi thật nhanh bật hơi /p/ ra.",
+  b: "Tương tự /p/ nhưng làm rung cổ họng ngay khi mở môi /b/.",
+  v: "Đặt răng cửa hàm trên chạm nhẹ vào môi dưới, thổi hơi đồng thời làm rung thanh quản /v/ ('developer', 'have').",
+  f: "Đặt răng cửa hàm trên chạm nhẹ vào môi dưới, đẩy hơi ra không rung thanh quản /f/.",
+  z: "Tương tự khẩu hình âm /s/, nhưng làm rung dây thanh quản trong cổ họng /z/ ('is', 'as', 'MySQL').",
+  l: "Nâng đầu lưỡi chạm vào chân răng hàm trên, giữ lưỡi ở đó cho luồng hơi đi qua hai bên mép lưỡi /l/.",
+  r: "Uốn cong đầu lưỡi về phía sau vòm họng (không chạm vào vòm họng), tròn môi nhẹ /r/.",
+  w: "Tròn môi nhỏ lại như đang huýt sáo, sau đó mở rộng môi ra tạo âm /w/ ('with', 'word'). Đừng đọc thành /v/.",
+  m: "Mím chặt môi, đẩy luồng âm thanh vang lên khoang mũi /m/ ('am', 'my').",
+  n: "Chạm đầu lưỡi vào vòm miệng phía sau răng trên, giữ hơi thoát qua khoang mũi /n/ ('in', 'python').",
+  ng: "Nâng cuống lưỡi chặn cuống họng, hơi thoát qua mũi tạo âm ngắt /ŋ/ ('sing', 'English').",
+};
+
+const getArticulatoryGuide = (wordObj) => {
+  if (!wordObj) return '';
+  const word = (wordObj.word || '').toLowerCase();
+  const ipa = (wordObj.target_ipa || '').toLowerCase();
+
+  if (word === 'with' || ipa.includes('dh') || ipa.includes('th')) {
+    return "Âm /ð/ hoặc /θ/: Đặt nhẹ đầu lưỡi giữa hai hàm răng, thổi luồng hơi nhẹ ra ngoài. Chú ý không đọc thành 'dít' hay 'quýt'.";
+  }
+  if (word === 'mysql') {
+    return "Từ viết tắt 'MySQL' phát âm là /maɪ ˈɛs kjuː ˈɛl/: Đọc rõ từng âm tiết 'My' + 'S' (xì hơi) + 'Q' + 'L' (đưa lưỡi lên chân răng).";
+  }
+  if (word.endsWith('ed') || word.endsWith('d')) {
+    return "Âm cuối /d/: Đặt đầu lưỡi chạm gờ nướu trên, nén hơi rồi bật nhẹ và rung cổ họng. Đừng nuốt mất âm cuối này nhé!";
+  }
+  if (word.endsWith('t') || word.endsWith('te')) {
+    return "Âm cuối /t/: Đặt đầu lưỡi chạm chân răng trên, bật dứt khoát hơi gió không rung cổ họng.";
+  }
+  if (word.endsWith('s') || word.endsWith('ce') || word.endsWith('se')) {
+    return "Âm cuối /s/ hoặc /z/: Khép răng nhẹ, thổi luồng hơi xì sắc bén. Người học thường hay nuốt âm gió cuối từ này.";
+  }
+  if (word.includes('tion') || word.includes('sh')) {
+    return "Âm /ʃ/: Chu môi nhẹ hình tròn, thân lưỡi nâng lên gần vòm họng, thổi luồng hơi dày và êm.";
+  }
+  if (word.startsWith('w') || word.includes('wh')) {
+    return "Âm /w/: Chu môi tròn nhỏ như huýt sáo rồi bung nhẹ ra âm tiếp theo. Tránh nhầm lẫn thành âm /v/ (răng cắn môi).";
+  }
+  if (word.includes('ee') || word.includes('ea') || ipa.includes('iy')) {
+    return "Nguyên âm dài /iː/: Cười rộng miệng sang hai bên, kéo dài âm hơn nguyên âm ngắn /ɪ/ ('ship' vs 'sheep').";
+  }
+  if (word.includes('oo') || ipa.includes('uw')) {
+    return "Nguyên âm dài /uː/: Chu môi tròn chặt về phía trước, giữ lưỡi lùi về sau và phát âm ngân vang.";
+  }
+
+  const weakPhonemes = (wordObj.phonemes || []).filter((p) => p.status !== 'CORRECT');
+  if (weakPhonemes.length > 0) {
+    const char = weakPhonemes[0].char.toLowerCase();
+    if (ARTICULATORY_GUIDES[char]) {
+      return `Tập trung vào âm '${char}': ${ARTICULATORY_GUIDES[char]}`;
+    }
+  }
+
+  return "Hãy mở khẩu hình vừa phải, phát âm tròn vành rõ chữ từng âm tiết, đặc biệt chú ý giữ trọn vẹn âm đuôi (ending sounds).";
+};
+
 const activeTab = ctx.activeTab;
 const chatInput = ctx.chatInput;
 const chatLoading = ctx.chatLoading;
@@ -286,7 +638,6 @@ const speakingLessonsLoading = ctx.speakingLessonsLoading;
 const speakingLessonContents = ctx.speakingLessonContents;
 const currentSpeakingSentenceIndex = ctx.currentSpeakingSentenceIndex;
 const navigateSpeakingSentence = ctx.navigateSpeakingSentence;
-const speakingResult = ctx.speakingResult;
 const speakingTopicId = ctx.speakingTopicId;
 const startChatConversation = ctx.startChatConversation;
 const startTopic = ctx.startTopic;
