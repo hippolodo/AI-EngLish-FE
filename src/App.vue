@@ -2,79 +2,79 @@
   <div class="min-h-screen bg-[#f8fafc] flex flex-col lg:flex-row font-sans text-slate-800 antialiased selection:bg-indigo-100 selection:text-indigo-800">
     
     <!-- DESKTOP / TABLET SIDEBAR NAVIGATION (Sticky on Left) -->
-    <aside class="hidden lg:flex w-64 border-r border-gray-100 flex-col justify-between py-6 px-4 bg-white select-none shrink-0 min-h-screen sticky top-0 h-screen z-30">
+    <aside class="hidden lg:flex w-72 xl:w-80 border-r border-gray-100 flex-col justify-between py-7 px-5 bg-white select-none shrink-0 min-h-screen sticky top-0 h-screen z-30">
       <div class="flex flex-col">
         <!-- Logo -->
-        <div class="px-3 mb-8 flex items-center gap-3 cursor-pointer" @click="navigateTab('home')">
-          <svg class="w-8 h-8 text-[#2e5bff] shrink-0" fill="none" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+        <div class="px-3 mb-9 flex items-center gap-3.5 cursor-pointer" @click="navigateTab('home')">
+          <svg class="w-9 h-9 text-[#2e5bff] shrink-0" fill="none" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 6L20 18L12 30" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="4.5"></path>
             <path d="M20 10L26 18L20 26" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="4.5"></path>
           </svg>
-          <span class="text-xl font-bold tracking-tight text-[#1f242e]">LingoUp</span>
+          <span class="text-2xl font-bold tracking-tight text-[#1f242e]">LingoUp</span>
         </div>
 
         <!-- Main Navigation Menu -->
-        <nav aria-label="Main Navigation" class="space-y-1.5">
+        <nav aria-label="Main Navigation" class="space-y-2">
           <button
             @click="navigateTab('home')"
-            :class="activeTab === 'home' ? 'bg-[#f1f5fd] text-[#2b59ff] font-semibold' : 'text-[#4a5568] hover:bg-gray-50 hover:text-black font-medium'"
-            class="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-full text-[15px] transition-colors cursor-pointer text-left"
+            :class="activeTab === 'home' ? 'bg-[#f1f5fd] text-[#2b59ff] font-bold shadow-2xs' : 'text-[#4a5568] hover:bg-gray-50 hover:text-black font-semibold'"
+            class="w-full flex items-center gap-4 px-4.5 py-3 rounded-full text-[16px] transition-colors cursor-pointer text-left"
           >
-            <LayoutGrid class="w-5 h-5 shrink-0" :class="activeTab === 'home' ? 'text-[#2b59ff]' : 'text-gray-500'" />
+            <LayoutGrid class="w-5.5 h-5.5 shrink-0" :class="activeTab === 'home' ? 'text-[#2b59ff]' : 'text-gray-500'" />
             <span>Trang chủ</span>
           </button>
 
           <button
             @click="navigateTab('speaking')"
-            :class="activeTab === 'speaking' ? 'bg-[#f1f5fd] text-[#2b59ff] font-semibold' : 'text-[#4a5568] hover:bg-gray-50 hover:text-black font-medium'"
-            class="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-full text-[15px] transition-colors cursor-pointer text-left"
+            :class="activeTab === 'speaking' ? 'bg-[#f1f5fd] text-[#2b59ff] font-bold shadow-2xs' : 'text-[#4a5568] hover:bg-gray-50 hover:text-black font-semibold'"
+            class="w-full flex items-center gap-4 px-4.5 py-3 rounded-full text-[16px] transition-colors cursor-pointer text-left"
           >
-            <Mic class="w-5 h-5 shrink-0" :class="activeTab === 'speaking' ? 'text-[#2b59ff]' : 'text-gray-500'" />
+            <Mic class="w-5.5 h-5.5 shrink-0" :class="activeTab === 'speaking' ? 'text-[#2b59ff]' : 'text-gray-500'" />
             <span>Luyện phát âm</span>
           </button>
 
           <button
             @click="navigateTab('chat')"
-            :class="activeTab === 'chat' ? 'bg-[#f1f5fd] text-[#2b59ff] font-semibold' : 'text-[#4a5568] hover:bg-gray-50 hover:text-black font-medium'"
-            class="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-full text-[15px] transition-colors cursor-pointer text-left"
+            :class="activeTab === 'chat' ? 'bg-[#f1f5fd] text-[#2b59ff] font-bold shadow-2xs' : 'text-[#4a5568] hover:bg-gray-50 hover:text-black font-semibold'"
+            class="w-full flex items-center gap-4 px-4.5 py-3 rounded-full text-[16px] transition-colors cursor-pointer text-left"
           >
-            <MessageSquare class="w-5 h-5 shrink-0" :class="activeTab === 'chat' ? 'text-[#2b59ff]' : 'text-gray-500'" />
+            <MessageSquare class="w-5.5 h-5.5 shrink-0" :class="activeTab === 'chat' ? 'text-[#2b59ff]' : 'text-gray-500'" />
             <span>Hội thoại AI</span>
           </button>
 
           <button
             @click="navigateTab('writing')"
-            :class="activeTab === 'writing' ? 'bg-[#f1f5fd] text-[#2b59ff] font-semibold' : 'text-[#4a5568] hover:bg-gray-50 hover:text-black font-medium'"
-            class="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-full text-[15px] transition-colors cursor-pointer text-left"
+            :class="activeTab === 'writing' ? 'bg-[#f1f5fd] text-[#2b59ff] font-bold shadow-2xs' : 'text-[#4a5568] hover:bg-gray-50 hover:text-black font-semibold'"
+            class="w-full flex items-center gap-4 px-4.5 py-3 rounded-full text-[16px] transition-colors cursor-pointer text-left"
           >
-            <PenTool class="w-5 h-5 shrink-0" :class="activeTab === 'writing' ? 'text-[#2b59ff]' : 'text-gray-500'" />
+            <PenTool class="w-5.5 h-5.5 shrink-0" :class="activeTab === 'writing' ? 'text-[#2b59ff]' : 'text-gray-500'" />
             <span>Luyện viết AI</span>
           </button>
 
           <button
             @click="navigateTab('study')"
-            :class="activeTab === 'study' ? 'bg-[#f1f5fd] text-[#2b59ff] font-semibold' : 'text-[#4a5568] hover:bg-gray-50 hover:text-black font-medium'"
-            class="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-full text-[15px] transition-colors cursor-pointer text-left"
+            :class="activeTab === 'study' ? 'bg-[#f1f5fd] text-[#2b59ff] font-bold shadow-2xs' : 'text-[#4a5568] hover:bg-gray-50 hover:text-black font-semibold'"
+            class="w-full flex items-center gap-4 px-4.5 py-3 rounded-full text-[16px] transition-colors cursor-pointer text-left"
           >
-            <Layers class="w-5 h-5 shrink-0" :class="activeTab === 'study' ? 'text-[#2b59ff]' : 'text-gray-500'" />
+            <Layers class="w-5.5 h-5.5 shrink-0" :class="activeTab === 'study' ? 'text-[#2b59ff]' : 'text-gray-500'" />
             <span>Flashcard & Quiz</span>
           </button>
 
           <button
             @click="activeTab = 'lesson'"
-            :class="activeTab === 'lesson' ? 'bg-[#f1f5fd] text-[#2b59ff] font-semibold' : 'text-[#4a5568] hover:bg-gray-50 hover:text-black font-medium'"
-            class="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-full text-[15px] transition-colors cursor-pointer text-left"
+            :class="activeTab === 'lesson' ? 'bg-[#f1f5fd] text-[#2b59ff] font-bold shadow-2xs' : 'text-[#4a5568] hover:bg-gray-50 hover:text-black font-semibold'"
+            class="w-full flex items-center gap-4 px-4.5 py-3 rounded-full text-[16px] transition-colors cursor-pointer text-left"
           >
-            <GraduationCap class="w-5 h-5 shrink-0" :class="activeTab === 'lesson' ? 'text-[#2b59ff]' : 'text-gray-500'" />
+            <GraduationCap class="w-5.5 h-5.5 shrink-0" :class="activeTab === 'lesson' ? 'text-[#2b59ff]' : 'text-gray-500'" />
             <span>Chủ đề bài học</span>
           </button>
 
           <button
             @click="navigateTab('profile')"
-            :class="activeTab === 'profile' ? 'bg-[#f1f5fd] text-[#2b59ff] font-semibold' : 'text-[#4a5568] hover:bg-gray-50 hover:text-black font-medium'"
-            class="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-full text-[15px] transition-colors cursor-pointer text-left"
+            :class="activeTab === 'profile' ? 'bg-[#f1f5fd] text-[#2b59ff] font-bold shadow-2xs' : 'text-[#4a5568] hover:bg-gray-50 hover:text-black font-semibold'"
+            class="w-full flex items-center gap-4 px-4.5 py-3 rounded-full text-[16px] transition-colors cursor-pointer text-left"
           >
-            <TrendingUp class="w-5 h-5 shrink-0" :class="activeTab === 'profile' ? 'text-[#2b59ff]' : 'text-gray-500'" />
+            <TrendingUp class="w-5.5 h-5.5 shrink-0" :class="activeTab === 'profile' ? 'text-[#2b59ff]' : 'text-gray-500'" />
             <span>Tiến độ học tập</span>
           </button>
         </nav>
@@ -84,9 +84,9 @@
       <div class="space-y-1.5 pb-2">
         <button
           @click="openAuthModal"
-          class="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-full text-[#4a5568] hover:bg-gray-50 hover:text-black font-medium text-[15px] transition-colors cursor-pointer text-left"
+          class="w-full flex items-center gap-4 px-4.5 py-3 rounded-full text-[#4a5568] hover:bg-gray-50 hover:text-black font-semibold text-[16px] transition-colors cursor-pointer text-left"
         >
-          <UserRound class="w-5 h-5 shrink-0 text-gray-500" />
+          <UserRound class="w-5.5 h-5.5 shrink-0 text-gray-500" />
           <span class="truncate">{{ isAuthenticated ? (userProfile?.full_name || 'Tài khoản') : 'Đăng nhập / Tài khoản' }}</span>
         </button>
       </div>
@@ -96,62 +96,63 @@
     <div class="flex-1 flex flex-col min-w-0 min-h-screen">
       
       <!-- TOP GLOBAL APP BAR (Desktop & Mobile) -->
-      <header class="sticky top-0 z-20 bg-white/85 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between shadow-2xs">
+      <header class="sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b border-gray-100 px-6 sm:px-8 lg:px-12 py-4 flex items-center justify-between shadow-2xs">
         <!-- Left: Brand (Mobile) or Breadcrumb (Desktop) -->
         <div class="flex items-center gap-3 min-w-0">
           <!-- Mobile Brand Logo -->
           <div class="flex items-center gap-2 lg:hidden">
-            <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 text-white flex items-center justify-center shadow-xs">
-              <Sparkles class="w-4 h-4" />
-            </div>
-            <span class="text-base font-black tracking-tight text-slate-900">lingo<span class="text-indigo-600">up</span></span>
+            <svg class="w-7 h-7 text-[#2e5bff] shrink-0" fill="none" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 6L20 18L12 30" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="4.5"></path>
+              <path d="M20 10L26 18L20 26" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="4.5"></path>
+            </svg>
+            <span class="text-lg font-bold tracking-tight text-slate-900">LingoUp</span>
           </div>
 
           <!-- Desktop Page Context Title -->
-          <div class="hidden lg:flex items-center gap-2 text-sm">
-            <span class="font-bold text-slate-800 text-base">
+          <div class="hidden lg:flex items-center gap-2 text-base">
+            <span class="font-bold text-slate-800 text-lg">
               {{ activeTab === 'home' ? 'Trang chủ' : activeTab === 'speaking' ? 'Luyện phát âm AI (Speaking Lab)' : activeTab === 'writing' ? 'Trợ lý luyện viết AI (Writing Coach)' : activeTab === 'chat' ? 'Hội thoại đóng vai (AI Roleplay Chat)' : activeTab === 'study' ? 'Ôn tập Flashcard & Quiz' : 'Hồ sơ học viên' }}
             </span>
           </div>
         </div>
 
         <!-- Right: Actions, Streak & Profile -->
-        <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+        <div class="flex items-center gap-3 sm:gap-4 shrink-0">
           <!-- Active Lesson Pill (if studying) -->
-          <div v-if="currentLesson && activeTab !== 'home' && activeTab !== 'lesson' && activeTab !== 'profile'" class="hidden sm:flex items-center gap-2 px-3 py-1 bg-violet-50 border border-violet-200 rounded-xl text-xs">
-            <button @click="activeTab = 'lesson'" class="font-bold text-violet-800 hover:underline truncate max-w-[180px]">
+          <div v-if="currentLesson && activeTab !== 'home' && activeTab !== 'lesson' && activeTab !== 'profile'" class="hidden sm:flex items-center gap-2 px-3.5 py-1.5 bg-violet-50 border border-violet-200 rounded-full text-xs font-semibold">
+            <button @click="activeTab = 'lesson'" class="font-bold text-violet-800 hover:underline truncate max-w-[200px]">
               Bài đang học: {{ currentLesson.title }}
             </button>
             <button @click="leaveLesson" class="text-slate-400 hover:text-slate-600 font-bold ml-1">✕</button>
           </div>
 
           <!-- Streak Badge -->
-          <div class="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border border-amber-200/80 rounded-xl text-xs font-bold text-amber-700 shadow-2xs">
-            <span>🔥</span>
+          <div class="flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-200/80 rounded-full text-xs font-bold text-amber-700 shadow-2xs">
+            <span class="text-sm">🔥</span>
             <span>{{ dashboard?.streak || 0 }} ngày</span>
           </div>
 
           <!-- Profile / Login Button -->
           <button
             @click="openAuthModal"
-            class="flex items-center gap-2 p-1 sm:px-3 sm:py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 transition cursor-pointer shadow-2xs"
+            class="flex items-center gap-2.5 p-1 sm:px-3.5 sm:py-2 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 transition cursor-pointer shadow-2xs"
           >
-            <img :src="userAvatarUrl" alt="" class="w-6 h-6 rounded-full border border-slate-200 object-cover" />
+            <img :src="userAvatarUrl" alt="" class="w-7 h-7 rounded-full border border-slate-200 object-cover" />
             <span class="hidden sm:inline">{{ isAuthenticated ? (userProfile?.full_name || 'Tài khoản') : 'Đăng nhập' }}</span>
           </button>
         </div>
       </header>
 
       <!-- Active Lesson Alert for Mobile -->
-      <div v-if="currentLesson && activeTab !== 'home' && activeTab !== 'lesson' && activeTab !== 'profile'" class="sm:hidden mx-4 mt-3 flex items-center justify-between gap-2 p-2.5 bg-violet-50 border border-violet-200 rounded-xl text-xs">
+      <div v-if="currentLesson && activeTab !== 'home' && activeTab !== 'lesson' && activeTab !== 'profile'" class="sm:hidden mx-4 mt-3 flex items-center justify-between gap-2 p-3 bg-violet-50 border border-violet-200 rounded-2xl text-xs font-semibold">
         <button @click="activeTab = 'lesson'" class="font-bold text-violet-800 truncate">
           Bài đang học: {{ currentLesson.title }}
         </button>
-        <button @click="leaveLesson" class="text-slate-500 font-bold px-1.5 py-0.5 rounded hover:bg-violet-100">✕</button>
+        <button @click="leaveLesson" class="text-slate-500 font-bold px-2 py-0.5 rounded hover:bg-violet-100">✕</button>
       </div>
 
-      <!-- MAIN PAGE CONTENT (Full-width, responsive, spacious) -->
-      <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 lg:pb-8">
+      <!-- MAIN PAGE CONTENT (Max width 1540px, generous padding, spacious) -->
+      <main class="flex-1 w-full max-w-[1540px] mx-auto px-6 sm:px-8 lg:px-12 py-8 pb-24 lg:pb-12">
         <div v-if="journey.error.value" role="status" class="mb-4 rounded-2xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800 flex items-center justify-between">
           <span>{{ journey.error.value }}</span>
           <button @click="journey.sync" class="font-bold underline cursor-pointer">Thử đồng bộ lại</button>

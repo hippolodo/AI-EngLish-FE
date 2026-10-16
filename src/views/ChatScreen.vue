@@ -1,151 +1,153 @@
 <template>
-  <div v-if="activeTab === 'chat'" class="flex-1 flex flex-col justify-between h-[calc(100vh-140px)] min-h-[600px] w-full max-w-5xl mx-auto bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
+  <div v-if="activeTab === 'chat'" class="flex-1 flex flex-col justify-between h-[calc(100vh-130px)] min-h-[700px] w-full max-w-6xl mx-auto bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
           <!-- Chat Scenario Header (Real from Backend with Topic Explorer) -->
-          <div class="px-4 sm:px-5 py-3 bg-white border-b border-gray-100 flex items-center justify-between shadow-xs">
-            <div class="flex items-center space-x-3 min-w-0">
+          <div class="px-5 sm:px-6 py-4 bg-white border-b border-gray-100 flex items-center justify-between shadow-xs">
+            <div class="flex items-center space-x-3.5 min-w-0">
               <div class="relative shrink-0">
-                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-600 to-indigo-500 text-white flex items-center justify-center font-semibold shadow-md shadow-indigo-500/20">
-                  <Bot class="w-5 h-5" />
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-indigo-500 text-white flex items-center justify-center font-semibold shadow-md shadow-indigo-500/20">
+                  <Bot class="w-6 h-6" />
                 </div>
-                <span class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></span>
+                <span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full"></span>
               </div>
               <div class="min-w-0">
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2.5">
                   <button
                     @click="openTopicModal"
                     :disabled="chatLoading || isBotTyping || isChatRecording"
-                    class="group text-left cursor-pointer flex items-center gap-1.5 transition max-w-[200px] sm:max-w-[320px]"
+                    class="group text-left cursor-pointer flex items-center gap-2 transition max-w-[220px] sm:max-w-[400px]"
                     title="Nhấn để đổi hoặc tự tạo chủ đề mới"
                   >
-                    <span class="text-base shrink-0">{{ getScenarioEmoji(currentChatScenario) }}</span>
-                    <span class="text-sm font-bold text-gray-900 group-hover:text-indigo-600 truncate block">
+                    <span class="text-xl shrink-0">{{ getScenarioEmoji(currentChatScenario) }}</span>
+                    <span class="text-base sm:text-lg font-bold text-gray-900 group-hover:text-indigo-600 truncate block">
                       {{ currentChatScenario?.title || 'Chọn chủ đề hội thoại' }}
                     </span>
                   </button>
                   <button
                     @click="openTopicModal"
                     :disabled="chatLoading || isBotTyping || isChatRecording"
-                    class="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition cursor-pointer border border-indigo-200"
+                    class="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs sm:text-sm font-bold transition cursor-pointer border border-indigo-200 shadow-2xs"
                     title="Xem tất cả chủ đề hoặc tự nhập tình huống mới"
                   >
-                    <Compass class="w-3.5 h-3.5 text-indigo-600" />
+                    <Compass class="w-4 h-4 text-indigo-600" />
                     <span>Đổi chủ đề</span>
                   </button>
                 </div>
-                <p class="text-xs text-emerald-600 font-semibold flex items-center gap-1 truncate mt-0.5">
-                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                <p class="text-xs sm:text-sm text-emerald-600 font-medium flex items-center gap-1.5 truncate mt-0.5">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
                   <span class="truncate">{{ currentChatScenario?.bot_role ? 'Đóng vai: ' + currentChatScenario.bot_role : 'Sẵn sàng • Luyện hội thoại cùng AI' }}</span>
                 </p>
               </div>
             </div>
-            <div class="flex items-center gap-1.5 shrink-0">
-              <button :disabled="chatLoading || isBotTyping || isChatRecording" @click="toggleChatHistory" title="Lịch sử trò chuyện" class="inline-flex items-center gap-1.5 rounded-xl border border-violet-100 bg-violet-50 px-2.5 py-2 text-xs font-semibold text-violet-700 transition hover:bg-violet-100 cursor-pointer">
-                <History class="w-3.5 h-3.5" />
+            <div class="flex items-center gap-2 shrink-0">
+              <button :disabled="chatLoading || isBotTyping || isChatRecording" @click="toggleChatHistory" title="Lịch sử trò chuyện" class="inline-flex items-center gap-1.5 rounded-xl border border-violet-100 bg-violet-50 px-3 py-2 text-xs sm:text-sm font-semibold text-violet-700 transition hover:bg-violet-100 cursor-pointer shadow-2xs">
+                <History class="w-4 h-4" />
                 <span class="hidden sm:inline">Lịch sử</span>
               </button>
-              <button :disabled="chatLoading || isBotTyping || isChatRecording" @click="resetChatConversation" title="Bắt đầu cuộc trò chuyện mới" class="text-sm text-gray-400 hover:text-gray-700 p-2 rounded-xl border border-gray-200 cursor-pointer">
-                <RotateCcw class="w-3.5 h-3.5" />
+              <button :disabled="chatLoading || isBotTyping || isChatRecording" @click="resetChatConversation" title="Bắt đầu cuộc trò chuyện mới" class="text-sm text-gray-500 hover:text-gray-800 p-2.5 rounded-xl border border-gray-200 cursor-pointer shadow-2xs">
+                <RotateCcw class="w-4 h-4" />
               </button>
             </div>
           </div>
 
-          <div v-if="conversationId" class="space-y-2 border-b bg-indigo-50 p-3 text-sm text-indigo-900">
-            <p>Mục tiêu: {{ currentChatScenario?.description || 'Trả lời thành câu và luyện dùng từ trong tình huống.' }}</p>
-            <div class="flex gap-4 font-semibold">
-              <button @click="ctx.openSaveWord('', chatMessages.at(-1)?.message_text || '')">Lưu từ cần ôn</button>
-              <button @click="ctx.endChatSession" :disabled="isBotTyping || isChatRecording || chatLoading">Kết thúc & tổng kết</button>
+          <div v-if="conversationId" class="space-y-2.5 border-b bg-indigo-50/80 p-4 text-sm sm:text-base text-indigo-950">
+            <p class="font-medium">Mục tiêu: {{ currentChatScenario?.description || 'Trả lời thành câu và luyện dùng từ trong tình huống.' }}</p>
+            <div class="flex gap-4 font-bold text-sm">
+              <button @click="ctx.openSaveWord('', chatMessages.at(-1)?.message_text || '')" class="text-indigo-700 hover:underline cursor-pointer">Lưu từ cần ôn</button>
+              <button @click="ctx.endChatSession" :disabled="isBotTyping || isChatRecording || chatLoading" class="text-rose-600 hover:underline cursor-pointer">Kết thúc & tổng kết</button>
             </div>
-            <div v-if="ctx.chatSummary.value" class="space-y-1 rounded-xl bg-white p-3">
-              <p>Đã thực hành {{ ctx.chatSummary.value.turns }} lượt trả lời, {{ ctx.chatSummary.value.words }} từ.</p>
-              <p class="font-normal text-slate-600">Xem lại hội thoại và lưu những từ bạn muốn ôn. Đây là thống kê luyện tập, không phải điểm năng lực.</p>
-              <button @click="ctx.currentLesson.value ? activeTab = 'lesson' : activeTab = 'home'" class="underline">{{ ctx.currentLesson.value ? 'Trở về bài học' : 'Trở về trang chủ' }}</button>
-              <button @click="ctx.chatSummary.value = null" class="ml-3 underline">Tiếp tục trò chuyện</button>
+            <div v-if="ctx.chatSummary.value" class="space-y-2 rounded-2xl bg-white p-4 border border-indigo-100 shadow-xs">
+              <p class="font-bold text-gray-900">Đã thực hành {{ ctx.chatSummary.value.turns }} lượt trả lời, {{ ctx.chatSummary.value.words }} từ.</p>
+              <p class="font-normal text-slate-600 text-sm">Xem lại hội thoại và lưu những từ bạn muốn ôn. Đây là thống kê luyện tập, không phải điểm năng lực.</p>
+              <div class="pt-1 flex gap-3 text-sm font-semibold">
+                <button @click="ctx.currentLesson.value ? activeTab = 'lesson' : activeTab = 'home'" class="underline text-indigo-600">{{ ctx.currentLesson.value ? 'Trở về bài học' : 'Trở về trang chủ' }}</button>
+                <button @click="ctx.chatSummary.value = null" class="underline text-slate-600">Tiếp tục trò chuyện</button>
+              </div>
             </div>
           </div>
-          <div v-if="isChatHistoryOpen" class="flex-1 min-h-0 overflow-y-auto bg-gradient-to-b from-violet-50/70 to-white p-4">
-            <div class="mb-3 flex items-center justify-between">
+          <div v-if="isChatHistoryOpen" class="flex-1 min-h-0 overflow-y-auto bg-gradient-to-b from-violet-50/70 to-white p-5">
+            <div class="mb-4 flex items-center justify-between">
               <div>
-                <h2 class="text-sm font-semibold text-slate-800">Các cuộc trò chuyện</h2>
-                <p class="mt-0.5 text-xs text-slate-500">Chọn một cuộc trò chuyện để xem lại tin nhắn</p>
+                <h2 class="text-base font-bold text-slate-900">Các cuộc trò chuyện</h2>
+                <p class="mt-0.5 text-xs sm:text-sm text-slate-500">Chọn một cuộc trò chuyện để xem lại tin nhắn</p>
               </div>
-              <button @click="toggleChatHistory" aria-label="Đóng lịch sử" class="rounded-xl border border-violet-100 bg-white p-2 text-slate-500 transition hover:bg-violet-50">
+              <button @click="toggleChatHistory" aria-label="Đóng lịch sử" class="rounded-xl border border-violet-100 bg-white p-2.5 text-slate-500 transition hover:bg-violet-50 cursor-pointer">
                 <X class="h-4 w-4" />
               </button>
             </div>
 
-            <div v-if="chatHistoryLoading" class="py-10 text-center text-sm text-slate-500">
-              <Loader2 class="mx-auto mb-2 h-5 w-5 animate-spin text-violet-600" />
+            <div v-if="chatHistoryLoading" class="py-12 text-center text-sm sm:text-base text-slate-500">
+              <Loader2 class="mx-auto mb-2 h-6 w-6 animate-spin text-violet-600" />
               Đang tải lịch sử...
             </div>
-            <p v-else-if="chatHistoryError" class="rounded-2xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{{ chatHistoryError }}</p>
-            <div v-else-if="chatConversations.length" class="space-y-2">
+            <p v-else-if="chatHistoryError" class="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm sm:text-base text-rose-700">{{ chatHistoryError }}</p>
+            <div v-else-if="chatConversations.length" class="space-y-2.5">
               <button
                 v-for="conversation in chatConversations"
                 :key="conversation.id"
                 type="button"
-                class="flex w-full items-center gap-3 rounded-2xl border border-violet-100 bg-white p-3 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-violet-300 hover:shadow-md"
+                class="flex w-full items-center gap-3.5 rounded-2xl border border-violet-100 bg-white p-4 text-left shadow-2xs transition hover:-translate-y-0.5 hover:border-violet-300 hover:shadow-md cursor-pointer"
                 @click="openChatConversation(conversation)"
               >
-                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-100 to-fuchsia-100 text-violet-600">
-                  <MessageSquare class="h-4 w-4" />
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-100 to-fuchsia-100 text-violet-600">
+                  <MessageSquare class="h-5 w-5" />
                 </span>
                 <span class="min-w-0 flex-1">
-                  <span class="block truncate text-sm font-semibold text-slate-800">{{ conversation.scenario_title }}</span>
-                  <span class="mt-1 block text-xs text-slate-500">{{ formatConversationDate(conversation.created_at) }}</span>
+                  <span class="block truncate text-sm sm:text-base font-bold text-slate-800">{{ conversation.scenario_title }}</span>
+                  <span class="mt-1 block text-xs sm:text-sm text-slate-500">{{ formatConversationDate(conversation.created_at) }}</span>
                 </span>
-                <span class="shrink-0 rounded-full bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700">{{ Math.round(conversation.fluency_score || 0) }}%</span>
+                <span class="shrink-0 rounded-full bg-emerald-50 px-3 py-1 text-xs sm:text-sm font-bold text-emerald-700">{{ Math.round(conversation.fluency_score || 0) }}%</span>
               </button>
             </div>
-            <div v-else class="rounded-2xl border border-dashed border-violet-200 bg-white/80 px-5 py-10 text-center">
-              <History class="mx-auto mb-2 h-7 w-7 text-violet-300" />
-              <p class="text-sm font-semibold text-slate-600">Chưa có cuộc trò chuyện nào</p>
-              <p class="mt-1 text-xs text-slate-500">Các phiên chat của bạn sẽ xuất hiện ở đây.</p>
+            <div v-else class="rounded-2xl border border-dashed border-violet-200 bg-white/80 px-5 py-12 text-center">
+              <History class="mx-auto mb-2 h-8 w-8 text-violet-300" />
+              <p class="text-base font-bold text-slate-700">Chưa có cuộc trò chuyện nào</p>
+              <p class="mt-1 text-sm text-slate-500">Các phiên chat của bạn sẽ xuất hiện ở đây.</p>
             </div>
           </div>
 
-          <p v-if="chatError" role="alert" class="mx-3 my-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{{ chatError }}</p>
+          <p v-if="chatError" role="alert" class="mx-4 my-3 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm sm:text-base text-rose-700">{{ chatError }}</p>
           <!-- Chat Scrollable Messages Area -->
-          <div v-else ref="chatScrollContainer" class="flex-1 p-4 space-y-4 overflow-y-auto no-scrollbar">
-            <div v-if="chatLoading" class="py-8 text-center text-sm text-gray-500">
-              <Loader2 class="w-5 h-5 animate-spin mx-auto text-indigo-600 mb-1" />
+          <div v-else ref="chatScrollContainer" class="flex-1 p-5 sm:p-6 space-y-5 overflow-y-auto no-scrollbar">
+            <div v-if="chatLoading" class="py-12 text-center text-sm sm:text-base text-gray-500">
+              <Loader2 class="w-6 h-6 animate-spin mx-auto text-indigo-600 mb-2" />
               Đang kết nối phiên hội thoại AI...
             </div>
 
             <template v-else>
-              <div v-if="!conversationId" class="space-y-4 py-8 text-center max-w-md mx-auto">
-                <div class="w-14 h-14 mx-auto rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-xs">
-                  <Compass class="w-7 h-7" />
+              <div v-if="!conversationId" class="space-y-4 py-12 text-center max-w-lg mx-auto">
+                <div class="w-16 h-16 mx-auto rounded-3xl bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-xs">
+                  <Compass class="w-8 h-8" />
                 </div>
                 <div>
-                  <h3 class="text-base font-bold text-gray-900 flex items-center justify-center gap-1.5">
-                    <span>{{ getScenarioEmoji(currentChatScenario) }}</span>
+                  <h3 class="text-lg sm:text-xl font-bold text-gray-900 flex items-center justify-center gap-2">
+                    <span class="text-2xl">{{ getScenarioEmoji(currentChatScenario) }}</span>
                     <span>{{ currentChatScenario ? currentChatScenario.title : 'Chọn chủ đề hội thoại' }}</span>
                   </h3>
-                  <p class="text-xs text-gray-500 mt-1 leading-relaxed">
+                  <p class="text-sm sm:text-base text-gray-500 mt-2 leading-relaxed">
                     {{ currentChatScenario?.description || 'Chọn kịch bản thực tế hoặc để AI tự tạo tình huống theo ý muốn của bạn.' }}
                   </p>
                 </div>
-                <div class="flex items-center justify-center gap-2 pt-1">
+                <div class="flex items-center justify-center gap-3 pt-2">
                   <button
                     @click="openTopicModal"
                     type="button"
-                    class="rounded-xl border border-indigo-200 bg-white hover:bg-indigo-50 px-3.5 py-2 text-xs font-bold text-indigo-700 transition shadow-2xs cursor-pointer flex items-center gap-1.5"
+                    class="rounded-xl border border-indigo-200 bg-white hover:bg-indigo-50 px-4 py-2.5 text-sm font-bold text-indigo-700 transition shadow-2xs cursor-pointer flex items-center gap-2"
                   >
-                    <Compass class="w-3.5 h-3.5 text-indigo-600" /> Khám phá các chủ đề
+                    <Compass class="w-4 h-4 text-indigo-600" /> Khám phá các chủ đề
                   </button>
                   <button
                     @click="isAuthenticated ? startChatConversation() : requireAuthentication()"
                     :disabled="!scenarios.length"
                     type="button"
-                    class="rounded-xl bg-indigo-600 hover:bg-indigo-700 px-4 py-2 text-xs font-bold text-white disabled:opacity-50 transition shadow-xs cursor-pointer flex items-center gap-1.5"
+                    class="rounded-xl bg-indigo-600 hover:bg-indigo-700 px-5 py-2.5 text-sm font-bold text-white disabled:opacity-50 transition shadow-md shadow-indigo-600/20 cursor-pointer flex items-center gap-2"
                   >
-                    <Sparkles class="w-3.5 h-3.5" />
+                    <Sparkles class="w-4 h-4" />
                     <span>{{ isAuthenticated ? 'Bắt đầu hội thoại' : 'Đăng nhập' }}</span>
                   </button>
                 </div>
               </div>
-              <div v-else-if="currentChatScenario" class="text-center my-1">
-                <span class="px-3 py-1 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-full text-xs font-semibold inline-flex items-center gap-1.5">
+              <div v-else-if="currentChatScenario" class="text-center my-2">
+                <span class="px-4 py-1.5 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-full text-xs sm:text-sm font-bold inline-flex items-center gap-2">
                   <span>{{ getScenarioEmoji(currentChatScenario) }}</span>
                   <span>{{ currentChatScenario.description || 'Nói tiếng Anh tự nhiên cùng AI' }}</span>
                 </span>
@@ -154,59 +156,59 @@
               <!-- Message bubbles -->
               <div v-for="(msg, idx) in chatMessages" :key="idx" class="flex flex-col">
                 <!-- Bot Message -->
-                <div v-if="msg.sender === 'BOT' || msg.sender === 'bot'" class="flex items-start space-x-2.5 max-w-[85%] self-start">
-                  <div class="w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0 mt-0.5">
-                    <Sparkles class="w-3.5 h-3.5" />
+                <div v-if="msg.sender === 'BOT' || msg.sender === 'bot'" class="flex items-start space-x-3 max-w-[85%] sm:max-w-[78%] self-start">
+                  <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0 mt-0.5">
+                    <Sparkles class="w-4 h-4" />
                   </div>
-                  <div class="space-y-1">
-                    <div class="reading-text bg-white text-gray-800 p-3.5 rounded-2xl rounded-tl-none border border-gray-100 shadow-xs text-sm leading-relaxed">
+                  <div class="space-y-1.5">
+                    <div class="reading-text bg-white text-gray-800 p-4 sm:p-5 rounded-3xl rounded-tl-sm border border-gray-100 shadow-xs text-base sm:text-[17px] leading-relaxed">
                       {{ msg.message_text || msg.text }}
                     </div>
-                    <button @click="speakBotMessage(msg)" class="inline-flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-indigo-600 px-1 transition cursor-pointer">
-                      <Volume2 class="w-3 h-3" />
+                    <button @click="speakBotMessage(msg)" class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-gray-400 hover:text-indigo-600 px-2 transition cursor-pointer">
+                      <Volume2 class="w-3.5 h-3.5" />
                       <span>Nghe phát âm</span>
                     </button>
                   </div>
                 </div>
 
                 <!-- User Message -->
-                <div v-else class="flex flex-col items-end max-w-[85%] self-end space-y-1">
-                  <div class="reading-text bg-indigo-600 text-white p-3.5 rounded-2xl rounded-tr-none shadow-xs text-sm leading-relaxed">
+                <div v-else class="flex flex-col items-end max-w-[85%] sm:max-w-[78%] self-end space-y-1.5">
+                  <div class="reading-text bg-indigo-600 text-white p-4 sm:p-5 rounded-3xl rounded-tr-sm shadow-xs text-base sm:text-[17px] leading-relaxed font-normal">
                     {{ msg.message_text || msg.text }}
                   </div>
-                  <div v-if="msg.fluency_score" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    <Sparkles class="w-2.5 h-2.5 text-emerald-500 fill-emerald-500" />
+                  <div v-if="msg.fluency_score" class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs sm:text-sm font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <Sparkles class="w-3 h-3 text-emerald-500 fill-emerald-500" />
                     Lưu loát: {{ Math.round(msg.fluency_score) }}%
                   </div>
                 </div>
               </div>
 
               <!-- Typing indicator -->
-              <div v-if="isBotTyping" class="flex items-start space-x-2.5 max-w-[85%] self-start">
-                <div class="w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0 mt-0.5">
+              <div v-if="isBotTyping" class="flex items-start space-x-3 max-w-[85%] self-start">
+                <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0 mt-0.5">
                   <Bot class="w-4 h-4" />
                 </div>
-                <div class="bg-white text-gray-400 p-3.5 rounded-2xl rounded-tl-none border border-gray-100 shadow-xs text-sm flex items-center gap-1.5">
+                <div class="bg-white text-gray-500 p-4 rounded-3xl rounded-tl-sm border border-gray-100 shadow-xs text-sm sm:text-base flex items-center gap-2">
                   <span class="w-2 h-2 rounded-full bg-indigo-500 animate-bounce"></span>
                   <span class="w-2 h-2 rounded-full bg-indigo-500 animate-bounce [animation-delay:0.2s]"></span>
                   <span class="w-2 h-2 rounded-full bg-indigo-500 animate-bounce [animation-delay:0.4s]"></span>
-                  <span class="text-xs ml-1">AI đang suy nghĩ...</span>
+                  <span class="ml-1 font-medium">AI đang suy nghĩ...</span>
                 </div>
               </div>
             </template>
           </div>
 
           <!-- Bottom Chat Input Bar -->
-          <div v-if="!isChatHistoryOpen && !ctx.chatSummary.value" class="p-3 bg-white border-t border-gray-100">
-            <div class="flex items-center space-x-2">
+          <div v-if="!isChatHistoryOpen && !ctx.chatSummary.value" class="p-3.5 sm:p-4 bg-white border-t border-gray-100">
+            <div class="flex items-center space-x-2.5">
               <button
                 :disabled="chatLoading || isBotTyping || !conversationId" @click="toggleChatVoice"
                 :title="isChatRecording ? 'Dừng & gửi giọng nói' : 'Ghi âm giọng nói'"
-                :class="isChatRecording ? 'bg-rose-500 text-white animate-pulse' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
-                class="w-10 h-10 rounded-xl flex items-center justify-center transition shrink-0 cursor-pointer"
+                :class="isChatRecording ? 'bg-rose-500 text-white animate-pulse' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                class="w-12 h-12 rounded-2xl flex items-center justify-center transition shrink-0 cursor-pointer"
               >
-                <Square v-if="isChatRecording" class="w-5 h-5" />
-                <Mic v-else class="w-5 h-5" />
+                <Square v-if="isChatRecording" class="w-6 h-6" />
+                <Mic v-else class="w-6 h-6" />
               </button>
               <input
                 v-model="chatInput"
@@ -214,14 +216,14 @@
                 :disabled="chatLoading || isBotTyping || isChatRecording || !conversationId"
                 type="text"
                 placeholder="Nhập hoặc nhấn mic nói tiếng Anh..."
-                class="flex-1 bg-gray-100 text-sm text-gray-800 placeholder-gray-400 px-3.5 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-600 transition"
+                class="flex-1 bg-gray-100 text-base sm:text-lg text-gray-900 placeholder-gray-400 px-4 py-3 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-600 transition"
               />
               <button
                 @click="sendChatText"
                 :disabled="chatLoading || isBotTyping || isChatRecording || !conversationId || !chatInput.trim()"
-                class="w-10 h-10 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white flex items-center justify-center shadow-xs shadow-indigo-600/30 transition shrink-0 cursor-pointer"
+                class="w-12 h-12 rounded-2xl bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white flex items-center justify-center shadow-xs shadow-indigo-600/30 transition shrink-0 cursor-pointer"
               >
-                <Send class="w-4 h-4" />
+                <Send class="w-5 h-5" />
               </button>
             </div>
           </div>

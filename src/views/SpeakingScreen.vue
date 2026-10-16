@@ -1,13 +1,13 @@
 <template>
-  <div v-if="activeTab === 'speaking'" class="space-y-6 pb-28 w-full max-w-5xl mx-auto">
+  <div v-if="activeTab === 'speaking'" class="space-y-7 pb-28 w-full max-w-6xl mx-auto">
           <!-- Header -->
           <div class="flex items-center justify-between">
             <div>
-              <span class="text-xs uppercase tracking-wide font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">Speaking Lab</span>
-              <h1 class="text-gray-900 mt-1 text-xl font-bold leading-snug">Luyện đọc & phản hồi</h1>
+              <span class="text-xs uppercase tracking-wide font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md">Speaking Lab</span>
+              <h1 class="text-gray-900 mt-1.5 text-2xl sm:text-3xl font-extrabold leading-snug">Luyện đọc & phản hồi phát âm</h1>
             </div>
-            <span class="text-sm font-medium text-gray-500 bg-white border border-gray-200 px-2.5 py-1 rounded-full flex items-center gap-1">
-              <Sparkles class="w-3.5 h-3.5 text-indigo-500" /> Luyện phát âm cùng AI
+            <span class="text-sm font-semibold text-gray-600 bg-white border border-gray-200 px-3.5 py-1.5 rounded-full flex items-center gap-1.5 shadow-2xs">
+              <Sparkles class="w-4 h-4 text-blue-500" /> Luyện phát âm cùng AI
             </span>
           </div>
 
@@ -78,13 +78,13 @@
             </div>
 
             <!-- Target Sentence Display / Input -->
-            <div class="space-y-2">
+            <div class="space-y-3">
               <textarea
                 v-model="targetSpeakingText"
                 :readonly="!isCustomSpeakingMode || isRecording || isAnalyzingSpeaking"
-                rows="2"
-                class="w-full text-sm font-semibold text-gray-900 rounded-xl p-3 border leading-relaxed focus:outline-none focus:ring-2 focus:ring-indigo-600"
-                :class="isCustomSpeakingMode ? 'bg-white border-indigo-300' : 'bg-gray-50 border-gray-100 cursor-default'"
+                rows="3"
+                class="w-full text-base sm:text-lg font-bold text-gray-900 rounded-2xl p-4 sm:p-5 border leading-relaxed focus:outline-none focus:ring-2 focus:ring-indigo-600 shadow-2xs"
+                :class="isCustomSpeakingMode ? 'bg-white border-indigo-300' : 'bg-gray-50/80 border-gray-200 cursor-default'"
                 placeholder="Nhập câu tiếng Anh bạn muốn luyện nói..."
               ></textarea>
 
@@ -92,51 +92,51 @@
                 <button
                   @click="playNativeAudio"
                   :disabled="!targetSpeakingText"
-                  class="flex items-center gap-1.5 text-sm font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-xl transition cursor-pointer"
+                  class="flex items-center gap-2 text-sm sm:text-base font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-xl transition cursor-pointer shadow-2xs"
                 >
-                  <Volume2 class="w-4 h-4" />
+                  <Volume2 class="w-4 h-4 sm:w-5 sm:h-5" />
                   <span>Nghe phát âm mẫu</span>
                 </button>
-                <span v-if="targetIpa" class="text-sm font-sans text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                <span v-if="targetIpa" class="text-sm sm:text-base font-sans text-gray-600 bg-gray-100 px-3 py-1 rounded-lg">
                   /{{ targetIpa }}/
                 </span>
               </div>
 
-              <p v-if="targetTranslation" class="text-sm text-amber-800 bg-amber-50 p-2 rounded-xl border border-amber-200/60">
+              <p v-if="targetTranslation" class="text-sm sm:text-base text-amber-900 bg-amber-50/80 p-3.5 rounded-xl border border-amber-200/70 leading-relaxed">
                 💡 <strong>Dịch:</strong> {{ targetTranslation }}
               </p>
             </div>
           </div>
 
           <!-- AI Evaluation Results (Real from API) -->
-          <div v-if="speakingResult" class="bg-white rounded-2xl p-5 border border-gray-100 shadow-md space-y-5">
+          <div v-if="speakingResult" class="bg-white rounded-3xl p-6 sm:p-7 border border-gray-100 shadow-md space-y-6">
             <!-- Header Summary with Score & Audio Comparison -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-gray-100">
-              <div class="flex items-center gap-2.5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-gray-100">
+              <div class="flex items-center gap-3.5">
                 <div
-                  class="w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-lg shadow-xs"
+                  class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center font-extrabold text-xl sm:text-2xl shadow-xs shrink-0"
                   :class="speakingResult.overall_score >= 80 ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : speakingResult.overall_score >= 60 ? 'bg-amber-50 text-amber-600 border border-amber-200' : 'bg-rose-50 text-rose-600 border border-rose-200'"
                 >
                   {{ Math.round(speakingResult.overall_score) }}
                 </div>
                 <div>
-                  <h3 class="text-sm font-bold text-gray-900">
+                  <h3 class="text-base sm:text-lg font-bold text-gray-900">
                     {{ speakingResult.overall_score >= 80 ? '🌟 Phát âm rất tốt' : speakingResult.overall_score >= 60 ? '💡 Phát âm khá tốt, cần chỉnh một số âm' : '⚠️ Cần luyện tập thêm' }}
                   </h3>
-                  <p class="text-xs text-gray-500">
-                    Điểm tổng quát: <span class="font-semibold text-gray-700">{{ Math.round(speakingResult.overall_score) }}/100</span> · Cao độ: <span class="font-semibold text-gray-700">{{ speakingResult.average_pitch ? Math.round(speakingResult.average_pitch) + ' Hz' : 'N/A' }}</span>
+                  <p class="text-sm text-gray-500 mt-0.5">
+                    Điểm tổng quát: <span class="font-bold text-gray-800">{{ Math.round(speakingResult.overall_score) }}/100</span> · Cao độ: <span class="font-bold text-gray-800">{{ speakingResult.average_pitch ? Math.round(speakingResult.average_pitch) + ' Hz' : 'N/A' }}</span>
                   </p>
                 </div>
               </div>
 
               <!-- Audio Player Toolbar (Listen to Native vs Listen to User) -->
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2.5">
                 <button
                   @click="playNativeAudio"
-                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition shadow-2xs cursor-pointer"
+                  class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition shadow-2xs cursor-pointer"
                   title="Nghe phát âm chuẩn bản xứ"
                 >
-                  <Volume2 class="w-3.5 h-3.5" />
+                  <Volume2 class="w-4 h-4" />
                   <span>Nghe mẫu</span>
                 </button>
 
@@ -144,28 +144,28 @@
                   v-if="speakingResult.audio_user_url"
                   @click="playUserAudio"
                   :disabled="isPlayingUserAudio"
-                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition shadow-2xs cursor-pointer disabled:opacity-50"
+                  class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition shadow-2xs cursor-pointer disabled:opacity-50"
                   title="Nghe lại bản thu âm của bạn"
                 >
-                  <Headphones class="w-3.5 h-3.5" :class="{ 'animate-bounce': isPlayingUserAudio }" />
+                  <Headphones class="w-4 h-4" :class="{ 'animate-bounce': isPlayingUserAudio }" />
                   <span>{{ isPlayingUserAudio ? 'Đang phát...' : 'Nghe giọng bạn' }}</span>
                 </button>
               </div>
             </div>
 
             <!-- What the system heard -->
-            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+            <div class="p-4 bg-slate-50/90 rounded-2xl border border-slate-200/80 text-sm flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <span class="text-slate-500 font-medium">Hệ thống nghe được:</span>
-              <span class="font-semibold text-slate-800 text-right italic truncate" :title="speakingResult.transcribed_text">
+              <span class="font-semibold text-slate-800 text-right italic" :title="speakingResult.transcribed_text">
                 "{{ speakingResult.transcribed_text || 'Chưa ghi nhận' }}"
               </span>
             </div>
 
             <!-- Interactive Sentence Matrix (Click a word to inspect) -->
-            <div v-if="speakingResult.word_analysis && speakingResult.word_analysis.length > 0" class="space-y-2">
-              <div class="flex items-center justify-between text-xs font-semibold text-gray-600 uppercase tracking-wide">
+            <div v-if="speakingResult.word_analysis && speakingResult.word_analysis.length > 0" class="space-y-3">
+              <div class="flex items-center justify-between text-xs sm:text-sm font-bold text-gray-700 uppercase tracking-wide">
                 <span class="flex items-center gap-1.5">
-                  <Info class="w-3.5 h-3.5 text-indigo-500" />
+                  <Info class="w-4 h-4 text-indigo-500" />
                   Bấm vào từng từ để xem chi tiết âm sai & cách sửa:
                 </span>
                 <span v-if="selectedWord" class="text-indigo-600 font-normal normal-case">
@@ -173,22 +173,22 @@
                 </span>
               </div>
 
-              <div class="p-4 bg-gray-50/80 rounded-2xl border border-gray-200/80 flex flex-wrap gap-2.5 items-stretch">
+              <div class="p-5 bg-gray-50/90 rounded-2xl border border-gray-200/80 flex flex-wrap gap-3 items-stretch">
                 <button
                   v-for="(w, idx) in speakingResult.word_analysis"
                   :key="idx"
                   @click="selectedWordIndex = idx"
                   type="button"
-                  class="group relative flex flex-col items-center justify-between px-3 py-2 rounded-xl border transition-all cursor-pointer text-left"
+                  class="group relative flex flex-col items-center justify-between px-4 py-2.5 rounded-xl border transition-all cursor-pointer text-left"
                   :class="[
-                    selectedWordIndex === idx ? 'ring-2 ring-indigo-500 ring-offset-1 scale-105 shadow-md z-10' : 'hover:scale-102 hover:shadow-xs',
+                    selectedWordIndex === idx ? 'ring-2 ring-indigo-500 ring-offset-2 scale-105 shadow-md z-10' : 'hover:scale-102 hover:shadow-xs',
                     w.status === 'CORRECT' ? 'bg-emerald-50/90 border-emerald-300 text-emerald-900' :
                     w.status === 'WEAK' ? 'bg-amber-50/90 border-amber-300 text-amber-900' :
                     'bg-rose-50/90 border-rose-300 text-rose-900'
                   ]"
                 >
                   <!-- Word Text -->
-                  <span class="font-bold text-sm leading-tight flex items-center gap-1">
+                  <span class="font-bold text-base sm:text-lg leading-tight flex items-center gap-1.5">
                     {{ w.word }}
                     <span v-if="w.status === 'CORRECT'" class="text-xs text-emerald-600">✓</span>
                     <span v-else-if="w.status === 'WEAK'" class="text-xs text-amber-600">⚠️</span>
@@ -196,13 +196,13 @@
                   </span>
 
                   <!-- Target IPA -->
-                  <span v-if="w.target_ipa" class="text-[11px] font-sans opacity-70 mt-0.5">
+                  <span v-if="w.target_ipa" class="text-xs font-sans opacity-70 mt-0.5">
                     /{{ w.target_ipa }}/
                   </span>
 
                   <!-- Score badge pill -->
                   <span
-                    class="mt-1.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold"
+                    class="mt-2 px-2 py-0.5 rounded-full text-xs font-bold"
                     :class="w.status === 'CORRECT' ? 'bg-emerald-200/70 text-emerald-800' : w.status === 'WEAK' ? 'bg-amber-200/70 text-amber-800' : 'bg-rose-200/70 text-rose-800'"
                   >
                     {{ w.score !== null ? Math.round(w.score) + '%' : '0%' }}
@@ -212,64 +212,64 @@
             </div>
 
             <!-- Word Diagnostic Inspector Box (Soi chi tiết từ đang chọn) -->
-            <div v-if="selectedWord" class="p-4 rounded-2xl border transition-all"
+            <div v-if="selectedWord" class="p-5 sm:p-6 rounded-2xl border transition-all space-y-4"
               :class="selectedWord.status === 'CORRECT' ? 'bg-emerald-50/40 border-emerald-200' : selectedWord.status === 'WEAK' ? 'bg-amber-50/40 border-amber-200' : 'bg-rose-50/40 border-rose-200'"
             >
               <!-- Inspector Header -->
-              <div class="flex items-center justify-between pb-3 border-b border-gray-200/60">
-                <div class="flex items-center gap-2">
-                  <span class="text-lg font-black text-gray-900 tracking-wide">{{ selectedWord.word }}</span>
-                  <span v-if="selectedWord.target_ipa" class="text-sm font-sans text-gray-600 bg-white/80 px-2 py-0.5 rounded-lg border border-gray-200">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-200/60">
+                <div class="flex items-center gap-2.5 flex-wrap">
+                  <span class="text-xl sm:text-2xl font-black text-gray-900 tracking-wide">{{ selectedWord.word }}</span>
+                  <span v-if="selectedWord.target_ipa" class="text-base font-sans text-gray-700 bg-white/90 px-3 py-1 rounded-xl border border-gray-200">
                     /{{ selectedWord.target_ipa }}/
                   </span>
                   <span
-                    class="text-xs font-semibold px-2.5 py-0.5 rounded-full"
-                    :class="selectedWord.status === 'CORRECT' ? 'bg-emerald-100 text-emerald-700' : selectedWord.status === 'WEAK' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'"
+                    class="text-xs sm:text-sm font-bold px-3 py-1 rounded-full"
+                    :class="selectedWord.status === 'CORRECT' ? 'bg-emerald-100 text-emerald-800' : selectedWord.status === 'WEAK' ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800'"
                   >
                     {{ selectedWord.status === 'CORRECT' ? '✓ Đạt chuẩn' : selectedWord.status === 'WEAK' ? '⚠️ Cần cải thiện' : '✕ Chưa đạt' }} ({{ selectedWord.score !== null ? Math.round(selectedWord.score) : 0 }}%)
                   </span>
                 </div>
 
-                <div class="flex items-center gap-1.5">
+                <div class="flex items-center gap-2">
                   <button
                     @click="playWordAudio(selectedWord.word)"
-                    class="inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 bg-white hover:bg-indigo-50 border border-indigo-200 px-2.5 py-1.5 rounded-xl shadow-2xs transition cursor-pointer"
+                    class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-indigo-700 bg-white hover:bg-indigo-50 border border-indigo-200 px-3 py-2 rounded-xl shadow-2xs transition cursor-pointer"
                     title="Nghe mẫu riêng từ này"
                   >
-                    <Volume2 class="w-3.5 h-3.5" /> Nghe từ này
+                    <Volume2 class="w-4 h-4" /> Nghe từ này
                   </button>
                   <button
                     @click="ctx.openSaveWord(selectedWord.word, targetSpeakingText)"
-                    class="inline-flex items-center gap-1 text-xs font-semibold text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 px-2.5 py-1.5 rounded-xl shadow-2xs transition cursor-pointer"
+                    class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 px-3 py-2 rounded-xl shadow-2xs transition cursor-pointer"
                     title="Lưu từ vào sổ từ vựng"
                   >
-                    <BookmarkPlus class="w-3.5 h-3.5 text-amber-600" /> Lưu từ
+                    <BookmarkPlus class="w-4 h-4 text-amber-600" /> Lưu từ
                   </button>
                 </div>
               </div>
 
               <!-- Phoneme-by-Phoneme Visualizer -->
-              <div v-if="selectedWord.phonemes && selectedWord.phonemes.length > 0" class="pt-3 space-y-1.5">
-                <span class="text-xs font-bold text-gray-700 block">Soi chi tiết từng âm trong từ:</span>
-                <div class="grid grid-flow-col auto-cols-fr gap-1.5">
+              <div v-if="selectedWord.phonemes && selectedWord.phonemes.length > 0" class="pt-2 space-y-2">
+                <span class="text-xs sm:text-sm font-bold text-gray-700 block">Soi chi tiết từng âm trong từ:</span>
+                <div class="grid grid-flow-col auto-cols-fr gap-2 sm:gap-3">
                   <div
                     v-for="(p, pIdx) in selectedWord.phonemes"
                     :key="pIdx"
-                    class="p-2 rounded-xl text-center border flex flex-col items-center justify-between"
+                    class="p-3 sm:p-4 rounded-xl text-center border flex flex-col items-center justify-between shadow-2xs"
                     :class="p.status === 'CORRECT' ? 'bg-white border-emerald-300' : p.status === 'WEAK' ? 'bg-white border-amber-300' : 'bg-white border-rose-300'"
                   >
                     <span
-                      class="text-base font-black"
+                      class="text-xl sm:text-2xl font-black"
                       :class="p.status === 'CORRECT' ? 'text-emerald-600' : p.status === 'WEAK' ? 'text-amber-600' : 'text-rose-600'"
                     >
                       {{ p.char }}
                     </span>
-                    <span class="text-[10px] font-bold mt-0.5 text-gray-600">
+                    <span class="text-xs font-bold mt-1 text-gray-600">
                       {{ Math.round(p.score) }}%
                     </span>
                     <!-- Status dot/indicator -->
                     <span
-                      class="w-full h-1 rounded-full mt-1.5"
+                      class="w-full h-1.5 rounded-full mt-2"
                       :class="p.status === 'CORRECT' ? 'bg-emerald-500' : p.status === 'WEAK' ? 'bg-amber-500' : 'bg-rose-500'"
                     ></span>
                   </div>
@@ -277,18 +277,18 @@
               </div>
 
               <!-- Detailed Error Diagnosis & Articulatory Guide -->
-              <div class="pt-3 space-y-2">
-                <div v-if="selectedWord.error_type" class="p-2.5 rounded-xl bg-white/90 border border-amber-200 text-xs flex items-start gap-2 text-amber-900">
-                  <AlertCircle class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              <div class="pt-2 space-y-3">
+                <div v-if="selectedWord.error_type" class="p-3.5 rounded-xl bg-white/95 border border-amber-200 text-sm flex items-start gap-2.5 text-amber-900 shadow-2xs">
+                  <AlertCircle class="w-4 h-4 sm:w-5 sm:h-5 text-amber-600 shrink-0 mt-0.5" />
                   <div>
                     <strong class="font-bold">Lỗi phát hiện:</strong> {{ selectedWord.error_type }}
                   </div>
                 </div>
 
                 <!-- Actionable Articulatory Guide -->
-                <div class="p-3 rounded-xl bg-white/90 border border-indigo-100 text-xs space-y-1">
-                  <p class="font-bold text-indigo-950 flex items-center gap-1.5">
-                    <Lightbulb class="w-3.5 h-3.5 text-indigo-600" />
+                <div class="p-4 rounded-xl bg-white/95 border border-indigo-100 text-sm sm:text-base space-y-1.5 shadow-2xs">
+                  <p class="font-bold text-indigo-950 flex items-center gap-2">
+                    <Lightbulb class="w-4 h-4 text-indigo-600" />
                     <span>Hướng dẫn khẩu hình & vị trí đặt lưỡi:</span>
                   </p>
                   <p class="text-gray-700 leading-relaxed">
@@ -299,22 +299,22 @@
             </div>
 
             <!-- Actionable Summary List of Words Needing Improvement -->
-            <div v-if="problemWords.length > 0" class="space-y-2 pt-2">
-              <h4 class="text-xs font-bold text-gray-800 uppercase tracking-wide flex items-center gap-1.5">
-                <AlertCircle class="w-3.5 h-3.5 text-rose-500" />
+            <div v-if="problemWords.length > 0" class="space-y-3 pt-2">
+              <h4 class="text-xs sm:text-sm font-bold text-gray-800 uppercase tracking-wide flex items-center gap-2">
+                <AlertCircle class="w-4 h-4 text-rose-500" />
                 <span>Danh sách từ cần sửa lỗi ({{ problemWords.length }} từ):</span>
               </h4>
-              <div class="space-y-1.5">
+              <div class="space-y-2">
                 <div
                   v-for="(pw, pIdx) in problemWords"
                   :key="pIdx"
                   @click="selectWordByObject(pw)"
-                  class="flex items-center justify-between p-2.5 rounded-xl border bg-white hover:bg-gray-50 transition cursor-pointer text-xs"
+                  class="flex items-center justify-between p-3.5 rounded-xl border bg-white hover:bg-gray-50 transition cursor-pointer text-sm shadow-2xs"
                   :class="pw.status === 'INCORRECT' ? 'border-rose-200' : 'border-amber-200'"
                 >
-                  <div class="flex items-center gap-2">
+                  <div class="flex items-center gap-2.5">
                     <span
-                      class="px-2 py-0.5 rounded-md font-bold"
+                      class="px-2.5 py-1 rounded-lg font-bold text-sm"
                       :class="pw.status === 'INCORRECT' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'"
                     >
                       {{ pw.word }}
@@ -324,22 +324,22 @@
                       {{ pw.error_type || 'Phát âm chưa chuẩn' }}
                     </span>
                   </div>
-                  <button class="text-indigo-600 font-bold hover:underline shrink-0 cursor-pointer">
+                  <button class="text-indigo-600 font-bold hover:underline shrink-0 cursor-pointer text-xs sm:text-sm">
                     Xem cách sửa →
                   </button>
                 </div>
               </div>
             </div>
 
-            <div v-else class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center gap-2">
-              <CheckCircle2 class="w-4 h-4 text-emerald-600 shrink-0" />
+            <div v-else class="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-sm sm:text-base text-emerald-800 flex items-center gap-2.5">
+              <CheckCircle2 class="w-5 h-5 text-emerald-600 shrink-0" />
               <span>Tuyệt vời! Bạn đã phát âm chính xác và rõ ràng toàn bộ các từ trong câu.</span>
             </div>
 
             <!-- Phonetic Error Tip Box (Gemini AI Coach) -->
-            <div v-if="speakingResult.ai_feedback" class="p-3.5 bg-gradient-to-r from-amber-50/80 to-orange-50/80 border border-amber-200/80 rounded-2xl text-xs space-y-1.5">
-              <p class="font-bold text-amber-900 flex items-center gap-1.5">
-                <Sparkles class="w-3.5 h-3.5 text-amber-600" /> Nhận xét tổng kết từ AI Coach:
+            <div v-if="speakingResult.ai_feedback" class="p-4 sm:p-5 bg-gradient-to-r from-amber-50/80 to-orange-50/80 border border-amber-200/80 rounded-2xl text-sm sm:text-base space-y-2">
+              <p class="font-bold text-amber-900 flex items-center gap-2">
+                <Sparkles class="w-4 h-4 text-amber-600" /> Nhận xét tổng kết từ AI Coach:
               </p>
               <p class="text-amber-900 leading-relaxed whitespace-pre-line font-medium">
                 {{ speakingResult.ai_feedback }}
@@ -348,33 +348,33 @@
           </div>
 
           <!-- Error Alert -->
-          <div v-if="speakingError" class="p-3 bg-rose-50 border border-rose-200 rounded-xl text-sm text-rose-600">
+          <div v-if="speakingError" class="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-sm sm:text-base text-rose-700 font-medium">
             ⚠️ {{ speakingError }}
           </div>
 
           <!-- Interaction Area (Centered Mic button with pulsating rings) -->
-          <div class="pt-4 flex flex-col items-center justify-center space-y-3">
+          <div class="pt-6 flex flex-col items-center justify-center space-y-4">
             <div class="relative flex items-center justify-center">
-              <span v-if="isRecording" class="absolute w-24 h-24 rounded-full bg-rose-500/30 animate-ping"></span>
-              <span v-if="isRecording" class="absolute w-20 h-20 rounded-full bg-rose-500/40 animate-pulse"></span>
+              <span v-if="isRecording" class="absolute w-32 h-32 sm:w-36 sm:h-36 rounded-full bg-rose-500/25 animate-ping"></span>
+              <span v-if="isRecording" class="absolute w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-rose-500/35 animate-pulse"></span>
               <button
                 @click="toggleRecording"
                 :disabled="isAnalyzingSpeaking"
                 :aria-label="isAnalyzingSpeaking ? 'Đang phân tích giọng nói' : isRecording ? 'Dừng ghi âm và gửi chấm điểm' : 'Bắt đầu ghi âm'"
                 :title="isRecording ? 'Dừng ghi âm và gửi chấm điểm' : 'Bắt đầu ghi âm'"
                 :class="isRecording ? 'bg-rose-500 hover:bg-rose-600 text-white shadow-rose-500/40' : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-600/30'"
-                class="relative z-10 w-20 h-20 rounded-full flex items-center justify-center shadow-xl transition-all transform active:scale-95 cursor-pointer disabled:opacity-50"
+                class="relative z-10 w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center shadow-xl transition-all transform active:scale-95 cursor-pointer disabled:opacity-50"
               >
-                <Square v-if="isRecording" class="w-8 h-8" />
-                <Mic v-else-if="!isAnalyzingSpeaking" class="w-8 h-8" />
-                <Loader2 v-else class="w-8 h-8 animate-spin" />
+                <Square v-if="isRecording" class="w-10 h-10" />
+                <Mic v-else-if="!isAnalyzingSpeaking" class="w-10 h-10" />
+                <Loader2 v-else class="w-10 h-10 animate-spin" />
               </button>
             </div>
             <div class="text-center">
-              <p class="text-sm font-semibold text-gray-800">
+              <p class="text-base sm:text-lg font-bold text-gray-800">
                 {{ isAnalyzingSpeaking ? 'AI đang đánh giá cách phát âm...' : (isRecording ? 'Đang nghe... Bấm để gửi bài đọc' : 'Nhấn nút để bắt đầu đọc câu mẫu') }}
               </p>
-              <p class="text-xs text-gray-500 mt-0.5">
+              <p class="text-xs sm:text-sm text-gray-500 mt-1">
                 {{ isRecording ? 'Nói to, rõ câu tiếng Anh vào micro' : 'Ghi âm bằng micro, nhận góp ý tự động' }}
               </p>
             </div>
