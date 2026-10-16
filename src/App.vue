@@ -1002,18 +1002,45 @@ const sendChatText = async () => {
   if (!text || chatLoading.value || isBotTyping.value || isChatRecording.value || !conversationId.value || !requireAuthentication()) return;
   const version = sessionVersion;
   const id = conversationId.value;
-  // Keep the draft until the server confirms success; failed requests remain retryable.
+
+  // 1. Clear input immediately so user gets instant visual feedback
+  chatInput.value = '';
+
+  // 2. Optimistically push user message to chatMessages and scroll immediately
+  const userMsgObj = {
+    sender: 'user',
+    message_text: text,
+    created_at: new Date().toISOString()
+  };
+  chatMessages.value.push(userMsgObj);
+  await scrollChatToBottom();
+
+  // 3. Trigger typing indicator
   isBotTyping.value = true;
   chatError.value = '';
+
   try {
     const reply = await chatService.sendMessage(id, text);
     if (version !== sessionVersion || id !== conversationId.value) return;
-    chatMessages.value.push({ sender: 'user', message_text: text }, reply);
-    if (chatInput.value.trim() === text) chatInput.value = '';
-    await scrollChatToBottom();
+
+    if (reply) {
+      chatMessages.value.push(reply);
+      await scrollChatToBottom();
+    }
     void loadHomeData();
   } catch (err) {
-    if (version === sessionVersion) chatError.value = getErrorMessage(err, 'Không gửi được tin nhắn. Bạn có thể thử lại.');
+    if (version === sessionVersion) {
+      chatError.value = getErrorMessage(err, 'Không gửi được tin nhắn. Bạn có thể thử lại.');
+      // Restore draft if empty so user can retry without retyping
+      if (!chatInput.value) {
+        chatInput.value = text;
+      }
+      // Remove optimistic message on failure
+      const idx = chatMessages.value.indexOf(userMsgObj);
+      if (idx !== -1) {
+        chatMessages.value.splice(idx, 1);
+      }
+    }
   } finally {
     if (version === sessionVersion) isBotTyping.value = false;
   }
