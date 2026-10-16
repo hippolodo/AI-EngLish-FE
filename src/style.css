@@ -5,7 +5,7 @@
 @layer base {
   :root {
     font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 17px;
+    font-size: 18px;
     color: #1e2026;
     background: #fcfdfe;
     font-synthesis: none;
@@ -69,9 +69,9 @@
 
 /* Text learners spend time reading gets a calmer, more spacious rhythm. */
 .app-shell .reading-text {
-  font-size: 0.9375rem;
+  font-size: 1.125rem;
   font-weight: 400;
-  line-height: 1.75;
+  line-height: 1.7;
   letter-spacing: normal;
   overflow-wrap: anywhere;
 }

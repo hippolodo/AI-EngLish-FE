@@ -1052,6 +1052,9 @@ const startChatConversation = async (customTopic = null) => {
       if (matched) chatScenarioId.value = matched.id;
     }
     await scrollChatToBottom();
+    if (chatMessages.value.length > 0 && (chatMessages.value[0].sender === 'bot' || chatMessages.value[0].sender === 'BOT')) {
+      speakBotMessage(chatMessages.value[0]);
+    }
   } catch (err) {
     if (version === sessionVersion && requestId === chatRequestId) chatError.value = getErrorMessage(err, 'Không bắt đầu được cuộc trò chuyện.');
   } finally {
@@ -1121,6 +1124,7 @@ const sendChatText = async (customText = null) => {
       }
       chatMessages.value.push(reply);
       await scrollChatToBottom();
+      speakBotMessage(reply);
     }
     void loadHomeData();
   } catch (err) {
@@ -1156,8 +1160,11 @@ const toggleChatVoice = async () => {
       const result = await chatService.sendVoiceMessage(id, blob);
       if (version !== sessionVersion || id !== conversationId.value) return;
       if (result?.user_message) chatMessages.value.push(result.user_message);
-      if (result?.bot_message) chatMessages.value.push(result.bot_message);
-      await scrollChatToBottom();
+      if (result?.bot_message) {
+        chatMessages.value.push(result.bot_message);
+        await scrollChatToBottom();
+        speakBotMessage(result.bot_message);
+      }
       void loadHomeData();
     } catch (err) {
       if (version === sessionVersion) chatError.value = getErrorMessage(err, 'Không gửi được ghi âm.');
