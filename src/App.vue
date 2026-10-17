@@ -566,6 +566,14 @@ const startLesson = async (lesson, resume = null) => {
     lessonStep.value = resume?.step || 'practice';
     studyLessonId.value = detail.id;
     studyTopicId.value = detail.topic_id;
+    if (!selectedTopic.value || selectedTopic.value.id !== detail.topic_id) {
+      selectedTopic.value = topics.value.find(t => t.id === detail.topic_id) || null;
+      try {
+        topicLessons.value = await curriculumService.getLessonsByTopic(detail.topic_id) || [];
+      } catch (e) {
+        // ignore
+      }
+    }
     if (detail.type === 'SPEAKING') {
       isCustomSpeakingMode.value = false;
       speakingTopicId.value = detail.topic_id;
