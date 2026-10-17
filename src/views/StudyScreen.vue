@@ -1,7 +1,18 @@
 <template>
-  <div v-if="activeTab === 'study'" class="space-y-7 pb-28 w-full max-w-6xl mx-auto">
-          <!-- Header & Flow Progress -->
-          <div class="space-y-3">
+  <div v-if="activeTab === 'study'" class="space-y-6 pb-28 w-full max-w-6xl mx-auto">
+    <!-- Top Back Button -->
+    <div>
+      <button
+        @click="goBack"
+        class="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl border border-slate-200 bg-white text-slate-700 font-bold text-sm hover:bg-slate-50 hover:text-blue-600 transition shadow-2xs cursor-pointer group"
+      >
+        <ArrowLeft class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+        <span>Quay lại</span>
+      </button>
+    </div>
+
+    <!-- Header & Flow Progress -->
+    <div class="space-y-3">
             <div class="flex items-center justify-between">
               <div>
                 <span class="text-xs uppercase tracking-wide font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md">Flashcard &amp; Quiz</span>
@@ -280,10 +291,11 @@
 </template>
 
 <script setup>
-import { AlertCircle, ArrowRight, Check, CheckCircle, HelpCircle, Layers, Loader2, RotateCcw, RotateCw, Volume2, XCircle } from 'lucide-vue-next';
+import { AlertCircle, ArrowLeft, ArrowRight, Check, CheckCircle, HelpCircle, Layers, Loader2, RotateCcw, RotateCw, Volume2, XCircle } from 'lucide-vue-next';
 import { inject } from 'vue';
 import { getFullAudioUrl } from '../services/api';
 const ctx = inject('screenContext');
+const goBack = ctx.goBack;
 const { studyError, isReviewingCard, quizInputText, quizResult, canAnswerQuiz, previousQuizQuestion, restartQuiz, requireAuthentication } = ctx;
 const activeTab = ctx.activeTab;
 const chatInput = ctx.chatInput;

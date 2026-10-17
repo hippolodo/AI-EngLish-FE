@@ -1,7 +1,18 @@
 <template>
-  <div v-if="activeTab === 'speaking'" class="space-y-7 pb-28 w-full max-w-6xl mx-auto">
-          <!-- Header -->
-          <div class="flex items-center justify-between">
+  <div v-if="activeTab === 'speaking'" class="space-y-6 pb-28 w-full max-w-6xl mx-auto">
+    <!-- Top Back Button -->
+    <div>
+      <button
+        @click="goBack"
+        class="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl border border-slate-200 bg-white text-slate-700 font-bold text-sm hover:bg-slate-50 hover:text-blue-600 transition shadow-2xs cursor-pointer group"
+      >
+        <ArrowLeft class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+        <span>Quay lại</span>
+      </button>
+    </div>
+
+    <!-- Header -->
+    <div class="flex items-center justify-between">
             <div>
               <span class="text-xs uppercase tracking-wide font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md">Speaking Lab</span>
               <h1 class="text-gray-900 mt-1.5 text-2xl sm:text-3xl font-extrabold leading-snug">Luyện đọc & phản hồi phát âm</h1>
@@ -385,6 +396,7 @@
 <script setup>
 import {
   AlertCircle,
+  ArrowLeft,
   BookmarkPlus,
   CheckCircle2,
   ChevronLeft,
@@ -405,6 +417,7 @@ import TopicLessonDropdowns from '../components/TopicLessonDropdowns.vue';
 import { getFullAudioUrl } from '../services/api';
 
 const ctx = inject('screenContext');
+const goBack = ctx.goBack;
 
 const toggleSpeakingMode = () => {
   ctx.isCustomSpeakingMode.value = !ctx.isCustomSpeakingMode.value;

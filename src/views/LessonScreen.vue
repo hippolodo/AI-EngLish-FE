@@ -6,6 +6,17 @@
       
       <!-- Top Title & Overview Stats -->
       <div class="space-y-4">
+        <!-- Back to Home Button -->
+        <div>
+          <button
+            @click="navigateTab('home')"
+            class="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl border border-slate-200 bg-white text-slate-700 font-bold text-sm hover:bg-slate-50 hover:text-blue-600 transition shadow-2xs cursor-pointer group"
+          >
+            <ArrowLeft class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+            <span>Quay lại Trang chủ</span>
+          </button>
+        </div>
+
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div class="flex items-center gap-2 mb-1.5">
@@ -516,7 +527,7 @@ const {
   lessonQuizzes, lessonDecks, lessonLoading, lessonError, lessonStep,
   lessonProgress, canFinishLesson, journey, startLesson, startTopic,
   beginLessonPractice, openLessonQuiz, openLessonDeck, finishLesson,
-  nextLesson, leaveLesson, openLessonChat, topics
+  nextLesson, leaveLesson, openLessonChat, topics, navigateTab, goBack
 } = ctx;
 
 // Catalog state

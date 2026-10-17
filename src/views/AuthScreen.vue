@@ -3,11 +3,11 @@
     <!-- Header with Back to Home -->
     <div class="mb-8 flex items-center justify-between">
       <button
-        @click="activeTab = 'home'"
-        class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl border border-slate-200 bg-white text-slate-700 font-bold text-sm hover:bg-slate-50 transition shadow-2xs cursor-pointer"
+        @click="goBack ? goBack() : activeTab = 'home'"
+        class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl border border-slate-200 bg-white text-slate-700 font-bold text-sm hover:bg-slate-50 hover:text-blue-600 transition shadow-2xs cursor-pointer group"
       >
-        <ArrowLeft class="w-4 h-4" />
-        <span>Về trang chủ</span>
+        <ArrowLeft class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+        <span>Quay lại</span>
       </button>
 
       <div class="flex items-center gap-2">
@@ -250,7 +250,7 @@ import {
 import { authService } from '../services/authService';
 
 const ctx = inject('screenContext');
-const { activeTab, onAuthSuccess } = ctx;
+const { activeTab, onAuthSuccess, goBack, navigateTab } = ctx;
 
 const isRegister = ref(false);
 const fullName = ref('');
@@ -302,3 +302,4 @@ const submitAuth = async () => {
   }
 };
 </script>
+

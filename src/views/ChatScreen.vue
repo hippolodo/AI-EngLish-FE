@@ -2,7 +2,17 @@
   <div v-if="activeTab === 'chat'" class="flex-1 flex flex-col justify-between h-[calc(100vh-130px)] min-h-[720px] w-full max-w-[1540px] mx-auto bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
     <!-- Chat Scenario & Tutor Header (TalkPal Ultra-Modern Style - Larger Font & Clear Layout) -->
     <div class="px-5 sm:px-8 py-4 bg-white border-b border-slate-100 flex items-center justify-between shrink-0 z-20">
-      <div class="flex items-center space-x-4 min-w-0">
+      <div class="flex items-center space-x-3 sm:space-x-4 min-w-0">
+        <!-- Back Button -->
+        <button
+          @click="goBack"
+          class="flex items-center gap-1.5 px-3 py-2 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-blue-600 font-bold text-xs sm:text-sm transition shadow-2xs cursor-pointer shrink-0"
+          title="Quay lại"
+        >
+          <ArrowLeft class="w-4 h-4" />
+          <span class="hidden md:inline">Quay lại</span>
+        </button>
+
         <!-- Tutor Avatar with Online Indicator -->
         <div class="relative shrink-0">
           <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl overflow-hidden bg-gradient-to-tr from-indigo-600 to-violet-500 ring-2 ring-indigo-100 shadow-sm">
@@ -753,6 +763,7 @@
 <script setup>
 import {
   AlertCircle,
+  ArrowLeft,
   BookOpen,
   Bot,
   Check,
@@ -779,6 +790,7 @@ import {
 import { computed, inject, ref } from 'vue';
 
 const ctx = inject('screenContext');
+const goBack = ctx.goBack;
 const { chatError, requireAuthentication } = ctx;
 
 const activeTab = ctx.activeTab;

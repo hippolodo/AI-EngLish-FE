@@ -61,7 +61,7 @@
           </button>
 
           <button
-            @click="activeTab = 'lesson'"
+            @click="navigateTab('lesson')"
             :class="activeTab === 'lesson' ? 'bg-[#f1f5fd] text-[#2b59ff] font-bold shadow-2xs' : 'text-[#4a5568] hover:bg-gray-50 hover:text-black font-semibold'"
             class="w-full flex items-center gap-4 px-4.5 py-3 rounded-full text-[16px] transition-colors cursor-pointer text-left"
           >
@@ -100,6 +100,17 @@
       <header class="sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b border-gray-100 px-6 sm:px-8 lg:px-12 py-4 flex items-center justify-between shadow-2xs">
         <!-- Left: Brand (Mobile) or Breadcrumb (Desktop) -->
         <div class="flex items-center gap-3 min-w-0">
+          <!-- Universal Back Button (When not on home screen) -->
+          <button
+            v-if="activeTab !== 'home'"
+            @click="goBack"
+            class="flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-blue-600 font-bold text-xs sm:text-sm transition-all shadow-2xs cursor-pointer shrink-0"
+            title="Quay lại"
+          >
+            <ArrowLeft class="w-4 h-4 text-slate-600" />
+            <span>Quay lại</span>
+          </button>
+
           <!-- Mobile Brand Logo -->
           <div class="flex items-center gap-2 lg:hidden">
             <svg class="w-7 h-7 text-[#2e5bff] shrink-0" fill="none" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
@@ -112,7 +123,7 @@
           <!-- Desktop Page Context Title -->
           <div class="hidden lg:flex items-center gap-2 text-base">
             <span class="font-bold text-slate-800 text-lg">
-              {{ activeTab === 'home' ? 'Trang chủ' : activeTab === 'speaking' ? 'Luyện phát âm AI (Speaking Lab)' : activeTab === 'writing' ? 'Trợ lý luyện viết AI (Writing Coach)' : activeTab === 'chat' ? 'Hội thoại đóng vai (AI Roleplay Chat)' : activeTab === 'study' ? 'Ôn tập Flashcard & Quiz' : activeTab === 'auth' ? 'Đăng nhập & Đăng ký tài khoản' : 'Hồ sơ học viên' }}
+              {{ activeTab === 'home' ? 'Trang chủ' : activeTab === 'speaking' ? 'Luyện phát âm AI (Speaking Lab)' : activeTab === 'writing' ? 'Trợ lý luyện viết AI (Writing Coach)' : activeTab === 'chat' ? 'Hội thoại đóng vai (AI Roleplay Chat)' : activeTab === 'study' ? 'Ôn tập Flashcard & Quiz' : activeTab === 'auth' ? 'Đăng nhập & Đăng ký tài khoản' : activeTab === 'lesson' ? 'Chủ đề bài học & Lộ trình' : 'Hồ sơ học viên' }}
             </span>
           </div>
         </div>
@@ -310,11 +321,37 @@ const recommendedTopic = computed(() => {
       : /daily|greet|travel|food|conversation/i;
   return candidates.find(topic => pattern.test(topic.title)) || candidates[0];
 });
+const previousTab = ref('home');
+
 const navigateTab = tab => {
   if (tab === activeTab.value && !currentLesson.value) return;
+  if (activeTab.value !== tab) {
+    previousTab.value = activeTab.value;
+  }
   if (tab !== 'home') leaveLesson(false);
   activeTab.value = tab;
   if (tab === 'study') void (studyMode.value === 'quiz' ? loadQuizzesData() : loadFlashcardsData());
+};
+
+const goBack = () => {
+  // Nếu đang học một bài cụ thể trong LessonScreen, quay lại danh mục bài học
+  if (activeTab.value === 'lesson' && currentLesson.value) {
+    leaveLesson();
+    return;
+  }
+  // Nếu đang mở bảng chọn đề viết trong WritingScreen, đóng bảng chọn
+  if (activeTab.value === 'writing' && writingPickerOpen.value) {
+    writingPickerOpen.value = false;
+    return;
+  }
+  // Nếu có trang trước đó và khác trang hiện tại, quay lại trang đó
+  if (previousTab.value && previousTab.value !== activeTab.value) {
+    const target = previousTab.value;
+    previousTab.value = 'home';
+    navigateTab(target);
+  } else {
+    navigateTab('home');
+  }
 };
 const chatSummary = ref(null);
 const endChatSession = () => {
@@ -1577,7 +1614,7 @@ const updateClock = () => {
 
 let clockInterval = null;
 
-provide('screenContext', { openAuthOrProfile, isOnboardingOpen, onOnboardingCompleted, writingPickerOpen, writingPickerLoading, writingPickerError, writingPickerTopicId, writingPickerTopics, writingPickerLessons, loadWritingTasks, openWritingTaskPicker, openWritingLesson, quizFeedbackMode, quizFeedbackLoading, quizModeLocked, setQuizFeedbackMode, flashcardDecks, flashcardDecksLoading, flashcardDecksError, availableFlashcardDecks, loadFlashcardDecks, onStudyDeckChange, navigateTab, chatSummary, endChatSession, journey, selectedTopic, topicLessons, currentLesson, lessonDetail, lessonQuizzes, lessonDecks, lessonLoading, lessonError, lessonStep, lessonProgress, canFinishLesson, recommendedTopic, startLesson, continueLearning, beginLessonPractice, openLessonQuiz, openLessonDeck, finishLesson, nextLesson, leaveLesson, openSaveWord, savedWordMessage, openLessonChat, reviewSummary, retryForgottenCards, studyDeckId, homeError, studyError, chatError, isReviewingCard, quizInputText, quizResult, canAnswerQuiz, previousQuizQuestion, restartQuiz, requireAuthentication, activeTab, chatConversations, chatHistoryError, chatHistoryLoading, chatInput, chatLoading, chatMessages, chatRecorder, chatScenarioId, chatScrollContainer, checkQuizAnswer, clockInterval, conversationId, copied, copyRewritten, currentCard, currentChatScenario, currentQuestion, currentSpeakingSentenceIndex, currentStudyIndex, currentTime, dashboard, essayInput, flashcards, getActivityBadgeClass, getQuizAnswerClass, getTopicColor, getTopicEmoji, getWordBg, getWordTextColor, homeLoading, isAnalyzingSpeaking, isAuthOpen, isAuthenticated, isBotTyping, isChatHistoryOpen, isChatRecording, isCustomSpeakingMode, isEvaluating, isFlipped, isProfileOpen, isRecording, isSubmittingQuiz, loadChatConversations, loadChatScenarios, loadFlashcardsData, loadHomeData, loadQuizzesData, logout, nativeAudioUrl, navigateSpeakingSentence, nextQuizQuestion, onAuthSuccess, onProfileUpdated, onQuizChange, onSpeakingLessonChange, onSpeakingTopicChange, openAuthModal, openChatConversation, playNativeAudio, quizChecked, quizQuestions, quizzesList, recorder, resetChatConversation, scenarios, scrollChatToBottom, selectQuizAnswer, selectedQuizAnswer, selectedQuizId, selectedSpeakingContentId, sendChatText, speakBotMessage, speakText, speakingError, speakingLessonContents, speakingLessonId, speakingLessons, speakingLessonsLoading, speakingResult, speakingTopicId, startChatConversation, createAndSelectCustomScenario, startTopic, stopAndAnalyzeSpeaking, studyLoading, studyMode, submitCardReview, submitWritingEvaluation, submittedQuizDetail, switchChatScenario, switchStudyMode, targetIpa, targetSpeakingText, targetTranslation, toggleChatHistory, toggleChatVoice, toggleRecording, topics, totalPracticeCount, totalStudyItems, updateClock, userAvatarUrl, userProfile, wordCount, writingError, writingResult, writingSubTab });
+provide('screenContext', { goBack, previousTab, openAuthOrProfile, isOnboardingOpen, onOnboardingCompleted, writingPickerOpen, writingPickerLoading, writingPickerError, writingPickerTopicId, writingPickerTopics, writingPickerLessons, loadWritingTasks, openWritingTaskPicker, openWritingLesson, quizFeedbackMode, quizFeedbackLoading, quizModeLocked, setQuizFeedbackMode, flashcardDecks, flashcardDecksLoading, flashcardDecksError, availableFlashcardDecks, loadFlashcardDecks, onStudyDeckChange, navigateTab, chatSummary, endChatSession, journey, selectedTopic, topicLessons, currentLesson, lessonDetail, lessonQuizzes, lessonDecks, lessonLoading, lessonError, lessonStep, lessonProgress, canFinishLesson, recommendedTopic, startLesson, continueLearning, beginLessonPractice, openLessonQuiz, openLessonDeck, finishLesson, nextLesson, leaveLesson, openSaveWord, savedWordMessage, openLessonChat, reviewSummary, retryForgottenCards, studyDeckId, homeError, studyError, chatError, isReviewingCard, quizInputText, quizResult, canAnswerQuiz, previousQuizQuestion, restartQuiz, requireAuthentication, activeTab, chatConversations, chatHistoryError, chatHistoryLoading, chatInput, chatLoading, chatMessages, chatRecorder, chatScenarioId, chatScrollContainer, checkQuizAnswer, clockInterval, conversationId, copied, copyRewritten, currentCard, currentChatScenario, currentQuestion, currentSpeakingSentenceIndex, currentStudyIndex, currentTime, dashboard, essayInput, flashcards, getActivityBadgeClass, getQuizAnswerClass, getTopicColor, getTopicEmoji, getWordBg, getWordTextColor, homeLoading, isAnalyzingSpeaking, isAuthOpen, isAuthenticated, isBotTyping, isChatHistoryOpen, isChatRecording, isCustomSpeakingMode, isEvaluating, isFlipped, isProfileOpen, isRecording, isSubmittingQuiz, loadChatConversations, loadChatScenarios, loadFlashcardsData, loadHomeData, loadQuizzesData, logout, nativeAudioUrl, navigateSpeakingSentence, nextQuizQuestion, onAuthSuccess, onProfileUpdated, onQuizChange, onSpeakingLessonChange, onSpeakingTopicChange, openAuthModal, openChatConversation, playNativeAudio, quizChecked, quizQuestions, quizzesList, recorder, resetChatConversation, scenarios, scrollChatToBottom, selectQuizAnswer, selectedQuizAnswer, selectedQuizId, selectedSpeakingContentId, sendChatText, speakBotMessage, speakText, speakingError, speakingLessonContents, speakingLessonId, speakingLessons, speakingLessonsLoading, speakingResult, speakingTopicId, startChatConversation, createAndSelectCustomScenario, startTopic, stopAndAnalyzeSpeaking, studyLoading, studyMode, submitCardReview, submitWritingEvaluation, submittedQuizDetail, switchChatScenario, switchStudyMode, targetIpa, targetSpeakingText, targetTranslation, toggleChatHistory, toggleChatVoice, toggleRecording, topics, totalPracticeCount, totalStudyItems, updateClock, userAvatarUrl, userProfile, wordCount, writingError, writingResult, writingSubTab });
 
 onMounted(async () => {
   updateClock();

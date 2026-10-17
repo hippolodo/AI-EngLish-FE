@@ -1,11 +1,21 @@
 <template>
   <section v-if="activeTab === 'profile'" class="w-full max-w-5xl mx-auto space-y-7 pb-28">
     <header class="flex items-center justify-between">
-      <div>
-        <p class="text-xs sm:text-sm font-bold uppercase tracking-wide text-indigo-600">Tài khoản</p>
-        <h1 class="mt-1 text-slate-900 text-2xl sm:text-3xl font-extrabold leading-snug">Trang cá nhân</h1>
+      <div class="flex items-center gap-3">
+        <button
+          @click="goBack"
+          class="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl border border-slate-200 bg-white text-slate-700 font-bold text-sm hover:bg-slate-50 hover:text-blue-600 transition shadow-2xs cursor-pointer group"
+          title="Quay lại"
+        >
+          <ArrowLeft class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+          <span>Quay lại</span>
+        </button>
+        <div>
+          <p class="text-xs sm:text-sm font-bold uppercase tracking-wide text-indigo-600">Tài khoản</p>
+          <h1 class="mt-1 text-slate-900 text-2xl sm:text-3xl font-extrabold leading-snug">Trang cá nhân</h1>
+        </div>
       </div>
-      <button @click="activeTab = 'home'" aria-label="Về trang chủ" class="rounded-2xl border border-indigo-100 bg-white p-3 text-indigo-600 shadow-2xs hover:bg-indigo-50 transition cursor-pointer"><Home class="h-6 w-6" /></button>
+      <button @click="navigateTab('home')" aria-label="Về trang chủ" class="rounded-2xl border border-indigo-100 bg-white p-3 text-indigo-600 shadow-2xs hover:bg-indigo-50 transition cursor-pointer"><Home class="h-6 w-6" /></button>
     </header>
     <div class="rounded-3xl bg-gradient-to-br from-indigo-600 to-violet-700 p-6 sm:p-7 text-white shadow-xl">
       <div class="flex items-center gap-5">
@@ -58,11 +68,11 @@
 </template>
 <script setup>
 import { computed, inject } from 'vue';
-import { Home, Settings2, Save, Loader2, LogOut } from 'lucide-vue-next';
+import { Home, Settings2, Save, Loader2, LogOut, ArrowLeft } from 'lucide-vue-next';
 import { authService } from '../services/authService';
 import { useProfileSettings } from '../composables/useProfileSettings';
 const ctx = inject('screenContext');
-const { activeTab, userProfile, userAvatarUrl, isAuthenticated, journey, dashboard, requireAuthentication, logout } = ctx;
+const { activeTab, userProfile, userAvatarUrl, isAuthenticated, journey, dashboard, requireAuthentication, logout, goBack, navigateTab } = ctx;
 const { form, saving, message, error, dirty, valid, reset, save } = useProfileSettings(ctx, authService);
 const minuteOptions = computed(() => [...new Set([5, 10, 15, 20, 30, 45, 60, form.value.daily_minutes])].sort((a, b) => a - b));
 const levelLabels = { Beginner: 'Cơ bản', Intermediate: 'Trung cấp', Advanced: 'Nâng cao' };
