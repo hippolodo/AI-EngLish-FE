@@ -83,11 +83,12 @@
       <!-- Sidebar Footer (Account) -->
       <div class="space-y-1.5 pb-2">
         <button
-          @click="openAuthModal"
+          @click="openAuthOrProfile"
           class="w-full flex items-center gap-4 px-4.5 py-3 rounded-full text-[#4a5568] hover:bg-gray-50 hover:text-black font-semibold text-[16px] transition-colors cursor-pointer text-left"
+          :class="activeTab === (isAuthenticated ? 'profile' : 'auth') ? 'bg-[#f1f5fd] text-[#2b59ff] font-bold shadow-2xs' : ''"
         >
           <UserRound class="w-5.5 h-5.5 shrink-0 text-gray-500" />
-          <span class="truncate">{{ isAuthenticated ? (userProfile?.full_name || 'Tài khoản') : 'Đăng nhập / Tài khoản' }}</span>
+          <span class="truncate">{{ isAuthenticated ? (userProfile?.full_name || 'Tài khoản') : 'Đăng nhập / Đăng ký' }}</span>
         </button>
       </div>
     </aside>
@@ -111,7 +112,7 @@
           <!-- Desktop Page Context Title -->
           <div class="hidden lg:flex items-center gap-2 text-base">
             <span class="font-bold text-slate-800 text-lg">
-              {{ activeTab === 'home' ? 'Trang chủ' : activeTab === 'speaking' ? 'Luyện phát âm AI (Speaking Lab)' : activeTab === 'writing' ? 'Trợ lý luyện viết AI (Writing Coach)' : activeTab === 'chat' ? 'Hội thoại đóng vai (AI Roleplay Chat)' : activeTab === 'study' ? 'Ôn tập Flashcard & Quiz' : 'Hồ sơ học viên' }}
+              {{ activeTab === 'home' ? 'Trang chủ' : activeTab === 'speaking' ? 'Luyện phát âm AI (Speaking Lab)' : activeTab === 'writing' ? 'Trợ lý luyện viết AI (Writing Coach)' : activeTab === 'chat' ? 'Hội thoại đóng vai (AI Roleplay Chat)' : activeTab === 'study' ? 'Ôn tập Flashcard & Quiz' : activeTab === 'auth' ? 'Đăng nhập & Đăng ký tài khoản' : 'Hồ sơ học viên' }}
             </span>
           </div>
         </div>
@@ -119,7 +120,7 @@
         <!-- Right: Actions, Streak & Profile -->
         <div class="flex items-center gap-3 sm:gap-4 shrink-0">
           <!-- Active Lesson Pill (if studying) -->
-          <div v-if="currentLesson && activeTab !== 'home' && activeTab !== 'lesson' && activeTab !== 'profile'" class="hidden sm:flex items-center gap-2 px-3.5 py-1.5 bg-violet-50 border border-violet-200 rounded-full text-xs font-semibold">
+          <div v-if="currentLesson && activeTab !== 'home' && activeTab !== 'lesson' && activeTab !== 'profile' && activeTab !== 'auth'" class="hidden sm:flex items-center gap-2 px-3.5 py-1.5 bg-violet-50 border border-violet-200 rounded-full text-xs font-semibold">
             <button @click="activeTab = 'lesson'" class="font-bold text-violet-800 hover:underline truncate max-w-[200px]">
               Bài đang học: {{ currentLesson.title }}
             </button>
@@ -134,7 +135,7 @@
 
           <!-- Profile / Login Button -->
           <button
-            @click="openAuthModal"
+            @click="openAuthOrProfile"
             class="flex items-center gap-2.5 p-1 sm:px-3.5 sm:py-2 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 transition cursor-pointer shadow-2xs"
           >
             <img :src="userAvatarUrl" alt="" class="w-7 h-7 rounded-full border border-slate-200 object-cover" />
@@ -144,7 +145,7 @@
       </header>
 
       <!-- Active Lesson Alert for Mobile -->
-      <div v-if="currentLesson && activeTab !== 'home' && activeTab !== 'lesson' && activeTab !== 'profile'" class="sm:hidden mx-4 mt-3 flex items-center justify-between gap-2 p-3 bg-violet-50 border border-violet-200 rounded-2xl text-xs font-semibold">
+      <div v-if="currentLesson && activeTab !== 'home' && activeTab !== 'lesson' && activeTab !== 'profile' && activeTab !== 'auth'" class="sm:hidden mx-4 mt-3 flex items-center justify-between gap-2 p-3 bg-violet-50 border border-violet-200 rounded-2xl text-xs font-semibold">
         <button @click="activeTab = 'lesson'" class="font-bold text-violet-800 truncate">
           Bài đang học: {{ currentLesson.title }}
         </button>
@@ -165,6 +166,7 @@
         <WritingScreen />
         <ChatScreen />
         <StudyScreen />
+        <AuthScreen />
       </main>
 
       <!-- MOBILE BOTTOM NAVIGATION BAR (lg:hidden) -->
@@ -222,6 +224,11 @@
         @close="isAuthOpen = false"
         @auth-success="onAuthSuccess"
       />
+      <OnboardingSurveyModal
+        :is-open="isOnboardingOpen"
+        @close="isOnboardingOpen = false"
+        @completed="onOnboardingCompleted"
+      />
       <SaveWordModal :is-open="saveWordOpen" :initial-word="wordToSave" :example="wordExample" @close="saveWordOpen = false" @saved="onWordSaved" />
 
     </div>
@@ -239,6 +246,8 @@ import SpeakingScreen from './views/SpeakingScreen.vue';
 import WritingScreen from './views/WritingScreen.vue';
 import ChatScreen from './views/ChatScreen.vue';
 import StudyScreen from './views/StudyScreen.vue';
+import AuthScreen from './views/AuthScreen.vue';
+import OnboardingSurveyModal from './components/OnboardingSurveyModal.vue';
 import {
   Signal, Wifi, BookOpen, Sparkles, Mic, Home, PenTool, MessageSquare, UserRound, ArrowLeft, Compass, ChevronRight,
   LayoutGrid, GraduationCap, Layers, TrendingUp, Gift, Star
@@ -263,6 +272,7 @@ import AuthModal from './components/AuthModal.vue';
 const activeTab = ref('home');
 const isProfileOpen = ref(false);
 const isAuthOpen = ref(false);
+const isOnboardingOpen = ref(false);
 const isAuthenticated = ref(authService.isAuthenticated());
 const currentTime = ref('');
 let sessionVersion = 0;
@@ -326,8 +336,16 @@ const userAvatarUrl = computed(() => {
   return userProfile.value?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`;
 });
 
+const openAuthOrProfile = () => {
+  if (isAuthenticated.value) {
+    navigateTab('profile');
+  } else {
+    navigateTab('auth');
+  }
+};
+
 const openAuthModal = () => {
-  activeTab.value = 'profile';
+  openAuthOrProfile();
 };
 
 const onProfileUpdated = (profile) => {
@@ -341,7 +359,7 @@ const requireAuthentication = () => {
   if (authService.isAuthenticated()) return true;
   if (isAuthenticated.value) logout();
   isProfileOpen.value = false;
-  isAuthOpen.value = true;
+  activeTab.value = 'auth';
   return false;
 };
 
@@ -411,7 +429,7 @@ const resetPersonalData = () => {
   pauseDrafts = false;
 };
 
-const onAuthSuccess = async () => {
+const onAuthSuccess = async (isNewAccount = false) => {
   const guestDraft = !isAuthenticated.value ? essayInput.value : '';
   const lessonToOpen = pendingLesson.value;
   const guestQuiz = !isAuthenticated.value && studyMode.value === 'quiz' ? {
@@ -426,6 +444,27 @@ const onAuthSuccess = async () => {
   if (guestQuiz) { quizAnswers.value = guestQuiz.answers; selectedQuizAnswer.value = guestQuiz.selected; quizInputText.value = guestQuiz.text; currentStudyIndex.value = guestQuiz.index; }
   await Promise.all([loadHomeData(), studyMode.value === 'flashcard' ? loadFlashcardsData() : Promise.resolve(), loadChatScenarios()]);
   if (lessonToOpen) await startLesson(lessonToOpen);
+
+  // Kiểm tra tài khoản mới hoặc chưa hoàn thành khảo sát
+  const user = userProfile.value;
+  const isLocalOnboarded = user?.id ? localStorage.getItem(`lingoup:onboarded:${user.id}`) === 'true' : false;
+  if (isNewAccount || (!journey.state.value.onboarded && !isLocalOnboarded)) {
+    isOnboardingOpen.value = true;
+  } else {
+    activeTab.value = 'home';
+  }
+};
+
+const onOnboardingCompleted = async (surveyData) => {
+  isOnboardingOpen.value = false;
+  if (surveyData?.target_level && userProfile.value) {
+    userProfile.value.target_level = surveyData.target_level;
+  }
+  journey.state.value.onboarded = true;
+  if (surveyData?.goal) journey.state.value.goal = surveyData.goal;
+  if (surveyData?.daily_minutes) journey.state.value.daily_minutes = surveyData.daily_minutes;
+  activeTab.value = 'home';
+  await loadHomeData();
 };
 
 const logout = () => {
@@ -1530,7 +1569,7 @@ const updateClock = () => {
 
 let clockInterval = null;
 
-provide('screenContext', { writingPickerOpen, writingPickerLoading, writingPickerError, writingPickerTopicId, writingPickerTopics, writingPickerLessons, loadWritingTasks, openWritingTaskPicker, openWritingLesson, quizFeedbackMode, quizFeedbackLoading, quizModeLocked, setQuizFeedbackMode, flashcardDecks, flashcardDecksLoading, flashcardDecksError, availableFlashcardDecks, loadFlashcardDecks, onStudyDeckChange, navigateTab, chatSummary, endChatSession, journey, selectedTopic, topicLessons, currentLesson, lessonDetail, lessonQuizzes, lessonDecks, lessonLoading, lessonError, lessonStep, lessonProgress, canFinishLesson, recommendedTopic, startLesson, continueLearning, beginLessonPractice, openLessonQuiz, openLessonDeck, finishLesson, nextLesson, leaveLesson, openSaveWord, savedWordMessage, openLessonChat, reviewSummary, retryForgottenCards, studyDeckId, homeError, studyError, chatError, isReviewingCard, quizInputText, quizResult, canAnswerQuiz, previousQuizQuestion, restartQuiz, requireAuthentication, activeTab, chatConversations, chatHistoryError, chatHistoryLoading, chatInput, chatLoading, chatMessages, chatRecorder, chatScenarioId, chatScrollContainer, checkQuizAnswer, clockInterval, conversationId, copied, copyRewritten, currentCard, currentChatScenario, currentQuestion, currentSpeakingSentenceIndex, currentStudyIndex, currentTime, dashboard, essayInput, flashcards, getActivityBadgeClass, getQuizAnswerClass, getTopicColor, getTopicEmoji, getWordBg, getWordTextColor, homeLoading, isAnalyzingSpeaking, isAuthOpen, isAuthenticated, isBotTyping, isChatHistoryOpen, isChatRecording, isCustomSpeakingMode, isEvaluating, isFlipped, isProfileOpen, isRecording, isSubmittingQuiz, loadChatConversations, loadChatScenarios, loadFlashcardsData, loadHomeData, loadQuizzesData, logout, nativeAudioUrl, navigateSpeakingSentence, nextQuizQuestion, onAuthSuccess, onProfileUpdated, onQuizChange, onSpeakingLessonChange, onSpeakingTopicChange, openAuthModal, openChatConversation, playNativeAudio, quizChecked, quizQuestions, quizzesList, recorder, resetChatConversation, scenarios, scrollChatToBottom, selectQuizAnswer, selectedQuizAnswer, selectedQuizId, selectedSpeakingContentId, sendChatText, speakBotMessage, speakText, speakingError, speakingLessonContents, speakingLessonId, speakingLessons, speakingLessonsLoading, speakingResult, speakingTopicId, startChatConversation, createAndSelectCustomScenario, startTopic, stopAndAnalyzeSpeaking, studyLoading, studyMode, submitCardReview, submitWritingEvaluation, submittedQuizDetail, switchChatScenario, switchStudyMode, targetIpa, targetSpeakingText, targetTranslation, toggleChatHistory, toggleChatVoice, toggleRecording, topics, totalPracticeCount, totalStudyItems, updateClock, userAvatarUrl, userProfile, wordCount, writingError, writingResult, writingSubTab });
+provide('screenContext', { openAuthOrProfile, isOnboardingOpen, onOnboardingCompleted, writingPickerOpen, writingPickerLoading, writingPickerError, writingPickerTopicId, writingPickerTopics, writingPickerLessons, loadWritingTasks, openWritingTaskPicker, openWritingLesson, quizFeedbackMode, quizFeedbackLoading, quizModeLocked, setQuizFeedbackMode, flashcardDecks, flashcardDecksLoading, flashcardDecksError, availableFlashcardDecks, loadFlashcardDecks, onStudyDeckChange, navigateTab, chatSummary, endChatSession, journey, selectedTopic, topicLessons, currentLesson, lessonDetail, lessonQuizzes, lessonDecks, lessonLoading, lessonError, lessonStep, lessonProgress, canFinishLesson, recommendedTopic, startLesson, continueLearning, beginLessonPractice, openLessonQuiz, openLessonDeck, finishLesson, nextLesson, leaveLesson, openSaveWord, savedWordMessage, openLessonChat, reviewSummary, retryForgottenCards, studyDeckId, homeError, studyError, chatError, isReviewingCard, quizInputText, quizResult, canAnswerQuiz, previousQuizQuestion, restartQuiz, requireAuthentication, activeTab, chatConversations, chatHistoryError, chatHistoryLoading, chatInput, chatLoading, chatMessages, chatRecorder, chatScenarioId, chatScrollContainer, checkQuizAnswer, clockInterval, conversationId, copied, copyRewritten, currentCard, currentChatScenario, currentQuestion, currentSpeakingSentenceIndex, currentStudyIndex, currentTime, dashboard, essayInput, flashcards, getActivityBadgeClass, getQuizAnswerClass, getTopicColor, getTopicEmoji, getWordBg, getWordTextColor, homeLoading, isAnalyzingSpeaking, isAuthOpen, isAuthenticated, isBotTyping, isChatHistoryOpen, isChatRecording, isCustomSpeakingMode, isEvaluating, isFlipped, isProfileOpen, isRecording, isSubmittingQuiz, loadChatConversations, loadChatScenarios, loadFlashcardsData, loadHomeData, loadQuizzesData, logout, nativeAudioUrl, navigateSpeakingSentence, nextQuizQuestion, onAuthSuccess, onProfileUpdated, onQuizChange, onSpeakingLessonChange, onSpeakingTopicChange, openAuthModal, openChatConversation, playNativeAudio, quizChecked, quizQuestions, quizzesList, recorder, resetChatConversation, scenarios, scrollChatToBottom, selectQuizAnswer, selectedQuizAnswer, selectedQuizId, selectedSpeakingContentId, sendChatText, speakBotMessage, speakText, speakingError, speakingLessonContents, speakingLessonId, speakingLessons, speakingLessonsLoading, speakingResult, speakingTopicId, startChatConversation, createAndSelectCustomScenario, startTopic, stopAndAnalyzeSpeaking, studyLoading, studyMode, submitCardReview, submitWritingEvaluation, submittedQuizDetail, switchChatScenario, switchStudyMode, targetIpa, targetSpeakingText, targetTranslation, toggleChatHistory, toggleChatVoice, toggleRecording, topics, totalPracticeCount, totalStudyItems, updateClock, userAvatarUrl, userProfile, wordCount, writingError, writingResult, writingSubTab });
 
 onMounted(async () => {
   updateClock();
