@@ -250,7 +250,7 @@
         @close="isOnboardingOpen = false"
         @completed="onOnboardingCompleted"
       />
-      <SaveWordModal :is-open="saveWordOpen" :initial-word="wordToSave" :example="wordExample" :initial-meaning="wordMeaning" @close="saveWordOpen = false" @saved="onWordSaved" />
+      <SaveWordModal :is-open="saveWordOpen" :initial-word="wordToSave" :example="wordExample" :initial-meaning="wordMeaning" :initial-ipa="wordIpa" @close="saveWordOpen = false" @saved="onWordSaved" />
 
     </div>
   </div>
@@ -323,6 +323,7 @@ const saveWordOpen = ref(false);
 const wordToSave = ref('');
 const wordExample = ref('');
 const wordMeaning = ref('');
+const wordIpa = ref('');
 const savedWordMessage = ref('');
 const lessonProgress = computed(() => currentLesson.value ? journey.lesson(currentLesson.value.id) : null);
 const recommendedTopic = computed(() => {
@@ -708,11 +709,12 @@ const leaveLesson = (reloadStudy = true) => {
   if (activeTab.value === 'writing') essayInput.value = journey.state.value.writing_drafts.free || '';
 };
 
-const openSaveWord = (word = '', example = '', meaning = '') => {
+const openSaveWord = (word = '', example = '', meaning = '', ipa = '') => {
   if (!requireAuthentication()) return;
   wordToSave.value = typeof word === 'string' ? word : '';
   wordExample.value = example || '';
   wordMeaning.value = meaning || '';
+  wordIpa.value = ipa || '';
   saveWordOpen.value = true;
 };
 const onWordSaved = () => {
@@ -1415,26 +1417,97 @@ const loadFlashcardsData = async () => {
   }
 };
 
+const flashcardToast = ref('');
+let flashcardToastTimer = null;
+const showFlashcardToast = (msg) => {
+  if (flashcardToastTimer) clearTimeout(flashcardToastTimer);
+  flashcardToast.value = msg;
+  flashcardToastTimer = setTimeout(() => { flashcardToast.value = ''; }, 3500);
+};
+
+const toggleCardReminder = async (cardId = null) => {
+  const id = cardId || currentCard.value?.id;
+  if (!id || isReviewingCard.value || !requireAuthentication()) return;
+  const targetCard = flashcards.value.find(c => c.id === id);
+  if (!targetCard) return;
+  isReviewingCard.value = true;
+  studyError.value = '';
+  try {
+    const res = await studyService.toggleReminder(id);
+    const isReminded = Boolean(res.next_review_at && res.status === 'LEARNING');
+    targetCard.has_reminder = isReminded;
+    targetCard.status = res.status;
+    targetCard.next_review_at = res.next_review_at;
+    showFlashcardToast(isReminded ? `🔔 Đã bật nhắc học lại cho từ "${targetCard.word}"!` : `Đã tắt nhắc học cho từ "${targetCard.word}".`);
+  } catch (err) {
+    studyError.value = getErrorMessage(err, 'Không thể cập nhật lịch nhắc ôn.');
+  } finally {
+    isReviewingCard.value = false;
+  }
+};
+
+const markCardMastered = async (cardId = null) => {
+  const id = cardId || currentCard.value?.id;
+  if (!id || isReviewingCard.value || !requireAuthentication()) return;
+  const targetCard = flashcards.value.find(c => c.id === id);
+  if (!targetCard) return;
+  isReviewingCard.value = true;
+  studyError.value = '';
+  try {
+    const res = await studyService.markCardMastered(id);
+    targetCard.status = 'MASTERED';
+    targetCard.has_reminder = false;
+    targetCard.next_review_at = res.next_review_at;
+    showFlashcardToast(`✅ Đã đánh dấu thuộc từ "${targetCard.word}"!`);
+  } catch (err) {
+    studyError.value = getErrorMessage(err, 'Không thể ghi nhận trạng thái đã thuộc.');
+  } finally {
+    isReviewingCard.value = false;
+  }
+};
+
+const nextFlashcard = () => {
+  if (currentStudyIndex.value < flashcards.value.length - 1) {
+    currentStudyIndex.value += 1;
+    isFlipped.value = false;
+  }
+};
+
+const prevFlashcard = () => {
+  if (currentStudyIndex.value > 0) {
+    currentStudyIndex.value -= 1;
+    isFlipped.value = false;
+  }
+};
+
+const jumpToFlashcard = (idx) => {
+  if (idx >= 0 && idx < flashcards.value.length) {
+    currentStudyIndex.value = idx;
+    isFlipped.value = false;
+  }
+};
+
 const submitCardReview = async (isRemembered) => {
   if (isReviewingCard.value || studyLoading.value || !currentCard.value.id || !requireAuthentication()) return;
-  const version = sessionVersion;
   const cardId = currentCard.value.id;
   const card = currentCard.value;
   isReviewingCard.value = true;
   studyError.value = '';
   try {
-    await studyService.reviewCard(cardId, isRemembered);
-    if (version !== sessionVersion) return;
-    flashcards.value = flashcards.value.filter(card => card.id !== cardId);
-    reviewedCount.value += 1;
-    if (!isRemembered && !forgottenCards.value.some(item => item.id === cardId)) forgottenCards.value.push(card);
-    if (!flashcards.value.length) reviewSummary.value = { total: reviewedCount.value, retry: forgottenCards.value.length };
-    currentStudyIndex.value = Math.min(currentStudyIndex.value, Math.max(0, flashcards.value.length - 1));
-    isFlipped.value = false;
+    const res = await studyService.reviewCard(cardId, isRemembered);
+    card.status = res.status;
+    card.next_review_at = res.next_review_at;
+    card.has_reminder = !isRemembered;
+    card.box_level = res.box_level;
+    showFlashcardToast(isRemembered ? `✅ Đã thuộc từ "${card.word}"!` : `🔔 Đã lên lịch nhắc ôn từ "${card.word}"!`);
+    if (currentStudyIndex.value < flashcards.value.length - 1) {
+      currentStudyIndex.value += 1;
+      isFlipped.value = false;
+    }
   } catch (err) {
-    if (version === sessionVersion) studyError.value = getErrorMessage(err, 'Không lưu được kết quả ôn. Thẻ vẫn được giữ để thử lại.');
+    studyError.value = getErrorMessage(err, 'Không lưu được kết quả ôn.');
   } finally {
-    if (version === sessionVersion) isReviewingCard.value = false;
+    isReviewingCard.value = false;
   }
 };
 
@@ -1630,7 +1703,7 @@ const updateClock = () => {
 
 let clockInterval = null;
 
-provide('screenContext', { goBack, previousTab, openAuthOrProfile, isOnboardingOpen, onOnboardingCompleted, writingPickerOpen, writingPickerLoading, writingPickerError, writingPickerTopicId, writingPickerTopics, writingPickerLessons, loadWritingTasks, openWritingTaskPicker, openWritingLesson, quizFeedbackMode, quizFeedbackLoading, quizModeLocked, setQuizFeedbackMode, flashcardDecks, flashcardDecksLoading, flashcardDecksError, availableFlashcardDecks, loadFlashcardDecks, onStudyDeckChange, navigateTab, chatSummary, endChatSession, journey, selectedTopic, topicLessons, currentLesson, lessonDetail, lessonQuizzes, lessonDecks, lessonLoading, lessonError, lessonStep, lessonProgress, canFinishLesson, recommendedTopic, startLesson, continueLearning, beginLessonPractice, openLessonQuiz, openLessonDeck, finishLesson, nextLesson, leaveLesson, openSaveWord, savedWordMessage, openLessonChat, reviewSummary, retryForgottenCards, studyDeckId, homeError, studyError, chatError, isReviewingCard, quizInputText, quizResult, canAnswerQuiz, previousQuizQuestion, restartQuiz, requireAuthentication, activeTab, chatConversations, chatHistoryError, chatHistoryLoading, chatInput, chatLoading, chatMessages, chatRecorder, chatScenarioId, chatScrollContainer, checkQuizAnswer, clockInterval, conversationId, copied, copyRewritten, currentCard, currentChatScenario, currentQuestion, currentSpeakingSentenceIndex, currentStudyIndex, currentTime, dashboard, essayInput, flashcards, getActivityBadgeClass, getQuizAnswerClass, getTopicColor, getTopicEmoji, getWordBg, getWordTextColor, homeLoading, isAnalyzingSpeaking, isAuthOpen, isAuthenticated, isBotTyping, isChatHistoryOpen, isChatRecording, isCustomSpeakingMode, isEvaluating, isFlipped, isProfileOpen, isRecording, isSubmittingQuiz, loadChatConversations, loadChatScenarios, loadFlashcardsData, loadHomeData, loadQuizzesData, logout, nativeAudioUrl, navigateSpeakingSentence, nextQuizQuestion, onAuthSuccess, onProfileUpdated, onQuizChange, onSpeakingLessonChange, onSpeakingTopicChange, openAuthModal, openChatConversation, playNativeAudio, quizChecked, quizQuestions, quizzesList, recorder, resetChatConversation, scenarios, scrollChatToBottom, selectQuizAnswer, selectedQuizAnswer, selectedQuizId, selectedSpeakingContentId, sendChatText, speakBotMessage, speakText, speakingError, speakingLessonContents, speakingLessonId, speakingLessons, speakingLessonsLoading, speakingResult, speakingTopicId, startChatConversation, createAndSelectCustomScenario, startTopic, stopAndAnalyzeSpeaking, studyLoading, studyMode, submitCardReview, submitWritingEvaluation, submittedQuizDetail, switchChatScenario, switchStudyMode, targetIpa, targetSpeakingText, targetTranslation, toggleChatHistory, toggleChatVoice, toggleRecording, topics, totalPracticeCount, totalStudyItems, updateClock, userAvatarUrl, userProfile, wordCount, writingError, writingResult, writingSubTab });
+provide('screenContext', { goBack, previousTab, openAuthOrProfile, isOnboardingOpen, onOnboardingCompleted, writingPickerOpen, writingPickerLoading, writingPickerError, writingPickerTopicId, writingPickerTopics, writingPickerLessons, loadWritingTasks, openWritingTaskPicker, openWritingLesson, quizFeedbackMode, quizFeedbackLoading, quizModeLocked, setQuizFeedbackMode, flashcardDecks, flashcardDecksLoading, flashcardDecksError, availableFlashcardDecks, loadFlashcardDecks, onStudyDeckChange, navigateTab, chatSummary, endChatSession, journey, selectedTopic, topicLessons, currentLesson, lessonDetail, lessonQuizzes, lessonDecks, lessonLoading, lessonError, lessonStep, lessonProgress, canFinishLesson, recommendedTopic, startLesson, continueLearning, beginLessonPractice, openLessonQuiz, openLessonDeck, finishLesson, nextLesson, leaveLesson, openSaveWord, savedWordMessage, openLessonChat, reviewSummary, retryForgottenCards, studyDeckId, homeError, studyError, chatError, isReviewingCard, quizInputText, quizResult, canAnswerQuiz, previousQuizQuestion, restartQuiz, requireAuthentication, activeTab, chatConversations, chatHistoryError, chatHistoryLoading, chatInput, chatLoading, chatMessages, chatRecorder, chatScenarioId, chatScrollContainer, checkQuizAnswer, clockInterval, conversationId, copied, copyRewritten, currentCard, currentChatScenario, currentQuestion, currentSpeakingSentenceIndex, currentStudyIndex, currentTime, dashboard, essayInput, flashcards, getActivityBadgeClass, getQuizAnswerClass, getTopicColor, getTopicEmoji, getWordBg, getWordTextColor, homeLoading, isAnalyzingSpeaking, isAuthOpen, isAuthenticated, isBotTyping, isChatHistoryOpen, isChatRecording, isCustomSpeakingMode, isEvaluating, isFlipped, isProfileOpen, isRecording, isSubmittingQuiz, loadChatConversations, loadChatScenarios, loadFlashcardsData, loadHomeData, loadQuizzesData, logout, nativeAudioUrl, navigateSpeakingSentence, nextQuizQuestion, onAuthSuccess, onProfileUpdated, onQuizChange, onSpeakingLessonChange, onSpeakingTopicChange, openAuthModal, openChatConversation, playNativeAudio, quizChecked, quizQuestions, quizzesList, recorder, resetChatConversation, scenarios, scrollChatToBottom, selectQuizAnswer, selectedQuizAnswer, selectedQuizId, selectedSpeakingContentId, sendChatText, speakBotMessage, speakText, speakingError, speakingLessonContents, speakingLessonId, speakingLessons, speakingLessonsLoading, speakingResult, speakingTopicId, startChatConversation, createAndSelectCustomScenario, startTopic, stopAndAnalyzeSpeaking, studyLoading, studyMode, submitCardReview, submitWritingEvaluation, submittedQuizDetail, switchChatScenario, switchStudyMode, targetIpa, targetSpeakingText, targetTranslation, toggleChatHistory, toggleChatVoice, toggleRecording, topics, totalPracticeCount, totalStudyItems, updateClock, userAvatarUrl, userProfile, wordCount, writingError, writingResult, writingSubTab, flashcardToast, toggleCardReminder, markCardMastered, nextFlashcard, prevFlashcard, jumpToFlashcard });
 
 onMounted(async () => {
   updateClock();

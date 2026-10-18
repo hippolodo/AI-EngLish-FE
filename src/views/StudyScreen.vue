@@ -64,8 +64,19 @@
             </select>
             <p v-if="ctx.flashcardDecksLoading.value" role="status" class="text-xs sm:text-sm text-violet-700">Đang tải danh sách bộ từ…</p>
             <p v-else-if="ctx.flashcardDecksError.value && !ctx.currentLesson.value" role="alert" class="text-xs sm:text-sm text-rose-700">{{ ctx.flashcardDecksError.value }} <button @click="ctx.loadFlashcardDecks" class="font-semibold underline">Thử lại</button></p>
-            <p class="text-xs sm:text-sm text-slate-600">{{ ctx.currentLesson.value ? 'Các bộ từ của bài đang học. Chọn Luyện tự do để ôn bài khác.' : 'Chọn bài để ôn riêng, hoặc chọn Tất cả để ôn chung.' }} Chỉ hiện thẻ mới và thẻ đến hạn.</p>
+            <p class="text-xs sm:text-sm text-slate-600">{{ ctx.currentLesson.value ? 'Các bộ từ của bài đang học.' : 'Xem toàn bộ từ vựng theo bài học hoặc bộ từ cá nhân.' }} Lật thẻ để xem nghĩa &amp; ví dụ, hoặc bấm "Lưu nhắc học lại" để ghi nhớ.</p>
           </div>
+
+          <!-- Flashcard Notification Toast -->
+          <transition enter-active-class="transition duration-200 ease-out" enter-from-class="opacity-0 translate-y-2" enter-to-class="opacity-100 translate-y-0" leave-active-class="transition duration-150 ease-in" leave-from-class="opacity-100 translate-y-0" leave-to-class="opacity-0 translate-y-2">
+            <div v-if="ctx.flashcardToast?.value" class="rounded-2xl bg-indigo-900 text-white px-4 py-3 text-sm font-semibold shadow-md flex items-center justify-between gap-3">
+              <div class="flex items-center gap-2">
+                <Bell class="w-4 h-4 text-amber-300 shrink-0" />
+                <span>{{ ctx.flashcardToast.value }}</span>
+              </div>
+              <button @click="ctx.flashcardToast.value = ''" class="text-indigo-300 hover:text-white cursor-pointer"><X class="w-4 h-4" /></button>
+            </div>
+          </transition>
 
           <p v-if="studyError" role="alert" class="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm sm:text-base text-rose-700">{{ studyError }}</p>
           <div v-if="!isAuthenticated" class="rounded-2xl border border-indigo-100 bg-indigo-50 p-4 text-sm sm:text-base text-indigo-700">
@@ -78,22 +89,13 @@
             <p class="text-base text-gray-500">Đang tải nội dung học tập...</p>
           </div>
 
-          <!-- STATE A: FLASHCARD MODE (REAL SRS) -->
+          <!-- STATE A: FLASHCARD MODE (VIEW ALL & REMIND) -->
           <div v-else-if="studyMode === 'flashcard'" class="space-y-5">
-            <div v-if="ctx.reviewSummary.value" class="space-y-3 rounded-2xl bg-emerald-50 p-5 text-base text-emerald-900 border border-emerald-200">
-              <p class="font-bold">Đã ôn {{ ctx.reviewSummary.value.total }} lượt thẻ.</p>
-              <p class="text-sm sm:text-base">{{ ctx.reviewSummary.value.retry }} thẻ cần luyện lại.</p>
-              <button v-if="ctx.reviewSummary.value.retry" @click="ctx.retryForgottenCards" class="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm sm:text-base font-bold text-white shadow-xs cursor-pointer">Luyện lại thẻ chưa nhớ</button>
-              <div v-if="ctx.currentLesson.value" class="flex flex-wrap gap-4 pt-2">
-                <button v-if="ctx.lessonQuizzes.value.length" @click="ctx.openLessonQuiz" class="font-bold underline underline-offset-4 text-emerald-800 cursor-pointer">Làm quiz của bài →</button>
-                <button @click="activeTab = 'lesson'" class="font-bold underline underline-offset-4 text-emerald-800 cursor-pointer">Trở về bài học</button>
-              </div>
-            </div>
             <div v-if="flashcards.length === 0" class="p-12 bg-white rounded-3xl border border-gray-100 text-center space-y-4 shadow-xs">
               <Layers class="w-12 h-12 text-indigo-300 mx-auto" />
-              <h3 class="text-lg font-bold text-gray-800">Chưa có thẻ cần ôn tập</h3>
+              <h3 class="text-lg font-bold text-gray-800">Chưa có thẻ từ vựng</h3>
               <p class="text-sm sm:text-base text-gray-500 max-w-sm mx-auto leading-relaxed">
-                {{ ctx.studyDeckId.value ? 'Bộ từ đã chọn không có thẻ mới hoặc thẻ đến hạn.' : 'Bạn đã ôn xong các thẻ hiện có hoặc chưa có thẻ mới.' }} Thẻ đã nhớ sẽ xuất hiện lại theo lịch ôn.
+                {{ ctx.studyDeckId.value ? 'Bộ từ đã chọn chưa có thẻ.' : 'Chưa có thẻ từ vựng nào trong danh sách.' }}
               </p>
               <button @click="loadFlashcardsData" class="px-5 py-2.5 bg-indigo-50 text-indigo-600 rounded-xl text-sm sm:text-base font-bold hover:bg-indigo-100 cursor-pointer">
                 Tải lại danh sách
@@ -105,6 +107,8 @@
                 @click="isFlipped = !isFlipped"
                 @keydown.enter.self.prevent="isFlipped = !isFlipped"
                 @keydown.space.self.prevent="isFlipped = !isFlipped"
+                @keydown.left.prevent="ctx.prevFlashcard"
+                @keydown.right.prevent="ctx.nextFlashcard"
                 tabindex="0"
                 role="group"
                 :aria-label="isFlipped ? 'Quay về mặt trước của flashcard' : 'Lật flashcard để xem nghĩa và ví dụ'"
@@ -114,18 +118,30 @@
                   <!-- FRONT SIDE -->
                   <div class="flashcard-face flashcard-front absolute inset-0 bg-white rounded-3xl p-8 border border-violet-100 shadow-xl flex flex-col justify-between items-center text-center">
                     <div class="w-full flex justify-between items-center">
-                      <span class="text-xs sm:text-sm font-bold px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg">Từ vựng</span>
+                      <div class="flex items-center gap-2">
+                        <span class="text-xs sm:text-sm font-bold px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg">Từ vựng</span>
+                        <span v-if="currentCard.has_reminder" class="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-full">
+                          <Bell class="w-3 h-3 text-amber-600" />
+                          <span>Đã đặt nhắc ôn</span>
+                        </span>
+                        <span v-else-if="currentCard.status === 'MASTERED'" class="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full">
+                          <CheckCircle2 class="w-3 h-3 text-emerald-600" />
+                          <span>Đã thuộc</span>
+                        </span>
+                      </div>
                       <button @click.stop="speakText(currentCard.word)" class="w-10 h-10 rounded-full bg-gray-100 hover:bg-indigo-50 text-gray-600 hover:text-indigo-600 flex items-center justify-center cursor-pointer transition">
                         <Volume2 class="w-5 h-5" />
                       </button>
                     </div>
-                    <div class="space-y-2.5">
+                    <div class="space-y-3">
                       <h2 class="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">{{ currentCard.word }}</h2>
-                      <p v-if="currentCard.ipa" class="text-base sm:text-lg font-sans text-gray-500">/{{ currentCard.ipa }}/</p>
+                      <div v-if="formatIpa(currentCard.ipa)" class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-2xl bg-indigo-50/90 border border-indigo-100 font-mono font-bold text-base sm:text-lg text-indigo-700 shadow-2xs tracking-wide">
+                        <span>{{ formatIpa(currentCard.ipa) }}</span>
+                      </div>
                     </div>
                     <div class="text-xs sm:text-sm text-gray-400 flex items-center gap-1.5">
                       <RotateCw class="w-3.5 h-3.5" />
-                      <span>Chạm để lật xem nghĩa &amp; ví dụ</span>
+                      <span>Chạm để lật xem nghĩa &amp; ví dụ (Dùng phím mũi tên ← → để chuyển thẻ)</span>
                     </div>
                   </div>
 
@@ -133,9 +149,19 @@
                   <div class="flashcard-face flashcard-back absolute inset-0 bg-gradient-to-br from-violet-100 via-white to-amber-50 rounded-3xl p-8 border border-violet-200 shadow-xl flex flex-col justify-between text-left">
                     <div class="flex justify-between items-center">
                       <span class="text-xs sm:text-sm font-bold px-3 py-1 bg-indigo-600 text-white rounded-lg uppercase">Nghĩa tiếng Việt</span>
-                      <span class="text-xs sm:text-sm font-bold text-gray-500">Ôn tập thông minh</span>
+                      <span v-if="currentCard.has_reminder" class="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 flex items-center gap-1">
+                        <Bell class="w-3.5 h-3.5" /> Nhắc học lại
+                      </span>
+                      <span v-else-if="currentCard.status === 'MASTERED'" class="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 flex items-center gap-1">
+                        <CheckCircle2 class="w-3.5 h-3.5" /> Đã thuộc
+                      </span>
+                      <span v-else class="text-xs sm:text-sm font-bold text-gray-500">Ôn tập linh hoạt</span>
                     </div>
                     <div class="space-y-3">
+                      <div class="flex items-center gap-2 flex-wrap pb-2 border-b border-indigo-100/60">
+                        <span class="font-bold text-gray-900 text-lg sm:text-xl">{{ currentCard.word }}</span>
+                        <span v-if="formatIpa(currentCard.ipa)" class="font-mono text-xs sm:text-sm font-semibold text-indigo-600 bg-white px-2.5 py-0.5 rounded-full border border-indigo-100">{{ formatIpa(currentCard.ipa) }}</span>
+                      </div>
                       <h3 class="text-2xl sm:text-3xl font-extrabold text-gray-900 leading-snug">{{ currentCard.meaning || 'Chưa cập nhật nghĩa' }}</h3>
                       <p v-if="currentCard.hint_example" class="text-base sm:text-lg text-gray-700 italic border-l-4 border-indigo-400 pl-4 py-1 leading-relaxed">
                         "{{ currentCard.hint_example }}"
@@ -148,16 +174,82 @@
                 </div>
               </div>
 
-              <!-- Action Buttons -->
-              <div class="grid grid-cols-2 gap-4 pt-2">
-                <button :disabled="isReviewingCard" @click="submitCardReview(false)" class="py-4 bg-amber-500 hover:bg-amber-600 text-white font-bold text-base sm:text-lg rounded-2xl shadow-md shadow-amber-500/20 transition flex items-center justify-center gap-2 cursor-pointer">
-                  <RotateCcw class="w-5 h-5" />
-                  <span>Chưa nhớ (Ôn lại)</span>
-                </button>
-                <button :disabled="isReviewingCard" @click="submitCardReview(true)" class="py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-base sm:text-lg rounded-2xl shadow-md shadow-emerald-500/20 transition flex items-center justify-center gap-2 cursor-pointer">
-                  <Check class="w-5 h-5" />
-                  <span>{{ isReviewingCard ? 'Đang lưu…' : 'Đã thuộc' }}</span>
-                </button>
+              <!-- Action Controls: Prev, Reminder Button, Mastered Button, Next -->
+              <div class="space-y-3 pt-1">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <!-- Prev Button -->
+                  <button
+                    :disabled="currentStudyIndex <= 0"
+                    @click="ctx.prevFlashcard"
+                    class="py-3.5 px-4 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-white text-gray-700 font-bold text-sm sm:text-base rounded-2xl border border-gray-200 shadow-2xs transition flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
+                  >
+                    <ChevronLeft class="w-5 h-5" />
+                    <span>Thẻ trước</span>
+                  </button>
+
+                  <!-- Toggle Reminder Button -->
+                  <button
+                    :disabled="isReviewingCard"
+                    @click="ctx.toggleCardReminder()"
+                    class="py-3.5 px-4 font-bold text-sm sm:text-base rounded-2xl border transition flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
+                    :class="currentCard.has_reminder
+                      ? 'bg-amber-500 hover:bg-amber-600 border-amber-600 text-white shadow-amber-500/20'
+                      : 'bg-white hover:bg-amber-50 border-amber-300 text-amber-700'"
+                  >
+                    <Bell class="w-5 h-5" />
+                    <span>{{ currentCard.has_reminder ? 'Đã bật nhắc ôn' : 'Nhắc học lại' }}</span>
+                  </button>
+
+                  <!-- Mark Mastered Button -->
+                  <button
+                    :disabled="isReviewingCard"
+                    @click="ctx.markCardMastered()"
+                    class="py-3.5 px-4 font-bold text-sm sm:text-base rounded-2xl border transition flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
+                    :class="currentCard.status === 'MASTERED'
+                      ? 'bg-emerald-600 hover:bg-emerald-700 border-emerald-700 text-white shadow-emerald-600/20'
+                      : 'bg-white hover:bg-emerald-50 border-emerald-300 text-emerald-700'"
+                  >
+                    <CheckCircle2 class="w-5 h-5" />
+                    <span>{{ currentCard.status === 'MASTERED' ? 'Đã thuộc từ' : 'Đã thuộc' }}</span>
+                  </button>
+
+                  <!-- Next Button -->
+                  <button
+                    :disabled="currentStudyIndex >= flashcards.length - 1"
+                    @click="ctx.nextFlashcard"
+                    class="py-3.5 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:hover:bg-indigo-600 text-white font-bold text-sm sm:text-base rounded-2xl shadow-md shadow-indigo-600/20 transition flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
+                  >
+                    <span>Thẻ sau</span>
+                    <ChevronRight class="w-5 h-5" />
+                  </button>
+                </div>
+
+                <!-- Word Quick-Jump List (All flashcards visible) -->
+                <div class="mt-3 rounded-2xl border border-slate-200 bg-white p-4 space-y-2.5 shadow-2xs">
+                  <div class="flex items-center justify-between text-xs sm:text-sm font-bold text-slate-700">
+                    <span>Toàn bộ từ vựng trong bộ thẻ ({{ flashcards.length }} từ):</span>
+                    <span class="text-xs text-slate-400">Bấm từ để xem nhanh</span>
+                  </div>
+                  <div class="flex items-center gap-2 overflow-x-auto pb-1 pt-0.5 no-scrollbar">
+                    <button
+                      v-for="(card, idx) in flashcards"
+                      :key="card.id"
+                      @click="ctx.jumpToFlashcard(idx)"
+                      class="px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold shrink-0 transition flex items-center gap-1.5 cursor-pointer border"
+                      :class="idx === currentStudyIndex
+                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                        : card.has_reminder
+                          ? 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100'
+                          : card.status === 'MASTERED'
+                            ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
+                            : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'"
+                    >
+                      <span>{{ card.word }}</span>
+                      <span v-if="card.has_reminder" class="text-xs" title="Đã đặt nhắc ôn">🔔</span>
+                      <span v-else-if="card.status === 'MASTERED'" class="text-xs text-emerald-600" title="Đã thuộc">✓</span>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -291,11 +383,17 @@
 </template>
 
 <script setup>
-import { AlertCircle, ArrowLeft, ArrowRight, Check, CheckCircle, HelpCircle, Layers, Loader2, RotateCcw, RotateCw, Volume2, XCircle } from 'lucide-vue-next';
+import { AlertCircle, ArrowLeft, ArrowRight, Bell, Check, CheckCircle, CheckCircle2, ChevronLeft, ChevronRight, HelpCircle, Layers, Loader2, RotateCcw, RotateCw, Volume2, X, XCircle } from 'lucide-vue-next';
 import { inject } from 'vue';
 import { getFullAudioUrl } from '../services/api';
 const ctx = inject('screenContext');
 const goBack = ctx.goBack;
+
+const formatIpa = (ipa) => {
+  if (!ipa) return '';
+  const clean = String(ipa).replace(/^\/+|\/+$/g, '').trim();
+  return clean ? `/${clean}/` : '';
+};
 const { studyError, isReviewingCard, quizInputText, quizResult, canAnswerQuiz, previousQuizQuestion, restartQuiz, requireAuthentication } = ctx;
 const activeTab = ctx.activeTab;
 const chatInput = ctx.chatInput;

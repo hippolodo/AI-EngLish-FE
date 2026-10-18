@@ -32,3 +32,4 @@ export const dictionaryService = {
     return res.data;
   }
 };
+

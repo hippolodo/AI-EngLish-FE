@@ -1,4 +1,4 @@
-﻿import { apiClient } from './api';
+import { apiClient } from './api';
 
 export const studyService = {
   async getFlashcardDecks(lessonId = null) {
@@ -19,8 +19,21 @@ export const studyService = {
     return res.data;
   },
 
-  async saveWord(word, meaning, example = '') {
-    return (await apiClient.post('/flashcards/saved', { word, meaning, hint_example: example })).data;
+  async toggleReminder(cardId, enable = null) {
+    const params = enable !== null ? { enable } : {};
+    const res = await apiClient.post(`/flashcards/cards/${cardId}/reminder`, null, { params });
+    return res.data;
+  },
+
+  async markCardMastered(cardId) {
+    const res = await apiClient.post(`/flashcards/cards/${cardId}/master`);
+    return res.data;
+  },
+
+  async saveWord(word, meaning, example = '', ipa = null) {
+    const payload = { word, meaning, hint_example: example };
+    if (ipa) payload.ipa = ipa;
+    return (await apiClient.post('/flashcards/saved', payload)).data;
   },
 
   async getQuizzes(lessonId = null, topicId = null) {

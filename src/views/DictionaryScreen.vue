@@ -460,7 +460,8 @@ const saveToNotebook = () => {
     openSaveWord(
       selectedWord.value.word,
       selectedWord.value.example_sentence || '',
-      selectedWord.value.meaning_vi || ''
+      selectedWord.value.meaning_vi || '',
+      selectedWord.value.ipa || ''
     );
   }
 };
