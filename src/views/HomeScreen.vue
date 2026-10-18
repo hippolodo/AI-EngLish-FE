@@ -219,6 +219,40 @@
             </div>
           </div>
 
+          <!-- Card 7: Dictionary Mode (Tra cứu từ điển AI) -->
+          <div
+            @click="activeTab = 'dictionary'"
+            class="group cursor-pointer flex flex-col select-none"
+          >
+            <div class="relative w-full h-56 sm:h-64 rounded-3xl bg-[#f2f4f7] flex items-center justify-center overflow-hidden transition-all duration-200 group-hover:shadow-lg">
+              <!-- Feature Tag -->
+              <div class="absolute top-4 right-4 z-20 flex items-center gap-2 bg-white/95 backdrop-blur-sm border border-blue-100 px-3.5 py-1.5 rounded-full shadow-2xs">
+                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                <span class="text-xs font-bold text-blue-700">Gemini Tra từ</span>
+              </div>
+
+              <!-- Dictionary Graphic -->
+              <div class="relative flex flex-col items-center scale-110 sm:scale-120">
+                <div class="w-28 h-36 bg-white rounded-2xl shadow-md border border-gray-200 p-3 flex flex-col justify-between">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xl">📖</span>
+                    <span class="text-[10px] font-bold bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">IPA</span>
+                  </div>
+                  <div class="space-y-1.5">
+                    <div class="w-full h-2.5 bg-slate-200 rounded"></div>
+                    <div class="w-3/4 h-2 bg-slate-100 rounded"></div>
+                    <div class="w-5/6 h-2 bg-blue-100 rounded"></div>
+                  </div>
+                  <div class="text-[11px] font-bold text-slate-700 border-t border-slate-100 pt-1">A-Z Vocab</div>
+                </div>
+              </div>
+            </div>
+            <div class="mt-4">
+              <h2 class="text-xl sm:text-2xl font-bold text-[#1e2229] mb-1.5 group-hover:text-[#2b59ff] transition-colors">Tra cứu từ điển thông minh AI</h2>
+              <p class="text-sm sm:text-base text-[#64748b] leading-relaxed">Tra cứu tức thì, chuẩn phiên âm IPA, giải nghĩa ngữ cảnh chi tiết và tự động phân tích từ mới cùng AI.</p>
+            </div>
+          </div>
+
         </div>
 
         <!-- KHO CHỦ ĐỀ BÀI HỌC (COURSES & TOPICS) -->

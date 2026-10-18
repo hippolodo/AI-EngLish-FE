@@ -70,6 +70,15 @@
           </button>
 
           <button
+            @click="navigateTab('dictionary')"
+            :class="activeTab === 'dictionary' ? 'bg-[#f1f5fd] text-[#2b59ff] font-bold shadow-2xs' : 'text-[#4a5568] hover:bg-gray-50 hover:text-black font-semibold'"
+            class="w-full flex items-center gap-4 px-4.5 py-3 rounded-full text-[16px] transition-colors cursor-pointer text-left"
+          >
+            <BookA class="w-5.5 h-5.5 shrink-0" :class="activeTab === 'dictionary' ? 'text-[#2b59ff]' : 'text-gray-500'" />
+            <span>Từ điển AI</span>
+          </button>
+
+          <button
             @click="navigateTab('profile')"
             :class="activeTab === 'profile' ? 'bg-[#f1f5fd] text-[#2b59ff] font-bold shadow-2xs' : 'text-[#4a5568] hover:bg-gray-50 hover:text-black font-semibold'"
             class="w-full flex items-center gap-4 px-4.5 py-3 rounded-full text-[16px] transition-colors cursor-pointer text-left"
@@ -123,7 +132,7 @@
           <!-- Desktop Page Context Title -->
           <div class="hidden lg:flex items-center gap-2 text-base">
             <span class="font-bold text-slate-800 text-lg">
-              {{ activeTab === 'home' ? 'Trang chủ' : activeTab === 'speaking' ? 'Luyện phát âm AI (Speaking Lab)' : activeTab === 'writing' ? 'Trợ lý luyện viết AI (Writing Coach)' : activeTab === 'chat' ? 'Hội thoại đóng vai (AI Roleplay Chat)' : activeTab === 'study' ? 'Ôn tập Flashcard & Quiz' : activeTab === 'auth' ? 'Đăng nhập & Đăng ký tài khoản' : activeTab === 'lesson' ? 'Chủ đề bài học & Lộ trình' : 'Hồ sơ học viên' }}
+              {{ activeTab === 'home' ? 'Trang chủ' : activeTab === 'speaking' ? 'Luyện phát âm AI (Speaking Lab)' : activeTab === 'writing' ? 'Trợ lý luyện viết AI (Writing Coach)' : activeTab === 'chat' ? 'Hội thoại đóng vai (AI Roleplay Chat)' : activeTab === 'study' ? 'Ôn tập Flashcard & Quiz' : activeTab === 'lesson' ? 'Chủ đề bài học & Lộ trình' : activeTab === 'dictionary' ? 'Tra cứu từ điển thông minh AI' : activeTab === 'auth' ? 'Đăng nhập & Đăng ký tài khoản' : 'Hồ sơ học viên' }}
             </span>
           </div>
         </div>
@@ -177,6 +186,7 @@
         <WritingScreen />
         <ChatScreen />
         <StudyScreen />
+        <DictionaryScreen />
         <AuthScreen />
       </main>
 
@@ -258,10 +268,11 @@ import WritingScreen from './views/WritingScreen.vue';
 import ChatScreen from './views/ChatScreen.vue';
 import StudyScreen from './views/StudyScreen.vue';
 import AuthScreen from './views/AuthScreen.vue';
+import DictionaryScreen from './views/DictionaryScreen.vue';
 import OnboardingSurveyModal from './components/OnboardingSurveyModal.vue';
 import {
   Signal, Wifi, BookOpen, Sparkles, Mic, Home, PenTool, MessageSquare, UserRound, ArrowLeft, Compass, ChevronRight,
-  LayoutGrid, GraduationCap, Layers, TrendingUp, Gift, Star
+  LayoutGrid, GraduationCap, Layers, TrendingUp, Gift, Star, BookA
 } from 'lucide-vue-next';
 
 // Real services
