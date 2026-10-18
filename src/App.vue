@@ -250,7 +250,7 @@
         @close="isOnboardingOpen = false"
         @completed="onOnboardingCompleted"
       />
-      <SaveWordModal :is-open="saveWordOpen" :initial-word="wordToSave" :example="wordExample" @close="saveWordOpen = false" @saved="onWordSaved" />
+      <SaveWordModal :is-open="saveWordOpen" :initial-word="wordToSave" :example="wordExample" :initial-meaning="wordMeaning" @close="saveWordOpen = false" @saved="onWordSaved" />
 
     </div>
   </div>
@@ -322,6 +322,7 @@ const studyTopicId = ref(null);
 const saveWordOpen = ref(false);
 const wordToSave = ref('');
 const wordExample = ref('');
+const wordMeaning = ref('');
 const savedWordMessage = ref('');
 const lessonProgress = computed(() => currentLesson.value ? journey.lesson(currentLesson.value.id) : null);
 const recommendedTopic = computed(() => {
@@ -707,13 +708,17 @@ const leaveLesson = (reloadStudy = true) => {
   if (activeTab.value === 'writing') essayInput.value = journey.state.value.writing_drafts.free || '';
 };
 
-const openSaveWord = (word = '', example = '') => {
+const openSaveWord = (word = '', example = '', meaning = '') => {
   if (!requireAuthentication()) return;
   wordToSave.value = typeof word === 'string' ? word : '';
-  wordExample.value = example;
+  wordExample.value = example || '';
+  wordMeaning.value = meaning || '';
   saveWordOpen.value = true;
 };
-const onWordSaved = () => { saveWordOpen.value = false; savedWordMessage.value = 'Đã lưu vào bộ từ cá nhân để ôn lại.'; };
+const onWordSaved = () => {
+  saveWordOpen.value = false;
+  savedWordMessage.value = 'Đã lưu vào bộ thẻ "Từ đã lưu" trong mục Flashcard & Quiz!';
+};
 
 const openLessonChat = async () => {
   const title = selectedTopic.value?.title?.toLowerCase() || '';

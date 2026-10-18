@@ -457,7 +457,11 @@ const searchQuickWord = (word) => {
 const saveToNotebook = () => {
   if (!selectedWord.value) return;
   if (openSaveWord) {
-    openSaveWord(selectedWord.value.word, selectedWord.value.example_sentence || selectedWord.value.meaning_vi);
+    openSaveWord(
+      selectedWord.value.word,
+      selectedWord.value.example_sentence || '',
+      selectedWord.value.meaning_vi || ''
+    );
   }
 };
 
@@ -484,3 +488,4 @@ onMounted(() => {
   loadHistory();
 });
 </script>
+

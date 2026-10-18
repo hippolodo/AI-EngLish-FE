@@ -16,10 +16,22 @@ import { X } from 'lucide-vue-next';
 import { studyService } from '../services/studyService';
 import { authService } from '../services/authService';
 import { getErrorMessage } from '../services/api';
-const props = defineProps({ isOpen: Boolean, initialWord: { type: String, default: '' }, example: { type: String, default: '' } });
+const props = defineProps({
+  isOpen: Boolean,
+  initialWord: { type: String, default: '' },
+  example: { type: String, default: '' },
+  initialMeaning: { type: String, default: '' }
+});
 const emit = defineEmits(['close', 'saved']);
 const word = ref(''), meaning = ref(''), sentence = ref(''), error = ref(''), saving = ref(false);
-watch(() => props.isOpen, open => { if (open) { word.value = props.initialWord; sentence.value = props.example; meaning.value = ''; error.value = ''; } });
+watch(() => props.isOpen, open => {
+  if (open) {
+    word.value = props.initialWord;
+    sentence.value = props.example;
+    meaning.value = props.initialMeaning || '';
+    error.value = '';
+  }
+});
 const save = async () => {
   if (saving.value) return;
   const token = authService.getToken();
