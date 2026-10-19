@@ -31,7 +31,7 @@ function createApp(overrides = {}) {
     pronunciationService: {},
     writingService: { evaluateEssay: async () => ({ corrected_text: 'Corrected' }) },
     chatService: { getScenarios: async () => [{ id: 'hotel', title: 'Hotel' }] },
-    studyService: { getCardsForReview: async () => [], reviewCard: async () => {} },
+    studyService: { getFlashcards: async () => [], setCardNote: async (id, isNoted) => ({ flashcard_id: id, is_noted: isNoted }) },
     authService: {
       isAuthenticated: () => authenticated,
       getUser: () => authenticated ? { id: 2 } : null,
@@ -54,7 +54,8 @@ function createApp(overrides = {}) {
     ref, computed, watch, nextTick, provide: (_, value) => { context = value; },
     onMounted: fn => mounted.push(fn), onUnmounted: () => {},
     window: { speechSynthesis: { cancel() {} }, addEventListener() {}, removeEventListener() {} },
-    navigator: {}, setTimeout, setInterval, clearInterval, console,
+    navigator: {}, localStorage: { getItem: () => null, setItem() {}, removeItem() {} },
+    setTimeout, clearTimeout, setInterval, clearInterval, console,
     getFullAudioUrl: value => value,
     getErrorMessage: (error, fallback) => error.message || fallback,
     AudioRecorder: class { cleanup() {} },
@@ -183,17 +184,25 @@ test('previous quiz question restores a saved answer', async () => {
   assert.equal(ctx.selectedQuizAnswer.value.id, 100);
 });
 
-test('flashcard failure keeps the card; success removes it and finishes the queue', async () => {
+test('failed note keeps the checkbox unchanged; retry persists without removing the card', async () => {
   let fail = true;
-  const { ctx } = createApp({ studyService: { reviewCard: async () => { if (fail) throw new Error('Offline'); } } });
-  ctx.flashcards.value = [{ id: 1, word: 'hello' }];
-  await ctx.submitCardReview(true);
-  assert.equal(ctx.flashcards.value.length, 1);
+  const { ctx } = createApp({ studyService: { setCardNote: async (id, isNoted) => {
+    if (fail) throw new Error('Offline');
+    return { flashcard_id: id, is_noted: isNoted };
+  } } });
+  ctx.flashcards.value = [{ id: 1, word: 'Hello', is_noted: false }];
+  const checkbox = { checked: true };
+  await ctx.toggleCardNote({ target: checkbox });
+  assert.equal(checkbox.checked, false);
+  assert.equal(ctx.currentCard.value.is_noted, false);
   assert.equal(ctx.studyError.value, 'Offline');
   fail = false;
-  await ctx.submitCardReview(true);
-  assert.equal(ctx.flashcards.value.length, 0);
-  assert.equal(ctx.isReviewingCard.value, false);
+  await ctx.toggleCardNote();
+  assert.equal(ctx.currentCard.value.is_noted, true);
+  assert.equal(ctx.flashcards.value.length, 1);
+  await ctx.toggleCardNote();
+  assert.equal(ctx.currentCard.value.is_noted, false);
+  assert.equal(ctx.isSavingCardNote.value, false);
 });
 
 test('logout clears private state and ignores a late writing response', async () => {
@@ -336,13 +345,13 @@ test('late conversation response cannot restore private data after logout', asyn
 
 test('guest actions open login and never call personal APIs', async () => {
   let calls = 0;
-  const { ctx, setAuthenticated } = createApp({ studyService: { getCardsForReview: async () => { calls++; } } });
+  const { ctx, setAuthenticated } = createApp({ studyService: { getFlashcards: async () => { calls++; } } });
   setAuthenticated(false);
   await ctx.loadFlashcardsData();
   ctx.essayInput.value = 'Essay';
   await ctx.submitWritingEvaluation();
   assert.equal(calls, 0);
-  assert.equal(ctx.isAuthOpen.value, true);
+  assert.equal(ctx.activeTab.value, 'auth');
 });
 
 test('authentication rejects expired or malformed cached tokens', () => {
@@ -409,7 +418,7 @@ test('audio cleanup cancels a pending microphone request and stops its late stre
 
 test('all five screens render without unresolved components', async () => {
   const { ctx } = createApp();
-  const cases = [['HomeScreen', 'home'], ['SpeakingScreen', 'speaking'], ['WritingScreen', 'writing'], ['ChatScreen', 'chat'], ['StudyScreen', 'study'], ['StudyScreen', 'study', 'views', 'flashcard'], ['LessonScreen', 'lesson'], ['LearningHome', 'home', 'components'], ['ProfileScreen', 'profile']];
+  const cases = [['HomeScreen', 'home'], ['SpeakingScreen', 'speaking'], ['WritingScreen', 'writing'], ['ChatScreen', 'chat'], ['StudyScreen', 'study'], ...['flashcard', 'card-front', 'card-back', 'noted', 'load-error'].map(variant => ['StudyScreen', 'study', 'views', variant]), ['LessonScreen', 'lesson'], ['LearningHome', 'home', 'components'], ['ProfileScreen', 'profile']];
   for (const [name, tab, directory = 'views', variant] of cases) {
     const source = fs.readFileSync(new URL(`../src/${directory}/${name}.vue`, import.meta.url), 'utf8');
     const { descriptor } = parse(source);
@@ -423,7 +432,11 @@ test('all five screens render without unresolved components', async () => {
     ctx.activeTab.value = tab;
     if (tab === 'lesson') { ctx.selectedTopic.value = { id: 1, title: 'Topic', level: 'Beginner' }; ctx.topicLessons.value = [{ id: 1, title: 'Lesson', type: 'SPEAKING' }]; }
     if (tab === 'study') {
-      ctx.studyMode.value = variant || 'quiz';
+      ctx.studyMode.value = variant ? 'flashcard' : 'quiz';
+      ctx.flashcardMode.value = variant === 'noted' ? 'noted' : 'all';
+      ctx.flashcards.value = ['card-front', 'card-back', 'noted'].includes(variant) ? [{ id: 1, word: 'Hello', meaning: 'Xin chào', is_noted: true }] : [];
+      ctx.studyError.value = variant === 'load-error' ? 'Offline' : '';
+      ctx.isFlipped.value = variant === 'card-back';
       ctx.flashcardDecks.value = [{ id: 1, lesson_id: 1, title: 'Vocabulary: Meeting a New Colleague', total_cards: 8 }, { id: 2, lesson_id: null, title: 'Saved words', total_cards: 3 }];
       ctx.quizQuestions.value = questions;
       ctx.quizResult.value = { score: 100, is_passed: true, correct_answers: 2, total_questions: 2, details: [{ question_id: 10, is_correct: true }] };
@@ -435,10 +448,19 @@ test('all five screens render without unresolved components', async () => {
     const html = await renderToString(app);
     assert.equal(warnings.length, 0, `${name}: ${warnings.join(', ')}`);
     assert.match(html, /<svg/, `${name} should render its icons`);
-    if (tab === 'study' && variant === 'flashcard') {
-      assert.match(html, /flashcard-deck/);
-      assert.match(html, /Meeting a New Colleague/);
-      assert.match(html, /Saved words/);
+    if (tab === 'study' && variant) {
+      if (variant === 'noted') assert.doesNotMatch(html, /id="flashcard-deck"/);
+      else {
+        assert.match(html, /flashcard-deck/);
+        assert.match(html, /Meeting a New Colleague/);
+        assert.match(html, /Saved words/);
+      }
+      assert.doesNotMatch(html, /submitCardReview|toggleCardReminder/);
+      if (variant === 'card-front' || variant === 'card-back' || variant === 'noted') {
+        assert.match(html, /type="checkbox"/);
+        assert.match(html, /checked/);
+      }
+      if (variant === 'load-error') assert.match(html, /Offline/);
     } else if (tab === 'study') {
       assert.match(html, /100\/100/);
       assert.doesNotMatch(html, /\+20 XP/);
@@ -524,7 +546,7 @@ test('guest writing draft survives login', async () => {
   setAuthenticated(false); ctx.isAuthenticated.value = false;
   ctx.essayInput.value = 'My draft';
   await ctx.submitWritingEvaluation();
-  assert.equal(ctx.isAuthOpen.value, true);
+  assert.equal(ctx.activeTab.value, 'auth');
   setAuthenticated(true);
   await ctx.onAuthSuccess();
   assert.equal(ctx.essayInput.value, 'My draft');
@@ -591,21 +613,77 @@ test('speaking lesson restores its resume point and requires practice before com
   assert.equal(ctx.lessonProgress.value.completed, true);
 });
 
-test('forgotten cards can be retried after the current review queue', async () => {
-  const { ctx } = createApp();
-  ctx.flashcards.value = [{ id: 1, word: 'Hello' }];
-  await ctx.submitCardReview(false);
-  assert.equal(ctx.flashcards.value.length, 0);
-  assert.equal(ctx.reviewSummary.value.retry, 1);
-  ctx.retryForgottenCards();
+test('noted words are collected globally even while browsing a lesson deck', async () => {
+  const requests = [];
+  const { ctx } = createApp({ studyService: { getFlashcards: async (deck, noted) => {
+    requests.push([deck, noted]); return [{ id: 1, is_noted: true }, { id: 2, is_noted: true }];
+  } } });
+  ctx.studyDeckId.value = 10;
+  await ctx.loadFlashcardsData();
+  await ctx.setFlashcardMode('noted');
+  ctx.nextFlashcard();
+  assert.equal(ctx.currentCard.value.id, 2);
+  await ctx.setFlashcardMode('all');
+  assert.deepEqual(requests, [[10, false], [null, true], [10, false]]);
+  assert.equal(ctx.currentStudyIndex.value, 0);
+});
+
+test('unchecking a noted card removes it only from that list and keeps navigation in bounds', async () => {
+  const { ctx } = createApp({ studyService: { setCardNote: async id => ({ flashcard_id: id, is_noted: false }) } });
+  ctx.flashcardMode.value = 'noted';
+  ctx.flashcards.value = [{ id: 1, is_noted: true }, { id: 2, is_noted: true }];
+  ctx.currentStudyIndex.value = 1;
+  await ctx.toggleCardNote();
   assert.equal(ctx.currentCard.value.id, 1);
-  assert.equal(ctx.reviewSummary.value, null);
+  assert.equal(ctx.currentStudyIndex.value, 0);
+  await ctx.toggleCardNote();
+  assert.equal(ctx.flashcards.value.length, 0);
+  assert.equal(ctx.currentStudyIndex.value, 0);
+});
+
+test('note save blocks duplicate requests, navigation and switching lists while pending', async () => {
+  const pending = deferred();
+  let calls = 0;
+  const { ctx } = createApp({ studyService: { setCardNote: () => { calls++; return pending.promise; } } });
+  ctx.flashcards.value = [{ id: 1, is_noted: false }, { id: 2 }];
+  const request = ctx.toggleCardNote();
+  await ctx.toggleCardNote();
+  await ctx.setFlashcardMode('noted');
+  ctx.nextFlashcard();
+  assert.equal(ctx.flashcardMode.value, 'all');
+  assert.equal(ctx.currentCard.value.id, 1);
+  assert.equal(calls, 1);
+  pending.resolve({ flashcard_id: 1, is_noted: true });
+  await request;
+  assert.equal(ctx.currentCard.value.is_noted, true);
+  assert.equal(ctx.flashcards.value.length, 2);
+});
+
+test('late note responses cannot alter another account or a reloaded card list', async () => {
+  for (const reset of ['logout', 'reload']) {
+    const pending = deferred();
+    const { ctx } = createApp({ studyService: {
+      setCardNote: () => pending.promise, getFlashcards: async () => [{ id: 9, is_noted: false }]
+    } });
+    ctx.flashcards.value = [{ id: 1, is_noted: false }];
+    const request = ctx.toggleCardNote();
+    if (reset === 'logout') {
+      ctx.logout();
+      ctx.flashcards.value = [{ id: 9, is_noted: false }];
+    } else await ctx.loadFlashcardsData();
+    pending.resolve({ flashcard_id: 1, is_noted: true });
+    await request;
+    assert.equal(ctx.currentCard.value.id, 9);
+    assert.equal(ctx.currentCard.value.is_noted, false);
+    assert.equal(ctx.flashcardToast.value, '');
+    assert.equal(ctx.isSavingCardNote.value, false);
+  }
 });
 
 test('practice navigation loads the free review queue once and avoids hidden reloads', async () => {
   const requests = [];
   const { ctx } = createApp({
-    studyService: { getCardsForReview: async deckId => { requests.push(deckId); return [{ id: 1, word: 'Hello' }]; } }
+    studyService: { getFlashcards: async deckId => { requests.push(deckId); return [{ id: 1, word: 'Hello' }]; } }
   });
   ctx.activeTab.value = 'study';
   ctx.currentLesson.value = { id: 1, type: 'SPEAKING' };
@@ -627,20 +705,18 @@ test('flashcard selection filters by deck and resets the previous review session
   const requests = [];
   const { ctx } = createApp({ studyService: {
     getFlashcardDecks: async () => [{ id: 10, lesson_id: 1, title: 'Lesson 1' }, { id: 20, lesson_id: null, title: 'Saved words' }],
-    getCardsForReview: async id => { requests.push(id); return [{ id: id || 1, deck_id: id || 10, word: 'Hello' }]; }
+    getFlashcards: async id => { requests.push(id); return [{ id: id || 1, deck_id: id || 10, word: 'Hello' }]; }
   } });
   await ctx.loadFlashcardsData();
   assert.equal(ctx.availableFlashcardDecks.value.length, 2);
   ctx.studyDeckId.value = 20;
   ctx.isFlipped.value = true;
   ctx.currentStudyIndex.value = 3;
-  ctx.reviewSummary.value = { total: 3, retry: 0 };
   await ctx.onStudyDeckChange();
   assert.deepEqual(requests, [null, 20]);
   assert.equal(ctx.currentCard.value.deck_id, 20);
   assert.equal(ctx.currentStudyIndex.value, 0);
   assert.equal(ctx.isFlipped.value, false);
-  assert.equal(ctx.reviewSummary.value, null);
   ctx.studyDeckId.value = null;
   await ctx.onStudyDeckChange();
   assert.deepEqual(requests, [null, 20, null]);
@@ -650,7 +726,7 @@ test('topic flashcards only offer decks from the current lesson', async () => {
   let catalogCalls = 0;
   const { ctx } = createApp({ studyService: {
     getFlashcardDecks: async () => { catalogCalls++; return []; },
-    getCardsForReview: async id => [{ id: 1, deck_id: id }]
+    getFlashcards: async id => [{ id: 1, deck_id: id }]
   } });
   ctx.flashcardDecks.value = [{ id: 20, lesson_id: 2 }];
   ctx.currentLesson.value = { id: 1, type: 'SPEAKING' };
@@ -677,7 +753,7 @@ test('late deck catalog response cannot restore private options after logout', a
 test('deck catalog failure does not block the review queue', async () => {
   const { ctx } = createApp({ studyService: {
     getFlashcardDecks: async () => { throw new Error('Catalog unavailable'); },
-    getCardsForReview: async () => [{ id: 1, word: 'Hello' }]
+    getFlashcards: async () => [{ id: 1, word: 'Hello' }]
   } });
   await ctx.loadFlashcardsData();
   assert.equal(ctx.currentCard.value.word, 'Hello');

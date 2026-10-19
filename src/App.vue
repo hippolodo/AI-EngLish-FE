@@ -430,7 +430,7 @@ const resetPersonalData = () => {
   isBotTyping.value = false;
   isSubmittingQuiz.value = false;
   quizFeedbackMode.value = 'end';
-  isReviewingCard.value = false;
+  isSavingCardNote.value = false;
   chatLoading.value = false;
   chatHistoryLoading.value = false;
   studyLoading.value = false;
@@ -455,6 +455,9 @@ const resetPersonalData = () => {
   chatHistoryError.value = '';
   isChatHistoryOpen.value = false;
   flashcards.value = [];
+  flashcardMode.value = 'all';
+  clearTimeout(flashcardToastTimer);
+  flashcardToast.value = '';
   flashcardDecks.value = [];
   flashcardDecksLoading.value = false;
   flashcardDecksError.value = '';
@@ -473,8 +476,6 @@ const resetPersonalData = () => {
   lessonLoading.value = false;
   saveWordOpen.value = false;
   savedWordMessage.value = '';
-  reviewSummary.value = null;
-  forgottenCards.value = [];
   chatSummary.value = null;
   pauseDrafts = false;
 };
@@ -679,6 +680,7 @@ const openLessonQuiz = async () => {
 const openLessonDeck = async (deck) => {
   if (!requireAuthentication()) return;
   studyDeckId.value = deck.id;
+  flashcardMode.value = 'all';
   studyMode.value = 'flashcard';
   activeTab.value = 'study';
   await loadFlashcardsData();
@@ -1299,14 +1301,15 @@ const speakBotMessage = (msg) => {
 // SCREEN 5: STUDY (FLASHCARD & QUIZ REAL)
 // ==========================================
 const studyMode = ref('flashcard');
-const forgottenCards = ref([]);
-const reviewSummary = ref(null);
-const reviewedCount = ref(0);
+const flashcardMode = ref('all');
+const NOTE_ADDED = 'Đã thêm vào Từ đã note.';
+const NOTE_REMOVED = 'Đã bỏ tick từ này.';
+const NOTE_FAILED = 'Không lưu được dấu tick. Hãy thử lại.';
 const studyLoading = ref(false);
 const studyError = ref('');
 const currentStudyIndex = ref(0);
 const isFlipped = ref(false);
-const isReviewingCard = ref(false);
+const isSavingCardNote = ref(false);
 const flashcards = ref([]);
 const flashcardDecks = ref([]);
 const flashcardDecksLoading = ref(false);
@@ -1331,8 +1334,13 @@ const loadFlashcardDecks = async () => {
 };
 
 const onStudyDeckChange = async () => {
-  if (studyLoading.value || isReviewingCard.value || isSubmittingQuiz.value) return;
+  if (studyLoading.value || isSavingCardNote.value || isSubmittingQuiz.value) return;
   if (studyDeckId.value !== null && !availableFlashcardDecks.value.some(deck => deck.id === studyDeckId.value)) return;
+  await loadFlashcardsData();
+};
+const setFlashcardMode = async mode => {
+  if (!['all', 'noted'].includes(mode) || mode === flashcardMode.value || studyLoading.value || isSavingCardNote.value) return;
+  flashcardMode.value = mode;
   await loadFlashcardsData();
 };
 const currentCard = computed(() => flashcards.value[currentStudyIndex.value] || {});
@@ -1377,14 +1385,14 @@ const restoreQuizAnswer = () => {
 };
 
 const switchStudyMode = async (mode) => {
-  if (isSubmittingQuiz.value || quizFeedbackLoading.value || isReviewingCard.value || studyLoading.value || mode === studyMode.value) return;
+  if (isSubmittingQuiz.value || quizFeedbackLoading.value || isSavingCardNote.value || studyLoading.value || mode === studyMode.value) return;
   studyMode.value = mode;
   currentStudyIndex.value = 0;
   studyError.value = '';
   isFlipped.value = false;
   if (mode === 'flashcard') {
-    if (currentLesson.value && !lessonDecks.value.length) { flashcards.value = []; studyError.value = 'Bài chưa có bộ từ riêng. Chọn Luyện tự do để ôn toàn bộ thẻ.'; return; }
-    if (currentLesson.value) studyDeckId.value = lessonDecks.value[0].id;
+    if (flashcardMode.value === 'all' && currentLesson.value && !lessonDecks.value.length) { flashcards.value = []; studyError.value = 'Bài chưa có bộ từ riêng. Bạn có thể mở Từ đã note hoặc chọn Luyện tự do.'; return; }
+    if (currentLesson.value && lessonDecks.value.length) studyDeckId.value = lessonDecks.value[0].id;
     await loadFlashcardsData();
   }
   else if (studyLessonId.value || !quizQuestions.value.length) await loadQuizzesData();
@@ -1393,9 +1401,9 @@ const switchStudyMode = async (mode) => {
 
 const loadFlashcardsData = async () => {
   flashcards.value = [];
-  forgottenCards.value = [];
-  reviewSummary.value = null;
-  reviewedCount.value = 0;
+  isSavingCardNote.value = false;
+  clearTimeout(flashcardToastTimer);
+  flashcardToast.value = '';
   currentStudyIndex.value = 0;
   isFlipped.value = false;
   if (!authService.isAuthenticated()) return;
@@ -1406,12 +1414,12 @@ const loadFlashcardsData = async () => {
   studyLoading.value = true;
   studyError.value = '';
   try {
-    const list = await studyService.getCardsForReview(studyDeckId.value);
+    const list = await studyService.getFlashcards(flashcardMode.value === 'noted' ? null : studyDeckId.value, flashcardMode.value === 'noted');
     if (version !== sessionVersion || requestId !== studyRequestId) return;
     flashcards.value = list || [];
     currentStudyIndex.value = 0;
   } catch (err) {
-    if (version === sessionVersion && requestId === studyRequestId) studyError.value = getErrorMessage(err, 'Không tải được thẻ ôn tập.');
+    if (version === sessionVersion && requestId === studyRequestId) studyError.value = getErrorMessage(err, 'Không tải được thẻ từ vựng.');
   } finally {
     if (version === sessionVersion && requestId === studyRequestId) studyLoading.value = false;
   }
@@ -1425,91 +1433,43 @@ const showFlashcardToast = (msg) => {
   flashcardToastTimer = setTimeout(() => { flashcardToast.value = ''; }, 3500);
 };
 
-const toggleCardReminder = async (cardId = null) => {
-  const id = cardId || currentCard.value?.id;
-  if (!id || isReviewingCard.value || !requireAuthentication()) return;
-  const targetCard = flashcards.value.find(c => c.id === id);
-  if (!targetCard) return;
-  isReviewingCard.value = true;
+// Every note mutation belongs to the account and list that started it.
+const flashcardScope = () => ({ version: sessionVersion, request: studyRequestId });
+const isCurrentFlashcardScope = scope => scope.version === sessionVersion && scope.request === studyRequestId;
+const toggleCardNote = async (event = null) => {
+  const card = currentCard.value;
+  // Keep the native checkbox in sync if persistence fails or the action is blocked.
+  if (event?.target) event.target.checked = !!card.is_noted;
+  if (!card.id || studyLoading.value || isSavingCardNote.value || !requireAuthentication()) return;
+  const scope = flashcardScope();
+  isSavingCardNote.value = true;
   studyError.value = '';
   try {
-    const res = await studyService.toggleReminder(id);
-    const isReminded = Boolean(res.next_review_at && res.status === 'LEARNING');
-    targetCard.has_reminder = isReminded;
-    targetCard.status = res.status;
-    targetCard.next_review_at = res.next_review_at;
-    showFlashcardToast(isReminded ? `🔔 Đã bật nhắc học lại cho từ "${targetCard.word}"!` : `Đã tắt nhắc học cho từ "${targetCard.word}".`);
+    const result = await studyService.setCardNote(card.id, !card.is_noted);
+    if (!isCurrentFlashcardScope(scope)) return;
+    card.is_noted = result.is_noted;
+    if (flashcardMode.value === 'noted' && !card.is_noted) {
+      flashcards.value = flashcards.value.filter(item => item.id !== card.id);
+      currentStudyIndex.value = Math.max(0, Math.min(currentStudyIndex.value, flashcards.value.length - 1));
+      isFlipped.value = false;
+    }
+    showFlashcardToast(card.is_noted ? NOTE_ADDED : NOTE_REMOVED);
   } catch (err) {
-    studyError.value = getErrorMessage(err, 'Không thể cập nhật lịch nhắc ôn.');
+    if (isCurrentFlashcardScope(scope)) studyError.value = getErrorMessage(err, NOTE_FAILED);
   } finally {
-    isReviewingCard.value = false;
+    if (isCurrentFlashcardScope(scope)) isSavingCardNote.value = false;
   }
 };
 
-const markCardMastered = async (cardId = null) => {
-  const id = cardId || currentCard.value?.id;
-  if (!id || isReviewingCard.value || !requireAuthentication()) return;
-  const targetCard = flashcards.value.find(c => c.id === id);
-  if (!targetCard) return;
-  isReviewingCard.value = true;
-  studyError.value = '';
-  try {
-    const res = await studyService.markCardMastered(id);
-    targetCard.status = 'MASTERED';
-    targetCard.has_reminder = false;
-    targetCard.next_review_at = res.next_review_at;
-    showFlashcardToast(`✅ Đã đánh dấu thuộc từ "${targetCard.word}"!`);
-  } catch (err) {
-    studyError.value = getErrorMessage(err, 'Không thể ghi nhận trạng thái đã thuộc.');
-  } finally {
-    isReviewingCard.value = false;
-  }
-};
-
-const nextFlashcard = () => {
-  if (currentStudyIndex.value < flashcards.value.length - 1) {
-    currentStudyIndex.value += 1;
-    isFlipped.value = false;
-  }
-};
-
-const prevFlashcard = () => {
-  if (currentStudyIndex.value > 0) {
-    currentStudyIndex.value -= 1;
-    isFlipped.value = false;
-  }
-};
-
-const jumpToFlashcard = (idx) => {
+const jumpToFlashcard = idx => {
+  if (studyLoading.value || isSavingCardNote.value) return;
   if (idx >= 0 && idx < flashcards.value.length) {
     currentStudyIndex.value = idx;
     isFlipped.value = false;
   }
 };
-
-const submitCardReview = async (isRemembered) => {
-  if (isReviewingCard.value || studyLoading.value || !currentCard.value.id || !requireAuthentication()) return;
-  const cardId = currentCard.value.id;
-  const card = currentCard.value;
-  isReviewingCard.value = true;
-  studyError.value = '';
-  try {
-    const res = await studyService.reviewCard(cardId, isRemembered);
-    card.status = res.status;
-    card.next_review_at = res.next_review_at;
-    card.has_reminder = !isRemembered;
-    card.box_level = res.box_level;
-    showFlashcardToast(isRemembered ? `✅ Đã thuộc từ "${card.word}"!` : `🔔 Đã lên lịch nhắc ôn từ "${card.word}"!`);
-    if (currentStudyIndex.value < flashcards.value.length - 1) {
-      currentStudyIndex.value += 1;
-      isFlipped.value = false;
-    }
-  } catch (err) {
-    studyError.value = getErrorMessage(err, 'Không lưu được kết quả ôn.');
-  } finally {
-    isReviewingCard.value = false;
-  }
-};
+const nextFlashcard = () => jumpToFlashcard(currentStudyIndex.value + 1);
+const prevFlashcard = () => jumpToFlashcard(currentStudyIndex.value - 1);
 
 const loadQuizzesData = async () => {
   const version = sessionVersion;
@@ -1646,15 +1606,14 @@ const getQuizAnswerClass = (answer) => {
   return 'border-gray-200 bg-white text-gray-400 opacity-60';
 };
 
-const retryForgottenCards = () => {
-  flashcards.value = [...forgottenCards.value];
-  forgottenCards.value = [];
-  reviewSummary.value = null;
-  currentStudyIndex.value = 0;
-  isFlipped.value = false;
-};
-
 watch(activeTab, (tab, previous) => {
+  if (previous === 'study' && tab !== 'study') {
+    studyRequestId += 1;
+    studyLoading.value = false;
+    isSavingCardNote.value = false;
+    clearTimeout(flashcardToastTimer);
+    flashcardToast.value = '';
+  }
   if (previous === 'speaking' && tab !== 'speaking') { recorder.cleanup(); isRecording.value = false; }
   if (previous === 'chat' && tab !== 'chat') { chatRecorder.cleanup(); isChatRecording.value = false; }
   window.speechSynthesis?.cancel();
@@ -1703,7 +1662,7 @@ const updateClock = () => {
 
 let clockInterval = null;
 
-provide('screenContext', { goBack, previousTab, openAuthOrProfile, isOnboardingOpen, onOnboardingCompleted, writingPickerOpen, writingPickerLoading, writingPickerError, writingPickerTopicId, writingPickerTopics, writingPickerLessons, loadWritingTasks, openWritingTaskPicker, openWritingLesson, quizFeedbackMode, quizFeedbackLoading, quizModeLocked, setQuizFeedbackMode, flashcardDecks, flashcardDecksLoading, flashcardDecksError, availableFlashcardDecks, loadFlashcardDecks, onStudyDeckChange, navigateTab, chatSummary, endChatSession, journey, selectedTopic, topicLessons, currentLesson, lessonDetail, lessonQuizzes, lessonDecks, lessonLoading, lessonError, lessonStep, lessonProgress, canFinishLesson, recommendedTopic, startLesson, continueLearning, beginLessonPractice, openLessonQuiz, openLessonDeck, finishLesson, nextLesson, leaveLesson, openSaveWord, savedWordMessage, openLessonChat, reviewSummary, retryForgottenCards, studyDeckId, homeError, studyError, chatError, isReviewingCard, quizInputText, quizResult, canAnswerQuiz, previousQuizQuestion, restartQuiz, requireAuthentication, activeTab, chatConversations, chatHistoryError, chatHistoryLoading, chatInput, chatLoading, chatMessages, chatRecorder, chatScenarioId, chatScrollContainer, checkQuizAnswer, clockInterval, conversationId, copied, copyRewritten, currentCard, currentChatScenario, currentQuestion, currentSpeakingSentenceIndex, currentStudyIndex, currentTime, dashboard, essayInput, flashcards, getActivityBadgeClass, getQuizAnswerClass, getTopicColor, getTopicEmoji, getWordBg, getWordTextColor, homeLoading, isAnalyzingSpeaking, isAuthOpen, isAuthenticated, isBotTyping, isChatHistoryOpen, isChatRecording, isCustomSpeakingMode, isEvaluating, isFlipped, isProfileOpen, isRecording, isSubmittingQuiz, loadChatConversations, loadChatScenarios, loadFlashcardsData, loadHomeData, loadQuizzesData, logout, nativeAudioUrl, navigateSpeakingSentence, nextQuizQuestion, onAuthSuccess, onProfileUpdated, onQuizChange, onSpeakingLessonChange, onSpeakingTopicChange, openAuthModal, openChatConversation, playNativeAudio, quizChecked, quizQuestions, quizzesList, recorder, resetChatConversation, scenarios, scrollChatToBottom, selectQuizAnswer, selectedQuizAnswer, selectedQuizId, selectedSpeakingContentId, sendChatText, speakBotMessage, speakText, speakingError, speakingLessonContents, speakingLessonId, speakingLessons, speakingLessonsLoading, speakingResult, speakingTopicId, startChatConversation, createAndSelectCustomScenario, startTopic, stopAndAnalyzeSpeaking, studyLoading, studyMode, submitCardReview, submitWritingEvaluation, submittedQuizDetail, switchChatScenario, switchStudyMode, targetIpa, targetSpeakingText, targetTranslation, toggleChatHistory, toggleChatVoice, toggleRecording, topics, totalPracticeCount, totalStudyItems, updateClock, userAvatarUrl, userProfile, wordCount, writingError, writingResult, writingSubTab, flashcardToast, toggleCardReminder, markCardMastered, nextFlashcard, prevFlashcard, jumpToFlashcard });
+provide('screenContext', { flashcardMode, setFlashcardMode, goBack, previousTab, openAuthOrProfile, isOnboardingOpen, onOnboardingCompleted, writingPickerOpen, writingPickerLoading, writingPickerError, writingPickerTopicId, writingPickerTopics, writingPickerLessons, loadWritingTasks, openWritingTaskPicker, openWritingLesson, quizFeedbackMode, quizFeedbackLoading, quizModeLocked, setQuizFeedbackMode, flashcardDecks, flashcardDecksLoading, flashcardDecksError, availableFlashcardDecks, loadFlashcardDecks, onStudyDeckChange, navigateTab, chatSummary, endChatSession, journey, selectedTopic, topicLessons, currentLesson, lessonDetail, lessonQuizzes, lessonDecks, lessonLoading, lessonError, lessonStep, lessonProgress, canFinishLesson, recommendedTopic, startLesson, continueLearning, beginLessonPractice, openLessonQuiz, openLessonDeck, finishLesson, nextLesson, leaveLesson, openSaveWord, savedWordMessage, openLessonChat, studyDeckId, homeError, studyError, chatError, isSavingCardNote, quizInputText, quizResult, canAnswerQuiz, previousQuizQuestion, restartQuiz, requireAuthentication, activeTab, chatConversations, chatHistoryError, chatHistoryLoading, chatInput, chatLoading, chatMessages, chatRecorder, chatScenarioId, chatScrollContainer, checkQuizAnswer, clockInterval, conversationId, copied, copyRewritten, currentCard, currentChatScenario, currentQuestion, currentSpeakingSentenceIndex, currentStudyIndex, currentTime, dashboard, essayInput, flashcards, getActivityBadgeClass, getQuizAnswerClass, getTopicColor, getTopicEmoji, getWordBg, getWordTextColor, homeLoading, isAnalyzingSpeaking, isAuthOpen, isAuthenticated, isBotTyping, isChatHistoryOpen, isChatRecording, isCustomSpeakingMode, isEvaluating, isFlipped, isProfileOpen, isRecording, isSubmittingQuiz, loadChatConversations, loadChatScenarios, loadFlashcardsData, loadHomeData, loadQuizzesData, logout, nativeAudioUrl, navigateSpeakingSentence, nextQuizQuestion, onAuthSuccess, onProfileUpdated, onQuizChange, onSpeakingLessonChange, onSpeakingTopicChange, openAuthModal, openChatConversation, playNativeAudio, quizChecked, quizQuestions, quizzesList, recorder, resetChatConversation, scenarios, scrollChatToBottom, selectQuizAnswer, selectedQuizAnswer, selectedQuizId, selectedSpeakingContentId, sendChatText, speakBotMessage, speakText, speakingError, speakingLessonContents, speakingLessonId, speakingLessons, speakingLessonsLoading, speakingResult, speakingTopicId, startChatConversation, createAndSelectCustomScenario, startTopic, stopAndAnalyzeSpeaking, studyLoading, studyMode, submitWritingEvaluation, submittedQuizDetail, switchChatScenario, switchStudyMode, targetIpa, targetSpeakingText, targetTranslation, toggleChatHistory, toggleChatVoice, toggleRecording, topics, totalPracticeCount, totalStudyItems, updateClock, userAvatarUrl, userProfile, wordCount, writingError, writingResult, writingSubTab, flashcardToast, toggleCardNote, nextFlashcard, prevFlashcard, jumpToFlashcard });
 
 onMounted(async () => {
   updateClock();
@@ -1724,6 +1683,7 @@ onMounted(async () => {
 onUnmounted(() => {
   sessionVersion += 1;
   if (clockInterval) clearInterval(clockInterval);
+  clearTimeout(flashcardToastTimer);
   window.removeEventListener('auth-expired', onSessionExpired);
   recorder.cleanup();
   chatRecorder.cleanup();

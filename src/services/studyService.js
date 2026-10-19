@@ -6,27 +6,15 @@ export const studyService = {
     return res.data;
   },
 
-  async getCardsForReview(deckId = null) {
-    const params = deckId ? { deck_id: deckId } : {};
-    const res = await apiClient.get('/flashcards/review', { params });
+  async getFlashcards(deckId = null, notedOnly = false) {
+    const params = { noted_only: notedOnly };
+    if (deckId) params.deck_id = deckId;
+    const res = await apiClient.get('/flashcards/cards', { params });
     return res.data;
   },
 
-  async reviewCard(cardId, isRemembered) {
-    const res = await apiClient.post(`/flashcards/cards/${cardId}/review`, {
-      is_remembered: isRemembered
-    });
-    return res.data;
-  },
-
-  async toggleReminder(cardId, enable = null) {
-    const params = enable !== null ? { enable } : {};
-    const res = await apiClient.post(`/flashcards/cards/${cardId}/reminder`, null, { params });
-    return res.data;
-  },
-
-  async markCardMastered(cardId) {
-    const res = await apiClient.post(`/flashcards/cards/${cardId}/master`);
+  async setCardNote(cardId, isNoted) {
+    const res = await apiClient.put(`/flashcards/cards/${cardId}/note`, { is_noted: isNoted });
     return res.data;
   },
 

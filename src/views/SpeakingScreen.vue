@@ -657,7 +657,6 @@ const startTopic = ctx.startTopic;
 const stopAndAnalyzeSpeaking = ctx.stopAndAnalyzeSpeaking;
 const studyLoading = ctx.studyLoading;
 const studyMode = ctx.studyMode;
-const submitCardReview = ctx.submitCardReview;
 const submitWritingEvaluation = ctx.submitWritingEvaluation;
 const submittedQuizDetail = ctx.submittedQuizDetail;
 const switchChatScenario = ctx.switchChatScenario;
