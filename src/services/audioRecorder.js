@@ -1,4 +1,4 @@
-﻿export class AudioRecorder {
+export class AudioRecorder {
   constructor() {
     this.mediaRecorder = null;
     this.audioChunks = [];
@@ -112,6 +112,30 @@
       this.isRecording = false;
     });
     return this.stopPromise;
+  }
+
+  pause() {
+    if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
+      try {
+        this.mediaRecorder.pause();
+      } catch (e) {
+        console.warn('MediaRecorder pause error:', e);
+      }
+    }
+  }
+
+  resume() {
+    if (this.mediaRecorder && this.mediaRecorder.state === 'paused') {
+      try {
+        this.mediaRecorder.resume();
+      } catch (e) {
+        console.warn('MediaRecorder resume error:', e);
+      }
+    }
+  }
+
+  isPaused() {
+    return this.mediaRecorder && this.mediaRecorder.state === 'paused';
   }
 
   cleanup() {

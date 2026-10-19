@@ -53,10 +53,6 @@
           >
             <div class="relative w-full h-56 sm:h-64 rounded-3xl bg-[#f2f4f7] flex items-center justify-center overflow-hidden transition-all duration-200 group-hover:shadow-lg">
               <!-- Feature Tag -->
-              <div class="absolute top-4 right-4 z-20 flex items-center gap-2 bg-white/95 backdrop-blur-sm border border-emerald-100 px-3.5 py-1.5 rounded-full shadow-2xs">
-                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                <span class="text-xs font-bold text-emerald-700">GOP • Chuẩn IPA</span>
-              </div>
 
               <!-- Character Illustration -->
               <div class="w-48 h-48 flex items-center justify-center text-slate-400 scale-110 sm:scale-120">
@@ -82,10 +78,7 @@
           >
             <div class="relative w-full h-56 sm:h-64 rounded-3xl bg-[#f2f4f7] flex items-center justify-center overflow-hidden transition-all duration-200 group-hover:shadow-lg">
               <!-- Feature Tag -->
-              <div class="absolute top-4 right-4 z-20 flex items-center gap-2 bg-white/95 backdrop-blur-sm border border-sky-100 px-3.5 py-1.5 rounded-full shadow-2xs">
-                <span class="w-2 h-2 rounded-full bg-sky-500"></span>
-                <span class="text-xs font-bold text-sky-700">Thuật toán SRS</span>
-              </div>
+              
 
               <!-- Cards Illustration (Apple & Book) -->
               <div class="flex items-center justify-center gap-3 scale-110 sm:scale-120">
@@ -116,10 +109,7 @@
           >
             <div class="relative w-full h-56 sm:h-64 rounded-3xl bg-[#f2f4f7] flex items-center justify-center overflow-hidden transition-all duration-200 group-hover:shadow-lg">
               <!-- Feature Tag -->
-              <div class="absolute top-4 right-4 z-20 flex items-center gap-2 bg-white/95 backdrop-blur-sm border border-purple-100 px-3.5 py-1.5 rounded-full shadow-2xs">
-                <span class="w-2 h-2 rounded-full bg-purple-500"></span>
-                <span class="text-xs font-bold text-purple-700">Gemini Sửa lỗi</span>
-              </div>
+             
 
               <!-- Speech Bubble & Sound Wave Graphic -->
               <div class="relative w-44 h-32 flex items-center justify-center scale-110 sm:scale-120">
@@ -155,10 +145,7 @@
           >
             <div class="relative w-full h-56 sm:h-64 rounded-3xl bg-[#f2f4f7] flex items-center justify-center overflow-hidden transition-all duration-200 group-hover:shadow-lg">
               <!-- Feature Tag -->
-              <div class="absolute top-4 right-4 z-20 flex items-center gap-2 bg-white/95 backdrop-blur-sm border border-amber-100 px-3.5 py-1.5 rounded-full shadow-2xs">
-                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-                <span class="text-xs font-bold text-amber-700">Trắc nghiệm</span>
-              </div>
+              
 
               <!-- Tablet/Flashcard Illustration with hand -->
               <div class="relative flex items-center justify-center scale-110 sm:scale-120">
@@ -194,10 +181,7 @@
           >
             <div class="relative w-full h-56 sm:h-64 rounded-3xl bg-[#f2f4f7] flex items-center justify-center overflow-hidden transition-all duration-200 group-hover:shadow-lg">
               <!-- Feature Tag -->
-              <div class="absolute top-4 right-4 z-20 flex items-center gap-2 bg-white/95 backdrop-blur-sm border border-teal-100 px-3.5 py-1.5 rounded-full shadow-2xs">
-                <span class="w-2 h-2 rounded-full bg-teal-500"></span>
-                <span class="text-xs font-bold text-teal-700">Phản xạ âm thanh</span>
-              </div>
+           
 
               <!-- Character on Call Illustration -->
               <div class="relative w-44 h-44 flex items-center justify-center scale-110 sm:scale-120">
@@ -226,10 +210,7 @@
           >
             <div class="relative w-full h-56 sm:h-64 rounded-3xl bg-[#f2f4f7] flex items-center justify-center overflow-hidden transition-all duration-200 group-hover:shadow-lg">
               <!-- Feature Tag -->
-              <div class="absolute top-4 right-4 z-20 flex items-center gap-2 bg-white/95 backdrop-blur-sm border border-blue-100 px-3.5 py-1.5 rounded-full shadow-2xs">
-                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                <span class="text-xs font-bold text-blue-700">Gemini Tra từ</span>
-              </div>
+           
 
               <!-- Dictionary Graphic -->
               <div class="relative flex flex-col items-center scale-110 sm:scale-120">

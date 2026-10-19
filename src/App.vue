@@ -1249,40 +1249,148 @@ const sendChatText = async (customText = null) => {
   }
 };
 
-const toggleChatVoice = async () => {
+const isRecordingPaused = ref(false);
+const recordingDuration = ref(0);
+let recordingInterval = null;
+
+const startRecordingTimer = () => {
+  stopRecordingTimer();
+  recordingDuration.value = 0;
+  recordingInterval = setInterval(() => {
+    if (!isRecordingPaused.value) {
+      recordingDuration.value += 1;
+    }
+  }, 1000);
+};
+
+const stopRecordingTimer = () => {
+  if (recordingInterval) {
+    clearInterval(recordingInterval);
+    recordingInterval = null;
+  }
+};
+
+const formattedRecordingTime = computed(() => {
+  const m = Math.floor(recordingDuration.value / 60);
+  const s = recordingDuration.value % 60;
+  return `${m}:${s < 10 ? '0' : ''}${s}`;
+});
+
+const startChatVoice = async () => {
   if (chatLoading.value || isBotTyping.value || !conversationId.value || !requireAuthentication()) return;
   const version = sessionVersion;
-  const id = conversationId.value;
   chatError.value = '';
-  if (isChatRecording.value) {
-    isBotTyping.value = true;
-    try {
-      const blob = await chatRecorder.stop();
-      if (version !== sessionVersion) return;
-      isChatRecording.value = false;
-      if (!blob?.size) return;
-      const result = await chatService.sendVoiceMessage(id, blob);
-      if (version !== sessionVersion || id !== conversationId.value) return;
-      if (result?.user_message) chatMessages.value.push(result.user_message);
-      if (result?.bot_message) {
-        chatMessages.value.push(result.bot_message);
-        await scrollChatToBottom();
-        speakBotMessage(result.bot_message);
-      }
-      void loadHomeData();
-    } catch (err) {
-      if (version === sessionVersion) chatError.value = getErrorMessage(err, 'Không gửi được ghi âm.');
-    } finally {
-      if (version === sessionVersion) { isBotTyping.value = false; isChatRecording.value = false; }
-    }
+  try {
+    await chatRecorder.start();
+    if (version !== sessionVersion) { chatRecorder.cleanup(); return; }
+    isChatRecording.value = true;
+    isRecordingPaused.value = false;
+    startRecordingTimer();
+  } catch (err) {
+    if (version === sessionVersion) chatError.value = getErrorMessage(err, 'Không thể truy cập microphone.');
+  }
+};
+
+const cancelChatVoice = () => {
+  stopRecordingTimer();
+  chatRecorder.cleanup();
+  isChatRecording.value = false;
+  isRecordingPaused.value = false;
+  recordingDuration.value = 0;
+};
+
+const togglePauseRecording = () => {
+  if (!isChatRecording.value) return;
+  if (isRecordingPaused.value) {
+    chatRecorder.resume();
+    isRecordingPaused.value = false;
   } else {
-    try {
-      await chatRecorder.start();
-      if (version !== sessionVersion) { chatRecorder.cleanup(); return; }
-      isChatRecording.value = true;
-    } catch (err) {
-      if (version === sessionVersion) chatError.value = getErrorMessage(err, 'Không thể truy cập microphone.');
+    chatRecorder.pause();
+    isRecordingPaused.value = true;
+  }
+};
+
+const sendChatVoice = async () => {
+  if (!isChatRecording.value || !conversationId.value) return;
+  const version = sessionVersion;
+  const id = conversationId.value;
+  stopRecordingTimer();
+  isChatRecording.value = false;
+  isRecordingPaused.value = false;
+  chatError.value = '';
+
+  let tempUserMsg = null;
+  try {
+    const blob = await chatRecorder.stop();
+    if (version !== sessionVersion) return;
+    if (!blob?.size) return;
+
+    // 1. Hiển thị NGAY LẬP TỨC tin nhắn người dùng ở trạng thái đang xử lý (Image 2 style)
+    const audioBlobUrl = URL.createObjectURL(blob);
+    tempUserMsg = {
+      id: `pending-${Date.now()}`,
+      sender: 'user',
+      message_text: '',
+      isPending: true,
+      audio_blob_url: audioBlobUrl,
+      created_at: new Date().toISOString()
+    };
+    chatMessages.value.push(tempUserMsg);
+    await scrollChatToBottom();
+
+    // 2. Kích hoạt hiệu ứng Emma đang suy nghĩ
+    isBotTyping.value = true;
+
+    // 3. Gửi sang backend
+    const result = await chatService.sendVoiceMessage(id, blob);
+    if (version !== sessionVersion || id !== conversationId.value) return;
+
+    // 4. Khi backend trả về, thay thế bong bóng loading bằng tin nhắn thực tế của người dùng
+    const pendingIdx = chatMessages.value.findIndex(m => m.id === tempUserMsg.id);
+    if (result?.user_message) {
+      const completedUserMsg = {
+        ...result.user_message,
+        audio_blob_url: audioBlobUrl // Giữ URL blob để phát lại tức thì
+      };
+      if (pendingIdx !== -1) {
+        chatMessages.value.splice(pendingIdx, 1, completedUserMsg);
+      } else {
+        chatMessages.value.push(completedUserMsg);
+      }
+    } else if (pendingIdx !== -1) {
+      chatMessages.value.splice(pendingIdx, 1);
     }
+
+    // 5. Thêm phản hồi của Bot và phát âm thanh
+    if (result?.bot_message) {
+      chatMessages.value.push(result.bot_message);
+      await scrollChatToBottom();
+      speakBotMessage(result.bot_message);
+    }
+    void loadHomeData();
+  } catch (err) {
+    if (version === sessionVersion) {
+      chatError.value = getErrorMessage(err, 'Không gửi được ghi âm.');
+      if (tempUserMsg) {
+        const pendingIdx = chatMessages.value.findIndex(m => m.id === tempUserMsg.id);
+        if (pendingIdx !== -1) {
+          chatMessages.value.splice(pendingIdx, 1);
+        }
+      }
+    }
+  } finally {
+    if (version === sessionVersion) {
+      isBotTyping.value = false;
+      isChatRecording.value = false;
+    }
+  }
+};
+
+const toggleChatVoice = async () => {
+  if (isChatRecording.value) {
+    await sendChatVoice();
+  } else {
+    await startChatVoice();
   }
 };
 
@@ -1662,7 +1770,7 @@ const updateClock = () => {
 
 let clockInterval = null;
 
-provide('screenContext', { flashcardMode, setFlashcardMode, goBack, previousTab, openAuthOrProfile, isOnboardingOpen, onOnboardingCompleted, writingPickerOpen, writingPickerLoading, writingPickerError, writingPickerTopicId, writingPickerTopics, writingPickerLessons, loadWritingTasks, openWritingTaskPicker, openWritingLesson, quizFeedbackMode, quizFeedbackLoading, quizModeLocked, setQuizFeedbackMode, flashcardDecks, flashcardDecksLoading, flashcardDecksError, availableFlashcardDecks, loadFlashcardDecks, onStudyDeckChange, navigateTab, chatSummary, endChatSession, journey, selectedTopic, topicLessons, currentLesson, lessonDetail, lessonQuizzes, lessonDecks, lessonLoading, lessonError, lessonStep, lessonProgress, canFinishLesson, recommendedTopic, startLesson, continueLearning, beginLessonPractice, openLessonQuiz, openLessonDeck, finishLesson, nextLesson, leaveLesson, openSaveWord, savedWordMessage, openLessonChat, studyDeckId, homeError, studyError, chatError, isSavingCardNote, quizInputText, quizResult, canAnswerQuiz, previousQuizQuestion, restartQuiz, requireAuthentication, activeTab, chatConversations, chatHistoryError, chatHistoryLoading, chatInput, chatLoading, chatMessages, chatRecorder, chatScenarioId, chatScrollContainer, checkQuizAnswer, clockInterval, conversationId, copied, copyRewritten, currentCard, currentChatScenario, currentQuestion, currentSpeakingSentenceIndex, currentStudyIndex, currentTime, dashboard, essayInput, flashcards, getActivityBadgeClass, getQuizAnswerClass, getTopicColor, getTopicEmoji, getWordBg, getWordTextColor, homeLoading, isAnalyzingSpeaking, isAuthOpen, isAuthenticated, isBotTyping, isChatHistoryOpen, isChatRecording, isCustomSpeakingMode, isEvaluating, isFlipped, isProfileOpen, isRecording, isSubmittingQuiz, loadChatConversations, loadChatScenarios, loadFlashcardsData, loadHomeData, loadQuizzesData, logout, nativeAudioUrl, navigateSpeakingSentence, nextQuizQuestion, onAuthSuccess, onProfileUpdated, onQuizChange, onSpeakingLessonChange, onSpeakingTopicChange, openAuthModal, openChatConversation, playNativeAudio, quizChecked, quizQuestions, quizzesList, recorder, resetChatConversation, scenarios, scrollChatToBottom, selectQuizAnswer, selectedQuizAnswer, selectedQuizId, selectedSpeakingContentId, sendChatText, speakBotMessage, speakText, speakingError, speakingLessonContents, speakingLessonId, speakingLessons, speakingLessonsLoading, speakingResult, speakingTopicId, startChatConversation, createAndSelectCustomScenario, startTopic, stopAndAnalyzeSpeaking, studyLoading, studyMode, submitWritingEvaluation, submittedQuizDetail, switchChatScenario, switchStudyMode, targetIpa, targetSpeakingText, targetTranslation, toggleChatHistory, toggleChatVoice, toggleRecording, topics, totalPracticeCount, totalStudyItems, updateClock, userAvatarUrl, userProfile, wordCount, writingError, writingResult, writingSubTab, flashcardToast, toggleCardNote, nextFlashcard, prevFlashcard, jumpToFlashcard });
+provide('screenContext', { flashcardMode, setFlashcardMode, goBack, previousTab, openAuthOrProfile, isOnboardingOpen, onOnboardingCompleted, writingPickerOpen, writingPickerLoading, writingPickerError, writingPickerTopicId, writingPickerTopics, writingPickerLessons, loadWritingTasks, openWritingTaskPicker, openWritingLesson, quizFeedbackMode, quizFeedbackLoading, quizModeLocked, setQuizFeedbackMode, flashcardDecks, flashcardDecksLoading, flashcardDecksError, availableFlashcardDecks, loadFlashcardDecks, onStudyDeckChange, navigateTab, chatSummary, endChatSession, journey, selectedTopic, topicLessons, currentLesson, lessonDetail, lessonQuizzes, lessonDecks, lessonLoading, lessonError, lessonStep, lessonProgress, canFinishLesson, recommendedTopic, startLesson, continueLearning, beginLessonPractice, openLessonQuiz, openLessonDeck, finishLesson, nextLesson, leaveLesson, openSaveWord, savedWordMessage, openLessonChat, studyDeckId, homeError, studyError, chatError, isSavingCardNote, quizInputText, quizResult, canAnswerQuiz, previousQuizQuestion, restartQuiz, requireAuthentication, activeTab, chatConversations, chatHistoryError, chatHistoryLoading, chatInput, chatLoading, chatMessages, chatRecorder, chatScenarioId, chatScrollContainer, checkQuizAnswer, clockInterval, conversationId, copied, copyRewritten, currentCard, currentChatScenario, currentQuestion, currentSpeakingSentenceIndex, currentStudyIndex, currentTime, dashboard, essayInput, flashcards, getActivityBadgeClass, getQuizAnswerClass, getTopicColor, getTopicEmoji, getWordBg, getWordTextColor, homeLoading, isAnalyzingSpeaking, isAuthOpen, isAuthenticated, isBotTyping, isChatHistoryOpen, isChatRecording, startChatVoice, cancelChatVoice, togglePauseRecording, sendChatVoice, isRecordingPaused, recordingDuration, formattedRecordingTime, isCustomSpeakingMode, isEvaluating, isFlipped, isProfileOpen, isRecording, isSubmittingQuiz, loadChatConversations, loadChatScenarios, loadFlashcardsData, loadHomeData, loadQuizzesData, logout, nativeAudioUrl, navigateSpeakingSentence, nextQuizQuestion, onAuthSuccess, onProfileUpdated, onQuizChange, onSpeakingLessonChange, onSpeakingTopicChange, openAuthModal, openChatConversation, playNativeAudio, quizChecked, quizQuestions, quizzesList, recorder, resetChatConversation, scenarios, scrollChatToBottom, selectQuizAnswer, selectedQuizAnswer, selectedQuizId, selectedSpeakingContentId, sendChatText, speakBotMessage, speakText, speakingError, speakingLessonContents, speakingLessonId, speakingLessons, speakingLessonsLoading, speakingResult, speakingTopicId, startChatConversation, createAndSelectCustomScenario, startTopic, stopAndAnalyzeSpeaking, studyLoading, studyMode, submitWritingEvaluation, submittedQuizDetail, switchChatScenario, switchStudyMode, targetIpa, targetSpeakingText, targetTranslation, toggleChatHistory, toggleChatVoice, toggleRecording, topics, totalPracticeCount, totalStudyItems, updateClock, userAvatarUrl, userProfile, wordCount, writingError, writingResult, writingSubTab, flashcardToast, toggleCardNote, nextFlashcard, prevFlashcard, jumpToFlashcard });
 
 onMounted(async () => {
   updateClock();

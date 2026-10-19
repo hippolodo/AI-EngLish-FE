@@ -275,35 +275,60 @@
                 </div>
 
                 <!-- User Message Turn -->
-                <div v-else class="flex items-end justify-end space-x-3 max-w-[90%] sm:max-w-[82%] self-end group">
-                  <!-- Feedback Status Badge (Left of User Bubble) -->
-                  <!-- If needs improvement: amber exclamation '!' -->
-                  <!-- If correct: green tick '✓' (chỉ cần tick là được) -->
-                  <button
-                    v-if="msg.feedback"
-                    @click="selectFeedbackMessage(idx)"
-                    :title="msg.feedback.needs_improvement ? 'Bấm để xem phân tích từ/câu sai' : 'Câu nói chuẩn xác & tự nhiên'"
-                    class="shrink-0 mb-1 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm shadow-2xs cursor-pointer transition-transform hover:scale-115 active:scale-95"
-                    :class="msg.feedback.needs_improvement ? 'bg-amber-500 text-white ring-2 ring-amber-200' : 'bg-emerald-500 text-white ring-2 ring-emerald-200'"
-                  >
-                    <span v-if="msg.feedback.needs_improvement" class="font-black text-sm">!</span>
-                    <Check v-else class="w-4 h-4 stroke-[3]" />
-                  </button>
+                <div v-else class="flex flex-col items-end self-end max-w-[90%] sm:max-w-[82%] group">
+                  <!-- Case 1: Pending Loading Bubble (Image 2 style) -->
+                  <div v-if="msg.isPending" class="bg-[#2b59ff] text-white px-5 py-4 rounded-3xl rounded-br-sm shadow-2xs flex items-center gap-2 self-end animate-in fade-in duration-150">
+                    <span class="w-2.5 h-2.5 rounded-full bg-white animate-bounce"></span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-white animate-bounce [animation-delay:0.2s]"></span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-white animate-bounce [animation-delay:0.4s]"></span>
+                  </div>
 
-                  <!-- User Speech Bubble -->
-                  <div class="space-y-1.5 flex flex-col items-end">
-                    <div
+                  <!-- Case 2: Standard User Message -->
+                  <div v-else class="flex items-end justify-end space-x-3 w-full">
+                    <!-- Feedback Status Badge: ONLY when sentence needs improvement (amber !) -->
+                    <button
+                      v-if="msg.feedback && msg.feedback.needs_improvement"
                       @click="selectFeedbackMessage(idx)"
-                      class="reading-text bg-[#2b59ff] text-white p-5 sm:p-6 rounded-3xl rounded-br-sm shadow-2xs text-lg sm:text-[19px] leading-relaxed font-normal cursor-pointer hover:brightness-105 transition"
-                      :class="selectedFeedbackIndex === idx ? 'ring-3 ring-indigo-300 ring-offset-2' : ''"
+                      title="Bấm để xem phân tích từ/câu sai"
+                      class="shrink-0 mb-1 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm shadow-2xs cursor-pointer transition-transform hover:scale-115 active:scale-95 bg-amber-500 text-white ring-2 ring-amber-200"
                     >
-                      {{ msg.message_text || msg.text }}
-                    </div>
+                      <span class="font-black text-sm">!</span>
+                    </button>
 
-                    <!-- Fluency Pill if Available -->
-                    <div v-if="msg.fluency_score" class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs sm:text-sm font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      <Sparkles class="w-3.5 h-3.5 text-emerald-500 fill-emerald-500" />
-                      Lưu loát: {{ Math.round(msg.fluency_score) }}%
+                    <!-- User Speech Bubble & Action Tools -->
+                    <div class="space-y-1.5 flex flex-col items-end">
+                      <div
+                        @click="msg.feedback?.needs_improvement && selectFeedbackMessage(idx)"
+                        class="reading-text bg-[#2b59ff] text-white p-5 sm:p-6 rounded-3xl rounded-br-sm shadow-2xs text-lg sm:text-[19px] leading-relaxed font-normal transition"
+                        :class="[
+                          msg.feedback?.needs_improvement ? 'cursor-pointer hover:brightness-105' : '',
+                          selectedFeedbackIndex === idx ? 'ring-3 ring-indigo-300 ring-offset-2' : ''
+                        ]"
+                      >
+                        {{ msg.message_text || msg.text }}
+                      </div>
+
+                      <!-- Under-bubble User Mini Action Tools -->
+                      <div class="flex items-center gap-3 px-2 pt-0.5 text-slate-400">
+                        <!-- Replay User Audio - ONLY when message was recorded by voice -->
+                        <button
+                          v-if="msg.audio_url || msg.audio_blob_url"
+                          @click.stop="playUserMessageAudio(msg, idx)"
+                          class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold transition cursor-pointer"
+                          :class="playingMessageId === (msg.id || idx) ? 'text-indigo-600 font-bold' : 'text-slate-500 hover:text-indigo-600'"
+                          title="Nghe lại câu bạn đã nói"
+                        >
+                          <Volume2 class="w-3.5 h-3.5 sm:w-4 sm:h-4" :class="playingMessageId === (msg.id || idx) ? 'animate-bounce text-indigo-600' : ''" />
+                          <span>{{ playingMessageId === (msg.id || idx) ? 'Đang phát...' : 'Phát lại' }}</span>
+                        </button>
+
+                        <!-- Fluency Pill if Available -->
+                        <span v-if="(msg.audio_url || msg.audio_blob_url) && msg.fluency_score" class="text-slate-300">•</span>
+                        <div v-if="msg.fluency_score" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <Sparkles class="w-3 h-3 text-emerald-500 fill-emerald-500" />
+                          <span>Lưu loát {{ Math.round(msg.fluency_score) }}%</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -356,33 +381,89 @@
 
         <!-- Bottom Chat Input Bar -->
         <div v-if="!isChatHistoryOpen && !ctx.chatSummary.value" class="p-4 sm:p-6 bg-white border-t border-slate-100">
-          <div class="flex items-center space-x-3">
+          <!-- Voice Recording Bar (Image 1 style) -->
+          <div v-if="isChatRecording" class="flex items-center space-x-3 w-full animate-in fade-in duration-200">
+            <!-- Trash / Cancel Button -->
+            <button
+              @click="cancelChatVoice"
+              type="button"
+              class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition shrink-0 cursor-pointer shadow-2xs border border-slate-200/60 hover:border-rose-200"
+              title="Hủy bỏ đoạn ghi âm này"
+            >
+              <Trash2 class="w-5 h-5 sm:w-6 sm:h-6" />
+            </button>
+
+            <!-- Center Wide Blue Recording Pill -->
+            <div class="flex-1 bg-[#2b59ff] text-white h-12 sm:h-14 rounded-full px-4 sm:px-6 flex items-center justify-between shadow-md shadow-blue-600/20">
+              <!-- Pause / Resume Button -->
+              <button
+                @click="togglePauseRecording"
+                type="button"
+                class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white text-[#2b59ff] flex items-center justify-center shrink-0 cursor-pointer hover:scale-105 active:scale-95 transition shadow-2xs"
+                :title="isRecordingPaused ? 'Tiếp tục ghi âm' : 'Tạm dừng ghi âm'"
+              >
+                <Play v-if="isRecordingPaused" class="w-4 h-4 fill-current ml-0.5" />
+                <Pause v-else class="w-4 h-4 fill-current" />
+              </button>
+
+              <!-- Soundwave Visualizer Bars -->
+              <div class="flex items-center gap-1 sm:gap-1.5 px-3">
+                <span
+                  v-for="bar in 12"
+                  :key="bar"
+                  class="w-1 sm:w-1.5 bg-white/90 rounded-full transition-all duration-150"
+                  :class="isRecordingPaused ? 'h-1.5 opacity-40' : 'animate-soundwave'"
+                  :style="{
+                    height: isRecordingPaused ? '6px' : (8 + ((bar * 7) % 20)) + 'px',
+                    animationDelay: (bar * 0.08) + 's',
+                    animationDuration: '0.8s'
+                  }"
+                ></span>
+              </div>
+
+              <!-- Recording Timer -->
+              <div class="font-mono font-bold text-sm sm:text-base tracking-wider tabular-nums text-white shrink-0">
+                {{ formattedRecordingTime }}
+              </div>
+            </div>
+
+            <!-- Send Recording Button (Blue circle with paper plane) -->
+            <button
+              @click="sendChatVoice"
+              type="button"
+              class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#2b59ff] hover:bg-blue-700 text-white flex items-center justify-center shadow-md shadow-blue-600/30 transition shrink-0 cursor-pointer hover:scale-105 active:scale-95"
+              title="Gửi câu nói đến AI"
+            >
+              <Send class="w-5 h-5 sm:w-6 sm:h-6 fill-current" />
+            </button>
+          </div>
+
+          <!-- Normal Input Bar (Text + Mic button) -->
+          <div v-else class="flex items-center space-x-3">
             <!-- Voice Input Button -->
             <button
               :disabled="chatLoading || isBotTyping || !conversationId"
-              @click="toggleChatVoice"
-              :title="isChatRecording ? 'Dừng & gửi giọng nói' : 'Ghi âm giọng nói'"
-              :class="isChatRecording ? 'bg-rose-500 text-white animate-pulse' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
-              class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center transition shrink-0 cursor-pointer shadow-2xs"
+              @click="startChatVoice"
+              title="Ghi âm giọng nói"
+              class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-slate-100 text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 flex items-center justify-center transition shrink-0 cursor-pointer shadow-2xs disabled:opacity-50"
             >
-              <Square v-if="isChatRecording" class="w-6 h-6" />
-              <Mic v-else class="w-6 h-6" />
+              <Mic class="w-6 h-6" />
             </button>
 
             <!-- Text Input -->
             <input
               v-model="chatInput"
               @keyup.enter="sendChatText"
-              :disabled="chatLoading || isBotTyping || isChatRecording || !conversationId"
+              :disabled="chatLoading || isBotTyping || !conversationId"
               type="text"
-              placeholder="Nhập hoặc nhấn mic nói tiếng Anh..."
+              placeholder="Aa"
               class="flex-1 bg-slate-100 text-base sm:text-lg lg:text-xl text-slate-900 placeholder-slate-400 px-5 sm:px-6 py-3.5 sm:py-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-600 transition"
             />
 
             <!-- Send Button -->
             <button
               @click="sendChatText"
-              :disabled="chatLoading || isBotTyping || isChatRecording || !conversationId || !chatInput.trim()"
+              :disabled="chatLoading || isBotTyping || !conversationId || !chatInput.trim()"
               class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white flex items-center justify-center shadow-xs shadow-indigo-600/30 transition shrink-0 cursor-pointer"
             >
               <Send class="w-6 h-6" />
@@ -408,8 +489,8 @@
             </div>
           </div>
 
-          <!-- Active Feedback Content -->
-          <template v-if="activeFeedbackMsg">
+          <!-- Active Feedback Content (CHỈ HIỂN THỊ KHI CÂU CÓ LỖI SAI) -->
+          <template v-if="activeFeedbackMsg && activeFeedbackMsg.feedback && activeFeedbackMsg.feedback.needs_improvement">
             <!-- Dotted/Dashed User Sentence Box -->
             <div class="border border-dashed border-indigo-200 bg-white rounded-2xl p-4.5 shadow-2xs space-y-2">
               <div class="flex items-center justify-between">
@@ -426,72 +507,50 @@
             </div>
 
             <!-- Feedback Diagnosis Card -->
-            <div v-if="activeFeedbackMsg.feedback" class="space-y-5">
-              <!-- Case 1: Có từ sai / cần cải thiện -> PHÂN TÍCH CHI TIẾT TỪ SAI -->
-              <template v-if="activeFeedbackMsg.feedback.needs_improvement">
-                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-900 text-xs sm:text-sm font-bold">
-                  <AlertCircle class="w-4 h-4 text-amber-600 shrink-0" />
-                  <span>Phát hiện từ sai hoặc diễn đạt chưa chuẩn</span>
-                </div>
+            <div class="space-y-5">
+              <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-900 text-xs sm:text-sm font-bold">
+                <AlertCircle class="w-4 h-4 text-amber-600 shrink-0" />
+                <span>Phát hiện từ sai hoặc diễn đạt chưa chuẩn</span>
+              </div>
 
-                <!-- Phrasing comparison: Từ sai vs Gợi ý chuẩn -->
-                <div class="space-y-3">
-                  <!-- Original phrase (red cross tag) -->
-                  <div v-if="activeFeedbackMsg.feedback.original_phrase" class="bg-slate-100/80 border border-slate-200 rounded-2xl p-3.5 flex items-start gap-3">
-                    <span class="w-6 h-6 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center shrink-0 font-bold text-sm mt-0.5">✕</span>
-                    <div class="min-w-0">
-                      <span class="text-xs font-bold text-slate-400 uppercase tracking-wide block">Từ / Cụm từ cần sửa</span>
-                      <p class="text-base font-semibold text-slate-800 line-through decoration-rose-500 decoration-2">
-                        {{ activeFeedbackMsg.feedback.original_phrase }}
-                      </p>
-                    </div>
-                  </div>
-
-                  <!-- Recommended phrase (TalkPal bright green #009b4d tag) -->
-                  <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex items-start gap-3 shadow-2xs">
-                    <span class="w-6 h-6 rounded-full bg-[#009b4d] text-white flex items-center justify-center shrink-0 font-bold text-sm mt-0.5">✓</span>
-                    <div class="min-w-0">
-                      <span class="text-xs font-bold text-emerald-800 uppercase tracking-wide block">Nên nói tự nhiên như sau</span>
-                      <p class="text-base sm:text-lg font-bold text-emerald-950 leading-snug">
-                        {{ activeFeedbackMsg.feedback.recommended_phrase || activeFeedbackMsg.feedback.original_phrase }}
-                      </p>
-                    </div>
+              <!-- Phrasing comparison: Từ sai vs Gợi ý chuẩn -->
+              <div class="space-y-3">
+                <!-- Original phrase (red cross tag) -->
+                <div v-if="activeFeedbackMsg.feedback.original_phrase" class="bg-slate-100/80 border border-slate-200 rounded-2xl p-3.5 flex items-start gap-3">
+                  <span class="w-6 h-6 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center shrink-0 font-bold text-sm mt-0.5">✕</span>
+                  <div class="min-w-0">
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wide block">Từ / Cụm từ cần sửa</span>
+                    <p class="text-base font-semibold text-slate-800 line-through decoration-rose-500 decoration-2">
+                      {{ activeFeedbackMsg.feedback.original_phrase }}
+                    </p>
                   </div>
                 </div>
 
-                <!-- Explanation Box in Vietnamese -->
-                <div class="bg-white border border-slate-200/80 rounded-2xl p-4.5 shadow-2xs space-y-2">
-                  <span class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                    <Lightbulb class="w-4 h-4 text-amber-500" /> Giải thích vì sao sai:
-                  </span>
-                  <p class="text-sm sm:text-base text-slate-700 leading-relaxed font-normal">
-                    {{ activeFeedbackMsg.feedback.explanation || 'Để câu nói tự nhiên và đúng ngữ pháp hơn, hãy sử dụng cách diễn đạt gợi ý phía trên.' }}
-                  </p>
-                </div>
-              </template>
-
-              <!-- Case 2: Nói đúng -> CHỈ CẦN TICK, KHÔNG PHÂN TÍCH RƯỜM RÀ -->
-              <template v-else>
-                <div class="bg-emerald-50/80 border border-emerald-200 rounded-3xl p-6 text-center space-y-3">
-                  <div class="w-14 h-14 rounded-2xl bg-emerald-500 text-white flex items-center justify-center mx-auto shadow-sm">
-                    <Check class="w-8 h-8 stroke-[3]" />
+                <!-- Recommended phrase (TalkPal bright green #009b4d tag) -->
+                <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex items-start gap-3 shadow-2xs">
+                  <span class="w-6 h-6 rounded-full bg-[#009b4d] text-white flex items-center justify-center shrink-0 font-bold text-sm mt-0.5">✓</span>
+                  <div class="min-w-0">
+                    <span class="text-xs font-bold text-emerald-800 uppercase tracking-wide block">Nên nói tự nhiên như sau</span>
+                    <p class="text-base sm:text-lg font-bold text-emerald-950 leading-snug">
+                      {{ activeFeedbackMsg.feedback.recommended_phrase || activeFeedbackMsg.feedback.original_phrase }}
+                    </p>
                   </div>
-                  <h4 class="text-lg sm:text-xl font-bold text-emerald-950">Câu nói hoàn toàn chính xác!</h4>
-                  <p class="text-sm sm:text-base text-emerald-800 font-medium leading-relaxed">
-                    Bạn đã diễn đạt đúng ngữ pháp và tự nhiên. Không có từ sai nào cần phân tích.
-                  </p>
                 </div>
-              </template>
-            </div>
+              </div>
 
-            <!-- Analyzing pending state -->
-            <div v-else class="p-6 text-center bg-white rounded-2xl border border-slate-200/80 space-y-2">
-              <Loader2 class="w-6 h-6 animate-spin mx-auto text-indigo-600" />
-              <p class="text-sm font-semibold text-slate-600">AI đang phân tích câu...</p>
+              <!-- Explanation Box in Vietnamese -->
+              <div class="bg-white border border-slate-200/80 rounded-2xl p-4.5 shadow-2xs space-y-2">
+                <span class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                  <Lightbulb class="w-4 h-4 text-amber-500" /> Giải thích vì sao sai:
+                </span>
+                <p class="text-sm sm:text-base text-slate-700 leading-relaxed font-normal">
+                  {{ activeFeedbackMsg.feedback.explanation || 'Để câu nói tự nhiên và đúng ngữ pháp hơn, hãy sử dụng cách diễn đạt gợi ý phía trên.' }}
+                </p>
+              </div>
             </div>
           </template>
 
-          <!-- Empty placeholder when no user messages yet -->
+          <!-- Empty placeholder when no errors to display -->
           <div v-else class="py-14 text-center space-y-3">
             <div class="w-16 h-16 mx-auto rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center shadow-2xs">
               <Sparkles class="w-8 h-8" />
@@ -499,7 +558,7 @@
             <div>
               <h4 class="text-base font-bold text-slate-800">Trợ lý phân tích từ sai</h4>
               <p class="text-sm text-slate-500 mt-1.5 max-w-[260px] mx-auto leading-relaxed">
-                Khi bạn nói có từ chưa chuẩn, AI sẽ hiển thị chi tiết từ sai và cách sửa đúng ngay tại đây!
+                Khi bạn nói có từ hoặc câu chưa chuẩn, AI sẽ tự động phân tích chi tiết từ sai và cách sửa đúng ngay tại đây!
               </p>
             </div>
           </div>
@@ -528,54 +587,42 @@
           </div>
 
           <div class="p-5 overflow-y-auto space-y-4">
-            <template v-if="activeFeedbackMsg">
+            <template v-if="activeFeedbackMsg && activeFeedbackMsg.feedback && activeFeedbackMsg.feedback.needs_improvement">
               <div class="border border-dashed border-indigo-200 bg-indigo-50/40 rounded-2xl p-4 space-y-1.5">
                 <span class="text-xs font-bold text-indigo-700">Câu bạn đã nói:</span>
                 <p class="text-base sm:text-lg font-bold text-slate-900">"{{ activeFeedbackMsg.message_text || activeFeedbackMsg.text }}"</p>
               </div>
 
-              <div v-if="activeFeedbackMsg.feedback" class="space-y-3">
-                <!-- Từ sai cần sửa -->
-                <div v-if="activeFeedbackMsg.feedback.needs_improvement" class="space-y-3">
-                  <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold">
-                    <AlertCircle class="w-4 h-4 text-amber-600" />
-                    <span>Phát hiện từ sai / cần cải thiện</span>
-                  </div>
+              <div class="space-y-3">
+                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold">
+                  <AlertCircle class="w-4 h-4 text-amber-600" />
+                  <span>Phát hiện từ sai / cần cải thiện</span>
+                </div>
 
-                  <div v-if="activeFeedbackMsg.feedback.original_phrase" class="bg-slate-100/80 border border-slate-200 rounded-2xl p-3 flex items-start gap-2.5">
-                    <span class="w-5 h-5 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center shrink-0 font-bold text-xs mt-0.5">✕</span>
-                    <div>
-                      <span class="text-xs font-bold text-slate-400 uppercase tracking-wide block">Từ / cụm từ cần sửa</span>
-                      <p class="text-base font-semibold text-slate-800 line-through">{{ activeFeedbackMsg.feedback.original_phrase }}</p>
-                    </div>
-                  </div>
-
-                  <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-3.5 flex items-start gap-2.5">
-                    <span class="w-5 h-5 rounded-full bg-[#009b4d] text-white flex items-center justify-center shrink-0 font-bold text-xs mt-0.5">✓</span>
-                    <div>
-                      <span class="text-xs font-bold text-emerald-800 uppercase tracking-wide block">Nên nói như sau</span>
-                      <p class="text-base sm:text-lg font-bold text-emerald-950">{{ activeFeedbackMsg.feedback.recommended_phrase || activeFeedbackMsg.feedback.original_phrase }}</p>
-                    </div>
-                  </div>
-
-                  <div class="bg-white border border-slate-200 rounded-2xl p-4 space-y-1">
-                    <span class="text-xs font-bold text-slate-700">Giải thích:</span>
-                    <p class="text-sm sm:text-base text-slate-600 leading-relaxed">{{ activeFeedbackMsg.feedback.explanation }}</p>
+                <div v-if="activeFeedbackMsg.feedback.original_phrase" class="bg-slate-100/80 border border-slate-200 rounded-2xl p-3 flex items-start gap-2.5">
+                  <span class="w-5 h-5 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center shrink-0 font-bold text-xs mt-0.5">✕</span>
+                  <div>
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wide block">Từ / cụm từ cần sửa</span>
+                    <p class="text-base font-semibold text-slate-800 line-through">{{ activeFeedbackMsg.feedback.original_phrase }}</p>
                   </div>
                 </div>
 
-                <!-- Nói đúng: chỉ tick -->
-                <div v-else class="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 text-center space-y-2">
-                  <div class="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center mx-auto">
-                    <Check class="w-6 h-6 stroke-[3]" />
+                <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-3.5 flex items-start gap-2.5">
+                  <span class="w-5 h-5 rounded-full bg-[#009b4d] text-white flex items-center justify-center shrink-0 font-bold text-xs mt-0.5">✓</span>
+                  <div>
+                    <span class="text-xs font-bold text-emerald-800 uppercase tracking-wide block">Nên nói như sau</span>
+                    <p class="text-base sm:text-lg font-bold text-emerald-950">{{ activeFeedbackMsg.feedback.recommended_phrase || activeFeedbackMsg.feedback.original_phrase }}</p>
                   </div>
-                  <h4 class="text-base font-bold text-emerald-950">Câu nói chuẩn xác!</h4>
-                  <p class="text-sm text-emerald-800">Không có từ sai cần phân tích.</p>
+                </div>
+
+                <div class="bg-white border border-slate-200 rounded-2xl p-4 space-y-1">
+                  <span class="text-xs font-bold text-slate-700">Giải thích:</span>
+                  <p class="text-sm sm:text-base text-slate-600 leading-relaxed">{{ activeFeedbackMsg.feedback.explanation }}</p>
                 </div>
               </div>
             </template>
             <div v-else class="text-center py-8 text-sm text-slate-500">
-              Chưa có tin nhắn nào để hiển thị phản hồi.
+              Chưa có câu nào cần sửa lỗi. Hãy tiếp tục trò chuyện tự nhiên cùng AI nhé!
             </div>
           </div>
         </div>
@@ -779,15 +826,19 @@ import {
   Loader2,
   MessageSquare,
   Mic,
+  Pause,
+  Play,
   RotateCcw,
   Search,
   Send,
   Sparkles,
   Square,
+  Trash2,
   Volume2,
   X,
 } from 'lucide-vue-next';
 import { computed, inject, ref } from 'vue';
+import { getFullAudioUrl } from '../services/api';
 
 const ctx = inject('screenContext');
 const goBack = ctx.goBack;
@@ -816,8 +867,87 @@ const startChatConversation = ctx.startChatConversation;
 const createAndSelectCustomScenario = ctx.createAndSelectCustomScenario;
 const switchChatScenario = ctx.switchChatScenario;
 const toggleChatVoice = ctx.toggleChatVoice;
+const startChatVoice = ctx.startChatVoice;
+const cancelChatVoice = ctx.cancelChatVoice;
+const togglePauseRecording = ctx.togglePauseRecording;
+const sendChatVoice = ctx.sendChatVoice;
+const isRecordingPaused = ctx.isRecordingPaused;
+const recordingDuration = ctx.recordingDuration;
+const formattedRecordingTime = ctx.formattedRecordingTime;
 const toggleChatHistory = ctx.toggleChatHistory;
 const openChatConversation = ctx.openChatConversation;
+
+// Playback for user's own spoken messages
+const playingMessageId = ref(null);
+let activeUserAudioPlayer = null;
+
+const playUserMessageAudio = (msg, idx) => {
+  if (!msg) return;
+  const msgKey = msg.id || idx;
+
+  if (playingMessageId.value === msgKey) {
+    if (activeUserAudioPlayer) {
+      activeUserAudioPlayer.pause();
+      activeUserAudioPlayer = null;
+    }
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    playingMessageId.value = null;
+    return;
+  }
+
+  if (activeUserAudioPlayer) {
+    activeUserAudioPlayer.pause();
+    activeUserAudioPlayer = null;
+  }
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+  }
+
+  const audioSrc = msg.audio_blob_url || (msg.audio_url ? getFullAudioUrl(msg.audio_url) : null);
+  if (audioSrc) {
+    playingMessageId.value = msgKey;
+    activeUserAudioPlayer = new Audio(audioSrc);
+    activeUserAudioPlayer.onended = () => {
+      playingMessageId.value = null;
+      activeUserAudioPlayer = null;
+    };
+    activeUserAudioPlayer.onerror = () => {
+      playingMessageId.value = null;
+      activeUserAudioPlayer = null;
+      speakUserTTS(msg, msgKey);
+    };
+    activeUserAudioPlayer.play().catch(() => {
+      speakUserTTS(msg, msgKey);
+    });
+  } else {
+    speakUserTTS(msg, msgKey);
+  }
+};
+
+const speakUserTTS = (msg, msgKey) => {
+  const text = msg.message_text || msg.text;
+  if (!text) {
+    playingMessageId.value = null;
+    return;
+  }
+  if ('speechSynthesis' in window) {
+    playingMessageId.value = msgKey;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US';
+    utterance.rate = 0.9;
+    utterance.onend = () => {
+      playingMessageId.value = null;
+    };
+    utterance.onerror = () => {
+      playingMessageId.value = null;
+    };
+    window.speechSynthesis.speak(utterance);
+  } else if (ctx.speakText) {
+    ctx.speakText(text);
+  }
+};
 
 // Topic Explorer & Custom Topic State
 const isTopicModalOpen = ref(false);
@@ -847,17 +977,12 @@ const activeFeedbackMsg = computed(() => {
   const msgs = chatMessages.value || [];
   if (selectedFeedbackIndex.value !== null && msgs[selectedFeedbackIndex.value]) {
     const m = msgs[selectedFeedbackIndex.value];
-    if (m.sender === 'user' || m.sender === 'USER') return m;
+    if ((m.sender === 'user' || m.sender === 'USER') && m.feedback?.needs_improvement) return m;
   }
-  // Ưu tiên hiển thị câu có từ sai cần cải thiện (needs_improvement: true)
+  // Ưu tiên hiển thị câu có từ sai cần cải thiện gần nhất (needs_improvement: true)
   for (let i = msgs.length - 1; i >= 0; i--) {
     const m = msgs[i];
     if ((m.sender === 'user' || m.sender === 'USER') && m.feedback?.needs_improvement) return m;
-  }
-  // Nếu không có câu nào sai, lấy câu gần nhất của người dùng
-  for (let i = msgs.length - 1; i >= 0; i--) {
-    const m = msgs[i];
-    if (m.sender === 'user' || m.sender === 'USER') return m;
   }
   return null;
 });
@@ -1021,3 +1146,18 @@ const formatConversationDate = (date) => {
   });
 };
 </script>
+
+<style scoped>
+@keyframes soundwave {
+  0%, 100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1.3);
+  }
+}
+.animate-soundwave {
+  animation: soundwave 0.8s ease-in-out infinite;
+  transform-origin: center;
+}
+</style>

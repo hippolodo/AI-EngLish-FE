@@ -17,14 +17,14 @@
       <div>
         <div class="flex items-center gap-2 mb-1.5">
           <span class="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-wide border border-blue-100 flex items-center gap-1.5">
-            <Sparkles class="w-3.5 h-3.5 text-blue-600" /> Tra cứu từ điển AI Gemini
+            <Sparkles class="w-3.5 h-3.5 text-blue-600" /> Tra cứu từ điển
           </span>
           <span class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold border border-emerald-200">
             IPA Chuẩn bản xứ
           </span>
         </div>
         <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-          Từ điển thông minh AI
+          Từ điển thông minh 
         </h1>
         <p class="text-base sm:text-lg text-slate-600 mt-1 max-w-2xl leading-relaxed">
           Tra cứu từ vựng Anh - Việt tức thì, chuẩn phiên âm IPA, giải nghĩa ngữ cảnh chi tiết, ví dụ thực tế và tự động phân tích từ mới cùng AI.

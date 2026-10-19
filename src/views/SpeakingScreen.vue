@@ -537,6 +537,9 @@ const ARTICULATORY_GUIDES = {
 
 const getArticulatoryGuide = (wordObj) => {
   if (!wordObj) return '';
+  if (wordObj.error_type === 'Bỏ sót hoặc chưa phát âm từ này') {
+    return 'Từ này đã bị bỏ sót hoặc chưa được phát âm trong bản ghi âm. Hãy lắng nghe audio mẫu và luyện tập phát âm trọn vẹn cả câu nhé!';
+  }
   const word = (wordObj.word || '').toLowerCase();
   const ipa = (wordObj.target_ipa || '').toLowerCase();
 
