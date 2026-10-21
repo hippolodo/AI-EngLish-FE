@@ -409,8 +409,7 @@ const handleSearch = async () => {
       selectedWord.value = results[0];
       await loadHistory();
     } else {
-      // Thử gọi thẳng aiLookup
-      await handleAiLookup();
+      errorMessage.value = 'Word not found. You can try "Deep Search" for an extended lookup.';
     }
   } catch (err) {
     errorMessage.value = getErrorMessage(err, 'Word not found. You can try "Deep Search" for an extended lookup.');
