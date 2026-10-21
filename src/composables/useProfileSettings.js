@@ -38,7 +38,7 @@ export function useProfileSettings(ctx, service) {
   const save = async () => {
     if (saving.value || ctx.journey.loading.value) return;
     if (!ctx.isAuthenticated.value) { ctx.requireAuthentication(); return; }
-    if (!valid.value) { error.value = 'Nhập tên và chọn cài đặt hợp lệ trước khi lưu.'; return; }
+    if (!valid.value) { error.value = 'Please enter a valid display name and options before saving.'; return; }
     const requestVersion = version;
     const payload = { ...form.value, full_name: form.value.full_name.trim() };
     saving.value = true;
@@ -55,12 +55,12 @@ export function useProfileSettings(ctx, service) {
       if (requestVersion !== version) return;
       form.value = { full_name: result.user.full_name, target_level: result.user.target_level, goal: result.goal, daily_minutes: result.daily_minutes };
       baseline.value = { ...form.value };
-      message.value = 'Đã lưu thông tin và cài đặt học tập.';
+      message.value = 'Profile and study settings saved successfully.';
     } catch (err) {
       if (requestVersion !== version) return;
       const detail = err.response?.data?.detail;
       error.value = Array.isArray(detail) ? detail.map(item => item.msg).join(', ')
-        : typeof detail === 'string' ? detail : 'Chưa lưu được cài đặt. Các thay đổi được giữ để bạn thử lại.';
+        : typeof detail === 'string' ? detail : 'Could not save settings. Please try again.';
     } finally { if (requestVersion === version) saving.value = false; }
   };
 

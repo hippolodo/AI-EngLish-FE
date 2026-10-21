@@ -1,13 +1,13 @@
 <template>
   <div v-if="activeTab === 'study'" class="space-y-6 pb-28 w-full max-w-6xl mx-auto">
-    <!-- Top Back Button -->
-    <div>
+    <!-- Top Back Button (Only visible when navigated from a lesson or another screen) -->
+    <div v-if="hasHistory">
       <button
         @click="goBack"
         class="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl border border-slate-200 bg-white text-slate-700 font-bold text-sm hover:bg-slate-50 hover:text-blue-600 transition shadow-2xs cursor-pointer group"
       >
         <ArrowLeft class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-        <span>Quay lại</span>
+        <span>{{ ctx.currentLesson.value ? 'Quay lại bài học' : 'Quay lại' }}</span>
       </button>
     </div>
 
@@ -16,7 +16,7 @@
             <div class="flex items-center justify-between">
               <div>
                 <span class="text-xs uppercase tracking-wide font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md">Flashcard &amp; Quiz</span>
-                <h1 class="text-gray-900 mt-1.5 text-2xl sm:text-3xl font-extrabold leading-snug">Luyện tập</h1>
+                <h1 class="text-gray-900 mt-1.5 text-2xl sm:text-3xl font-extrabold leading-snug">Flashcard</h1>
               </div>
               <span v-if="totalStudyItems > 0" class="text-sm sm:text-base font-bold text-gray-700 bg-white border border-gray-200 px-4 py-1.5 rounded-full shadow-2xs">
                 Mục {{ currentStudyIndex + 1 }} / {{ totalStudyItems }}
@@ -377,6 +377,7 @@ const EMPTY_CARDS_HELP = 'Bộ từ này chưa có thẻ. Bạn có thể chọn
 const SAVING_NOTE = 'Đang lưu…';
 const NOTE_WORD = 'Note từ này';
 const goBack = ctx.goBack;
+const hasHistory = ctx.hasHistory;
 
 const formatIpa = (ipa) => {
   if (!ipa) return '';

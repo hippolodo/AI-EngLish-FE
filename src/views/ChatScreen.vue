@@ -3,14 +3,15 @@
     <!-- Chat Scenario & Tutor Header (TalkPal Ultra-Modern Style - Larger Font & Clear Layout) -->
     <div class="px-5 sm:px-8 py-4 bg-white border-b border-slate-100 flex items-center justify-between shrink-0 z-20">
       <div class="flex items-center space-x-3 sm:space-x-4 min-w-0">
-        <!-- Back Button -->
+        <!-- Back Button (Only visible when navigated from a lesson or another screen) -->
         <button
+          v-if="hasHistory"
           @click="goBack"
           class="flex items-center gap-1.5 px-3 py-2 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-blue-600 font-bold text-xs sm:text-sm transition shadow-2xs cursor-pointer shrink-0"
-          title="Quay lại"
+          title="Back"
         >
           <ArrowLeft class="w-4 h-4" />
-          <span class="hidden md:inline">Quay lại</span>
+          <span class="hidden md:inline">{{ ctx.currentLesson.value ? 'Back to Lesson' : 'Back' }}</span>
         </button>
 
         <!-- Tutor Avatar with Online Indicator -->
@@ -31,24 +32,24 @@
           <div class="flex items-center gap-2.5 sm:gap-3 flex-wrap">
             <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
               <span>Emma</span>
-              <span class="text-xs sm:text-sm font-semibold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/60 hidden sm:inline">AI Tutor</span>
+              <span class="text-xs sm:text-sm font-semibold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/60 hidden sm:inline">Tutor</span>
             </h2>
 
             <button
               @click="openTopicModal"
               :disabled="chatLoading || isBotTyping || isChatRecording"
               class="group text-left cursor-pointer flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-50 hover:bg-indigo-50 border border-slate-200/80 hover:border-indigo-300 transition text-sm sm:text-base font-semibold text-slate-700 hover:text-indigo-700 shadow-2xs"
-              title="Nhấn để đổi hoặc tự tạo chủ đề mới"
+              title="Click to change or create scenario"
             >
               <span class="text-lg shrink-0">{{ getScenarioEmoji(currentChatScenario) }}</span>
-              <span class="truncate max-w-[150px] sm:max-w-[280px]">{{ currentChatScenario?.title || 'Chọn chủ đề' }}</span>
+              <span class="truncate max-w-[150px] sm:max-w-[280px]">{{ currentChatScenario?.title || 'Choose Scenario' }}</span>
               <ChevronRight class="w-4 h-4 text-slate-400 group-hover:text-indigo-600 group-hover:translate-x-0.5 transition" />
             </button>
           </div>
 
           <p class="text-xs sm:text-sm text-slate-500 font-medium flex items-center gap-1.5 truncate mt-1">
             <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
-            <span class="truncate">{{ currentChatScenario?.bot_role ? 'Vai trò: ' + currentChatScenario.bot_role : 'Sẵn sàng • Luyện phản xạ & sửa lỗi từ sai cùng AI' }}</span>
+            <span class="truncate">{{ currentChatScenario?.bot_role ? 'Role: ' + currentChatScenario.bot_role : 'Ready • Reflex practice & real-time feedback' }}</span>
           </p>
         </div>
       </div>
@@ -59,30 +60,30 @@
         <button
           @click="isMobileFeedbackOpen = !isMobileFeedbackOpen"
           class="lg:hidden inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-sm font-bold transition cursor-pointer shadow-2xs"
-          title="Xem phân tích lỗi sai"
+          title="View error analysis"
         >
           <Sparkles class="w-4 h-4 text-amber-600" />
-          <span>Góp ý</span>
+          <span>Feedback</span>
         </button>
 
         <button
           :disabled="chatLoading || isBotTyping || isChatRecording"
           @click="toggleChatHistory"
-          title="Lịch sử các cuộc trò chuyện"
+          title="Conversation history"
           class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-3.5 py-2.5 text-sm font-semibold text-slate-700 transition cursor-pointer shadow-2xs"
         >
           <History class="w-4 h-4 text-slate-500" />
-          <span class="hidden md:inline">Lịch sử</span>
+          <span class="hidden md:inline">History</span>
         </button>
 
         <button
           :disabled="chatLoading || isBotTyping || isChatRecording"
           @click="resetChatConversation"
-          title="Bắt đầu hội thoại mới"
+          title="Start new conversation"
           class="p-2.5 sm:px-3.5 sm:py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-sm font-semibold text-slate-700 transition cursor-pointer shadow-2xs flex items-center gap-1.5"
         >
           <RotateCcw class="w-4 h-4 text-slate-500" />
-          <span class="hidden md:inline">Làm mới</span>
+          <span class="hidden md:inline">Reset</span>
         </button>
       </div>
     </div>
@@ -90,15 +91,15 @@
     <!-- Active Session Target Banner & Quick Actions -->
     <div v-if="conversationId && !isChatHistoryOpen" class="px-5 sm:px-8 py-3 bg-indigo-50/60 border-b border-indigo-100/70 text-sm text-indigo-950 flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center gap-2 min-w-0">
-        <span class="font-bold text-indigo-700 shrink-0">Mục tiêu:</span>
-        <span class="truncate text-slate-700 font-medium">{{ currentChatScenario?.description || 'Luyện phản xạ thành câu tự nhiên theo tình huống.' }}</span>
+        <span class="font-bold text-indigo-700 shrink-0">Goal:</span>
+        <span class="truncate text-slate-700 font-medium">{{ currentChatScenario?.description || 'Practice natural conversational reflexes for this situation.' }}</span>
       </div>
       <div class="flex items-center gap-4 font-bold text-xs sm:text-sm shrink-0">
         <button @click="ctx.openSaveWord('', chatMessages.at(-1)?.message_text || '')" class="text-indigo-700 hover:text-indigo-900 hover:underline cursor-pointer">
-          + Lưu từ vựng
+          + Save Word
         </button>
         <button @click="ctx.endChatSession" :disabled="isBotTyping || isChatRecording || chatLoading" class="text-rose-600 hover:text-rose-800 hover:underline cursor-pointer">
-          Kết thúc phiên
+          End Session
         </button>
       </div>
     </div>
@@ -108,16 +109,16 @@
       <div class="space-y-2 rounded-2xl bg-white p-6 border border-indigo-100 shadow-xs max-w-2xl mx-auto">
         <div class="flex items-center gap-2 text-indigo-600 font-bold">
           <Sparkles class="w-5 h-5" />
-          <span class="text-base sm:text-lg">Tổng kết phiên luyện tập</span>
+          <span class="text-base sm:text-lg">Session Summary</span>
         </div>
-        <p class="font-bold text-slate-900 text-base sm:text-lg">Đã thực hành {{ ctx.chatSummary.value.turns }} lượt trao đổi, luyện {{ ctx.chatSummary.value.words }} từ vựng.</p>
-        <p class="font-normal text-slate-600 text-sm sm:text-base leading-relaxed">Bạn có thể xem lại các góp ý từ sai hoặc lưu các từ vựng mới để tiếp tục ôn tập bằng thẻ ghi nhớ.</p>
+        <p class="font-bold text-slate-900 text-base sm:text-lg">Practiced {{ ctx.chatSummary.value.turns }} exchanges, exercised {{ ctx.chatSummary.value.words }} words.</p>
+        <p class="font-normal text-slate-600 text-sm sm:text-base leading-relaxed">Review suggestions and corrections or bookmark new words to practice on flashcards.</p>
         <div class="pt-2 flex gap-4 text-sm sm:text-base font-semibold">
           <button @click="ctx.currentLesson.value ? activeTab = 'lesson' : activeTab = 'home'" class="underline text-indigo-600 hover:text-indigo-800">
-            {{ ctx.currentLesson.value ? 'Trở về bài học' : 'Trở về trang chủ' }}
+            {{ ctx.currentLesson.value ? 'Back to Lesson' : 'Back to Home' }}
           </button>
           <button @click="ctx.chatSummary.value = null" class="underline text-slate-600 hover:text-slate-800">
-            Tiếp tục trò chuyện
+            Continue Chat
           </button>
         </div>
       </div>
@@ -128,17 +129,17 @@
       <div class="max-w-3xl mx-auto space-y-5">
         <div class="flex items-center justify-between">
           <div>
-            <h2 class="text-xl font-bold text-slate-900">Lịch sử các cuộc trò chuyện</h2>
-            <p class="mt-1 text-sm text-slate-500">Chọn cuộc trò chuyện để xem lại nội dung và điểm lưu loát</p>
+            <h2 class="text-xl font-bold text-slate-900">Conversation History</h2>
+            <p class="mt-1 text-sm text-slate-500">Select a conversation to review messages and fluency score</p>
           </div>
-          <button @click="toggleChatHistory" aria-label="Đóng lịch sử" class="rounded-xl border border-slate-200 bg-white p-2.5 text-slate-500 transition hover:bg-slate-50 cursor-pointer">
+          <button @click="toggleChatHistory" aria-label="Close history" class="rounded-xl border border-slate-200 bg-white p-2.5 text-slate-500 transition hover:bg-slate-50 cursor-pointer">
             <X class="h-4 w-4" />
           </button>
         </div>
 
         <div v-if="chatHistoryLoading" class="py-12 text-center text-base text-slate-500">
           <Loader2 class="mx-auto mb-2 h-6 w-6 animate-spin text-indigo-600" />
-          Đang tải lịch sử...
+          Loading history...
         </div>
         <p v-else-if="chatHistoryError" class="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-base text-rose-700">{{ chatHistoryError }}</p>
         <div v-else-if="chatConversations.length" class="space-y-3">
@@ -157,14 +158,14 @@
               <span class="mt-1 block text-xs sm:text-sm text-slate-500">{{ formatConversationDate(conversation.created_at) }}</span>
             </span>
             <span class="shrink-0 rounded-full bg-emerald-50 border border-emerald-200 px-3.5 py-1 text-xs sm:text-sm font-bold text-emerald-700">
-              {{ Math.round(conversation.fluency_score || 0) }}% lưu loát
+              {{ Math.round(conversation.fluency_score || 0) }}% fluency
             </span>
           </button>
         </div>
         <div v-else class="rounded-3xl border border-dashed border-slate-200 bg-white/80 px-5 py-16 text-center">
           <History class="mx-auto mb-3 h-10 w-10 text-slate-300" />
-          <p class="text-base font-bold text-slate-700">Chưa có cuộc trò chuyện nào</p>
-          <p class="mt-1 text-sm text-slate-500">Các phiên chat của bạn sẽ được lưu tự động tại đây.</p>
+          <p class="text-base font-bold text-slate-700">No conversations yet</p>
+          <p class="mt-1 text-sm text-slate-500">Your chat sessions will be automatically saved here.</p>
         </div>
       </div>
     </div>
@@ -179,7 +180,7 @@
         <div ref="chatScrollContainer" class="flex-1 p-5 sm:p-8 space-y-6 overflow-y-auto no-scrollbar">
           <div v-if="chatLoading" class="py-16 text-center text-base sm:text-lg text-slate-500">
             <Loader2 class="w-8 h-8 animate-spin mx-auto text-indigo-600 mb-3" />
-            Đang kết nối phiên hội thoại cùng Emma...
+            Connecting conversation with Emma...
           </div>
 
           <template v-else>
@@ -191,10 +192,10 @@
               <div>
                 <h3 class="text-xl sm:text-2xl font-bold text-slate-900 flex items-center justify-center gap-2">
                   <span class="text-2xl">{{ getScenarioEmoji(currentChatScenario) }}</span>
-                  <span>{{ currentChatScenario ? currentChatScenario.title : 'Chọn chủ đề hội thoại' }}</span>
+                  <span>{{ currentChatScenario ? currentChatScenario.title : 'Choose a conversation scenario' }}</span>
                 </h3>
                 <p class="text-base sm:text-lg text-slate-500 mt-2 leading-relaxed">
-                  {{ currentChatScenario?.description || 'Chọn kịch bản thực tế hoặc để AI tự tạo tình huống theo ý muốn của bạn.' }}
+                  {{ currentChatScenario?.description || 'Select a real-world scenario or create your own custom topic.' }}
                 </p>
               </div>
               <div class="flex items-center justify-center gap-3 pt-2">
@@ -203,7 +204,7 @@
                   type="button"
                   class="rounded-xl border border-indigo-200 bg-white hover:bg-indigo-50 px-5 py-3 text-sm sm:text-base font-bold text-indigo-700 transition shadow-2xs cursor-pointer flex items-center gap-2"
                 >
-                  <Compass class="w-4 h-4 text-indigo-600" /> Khám phá các chủ đề
+                  <Compass class="w-4 h-4 text-indigo-600" /> Explore Scenarios
                 </button>
                 <button
                   @click="isAuthenticated ? startChatConversation() : requireAuthentication()"
@@ -212,7 +213,7 @@
                   class="rounded-xl bg-indigo-600 hover:bg-indigo-700 px-6 py-3 text-sm sm:text-base font-bold text-white disabled:opacity-50 transition shadow-md shadow-indigo-600/20 cursor-pointer flex items-center gap-2"
                 >
                   <Sparkles class="w-4 h-4" />
-                  <span>{{ isAuthenticated ? 'Bắt đầu hội thoại' : 'Đăng nhập' }}</span>
+                  <span>{{ isAuthenticated ? 'Start Conversation' : 'Sign In' }}</span>
                 </button>
               </div>
             </div>
@@ -243,10 +244,10 @@
                       <button
                         @click="speakBotMessage(msg)"
                         class="inline-flex items-center gap-1.5 text-sm sm:text-base font-semibold text-slate-500 hover:text-indigo-600 transition cursor-pointer"
-                        title="Nghe phát âm chuẩn"
+                        title="Listen to pronunciation"
                       >
                         <Volume2 class="w-4 h-4 sm:w-5 sm:h-5" />
-                        <span>Phát âm</span>
+                        <span>Speak</span>
                       </button>
 
                       <span class="text-slate-300">•</span>
@@ -256,10 +257,10 @@
                         @click="toggleTranslation(msg.id || idx)"
                         class="inline-flex items-center gap-1.5 text-sm sm:text-base font-semibold transition cursor-pointer"
                         :class="showTranslationMap[msg.id || idx] ? 'text-indigo-600' : 'text-slate-500 hover:text-indigo-600'"
-                        title="Xem dịch nghĩa tiếng Việt"
+                        title="View translation"
                       >
                         <Languages class="w-4 h-4 sm:w-5 sm:h-5" />
-                        <span>{{ showTranslationMap[msg.id || idx] ? 'Ẩn dịch' : 'Dịch câu' }}</span>
+                        <span>{{ showTranslationMap[msg.id || idx] ? 'Hide' : 'Translate' }}</span>
                       </button>
                     </div>
 
@@ -268,8 +269,8 @@
                       v-if="showTranslationMap[msg.id || idx]"
                       class="mt-2 text-base text-slate-700 bg-indigo-50/70 border border-indigo-100/90 rounded-2xl px-4.5 py-3 flex items-start gap-3 animate-in fade-in slide-in-from-top-1 duration-150 shadow-2xs"
                     >
-                      <span class="text-xs font-bold text-indigo-700 uppercase shrink-0 mt-0.5 bg-indigo-100 px-2 py-0.5 rounded-md">Bản dịch</span>
-                      <p class="leading-relaxed font-medium text-slate-800">{{ msg.translation_vi || 'Xin chào! Hãy trò chuyện tự nhiên cùng tôi nhé.' }}</p>
+                      <span class="text-xs font-bold text-indigo-700 uppercase shrink-0 mt-0.5 bg-indigo-100 px-2 py-0.5 rounded-md">Translation</span>
+                      <p class="leading-relaxed font-medium text-slate-800">{{ msg.translation_vi || 'Hello! Feel free to chat with me.' }}</p>
                     </div>
                   </div>
                 </div>
@@ -289,7 +290,7 @@
                     <button
                       v-if="msg.feedback && msg.feedback.needs_improvement"
                       @click="selectFeedbackMessage(idx)"
-                      title="Bấm để xem phân tích từ/câu sai"
+                      title="Click to view phrase & word corrections"
                       class="shrink-0 mb-1 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm shadow-2xs cursor-pointer transition-transform hover:scale-115 active:scale-95 bg-amber-500 text-white ring-2 ring-amber-200"
                     >
                       <span class="font-black text-sm">!</span>
@@ -316,17 +317,17 @@
                           @click.stop="playUserMessageAudio(msg, idx)"
                           class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold transition cursor-pointer"
                           :class="playingMessageId === (msg.id || idx) ? 'text-indigo-600 font-bold' : 'text-slate-500 hover:text-indigo-600'"
-                          title="Nghe lại câu bạn đã nói"
+                          title="Replay your recorded audio"
                         >
                           <Volume2 class="w-3.5 h-3.5 sm:w-4 sm:h-4" :class="playingMessageId === (msg.id || idx) ? 'animate-bounce text-indigo-600' : ''" />
-                          <span>{{ playingMessageId === (msg.id || idx) ? 'Đang phát...' : 'Phát lại' }}</span>
+                          <span>{{ playingMessageId === (msg.id || idx) ? 'Playing...' : 'Replay' }}</span>
                         </button>
 
                         <!-- Fluency Pill if Available -->
                         <span v-if="(msg.audio_url || msg.audio_blob_url) && msg.fluency_score" class="text-slate-300">•</span>
                         <div v-if="msg.fluency_score" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                           <Sparkles class="w-3 h-3 text-emerald-500 fill-emerald-500" />
-                          <span>Lưu loát {{ Math.round(msg.fluency_score) }}%</span>
+                          <span>Fluency {{ Math.round(msg.fluency_score) }}%</span>
                         </div>
                       </div>
                     </div>
@@ -347,7 +348,7 @@
                   <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-bounce"></span>
                   <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-bounce [animation-delay:0.2s]"></span>
                   <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-bounce [animation-delay:0.4s]"></span>
-                  <span class="ml-2 font-medium text-slate-700">Emma đang soạn câu trả lời...</span>
+                  <span class="ml-2 font-medium text-slate-700">Emma is typing...</span>
                 </div>
               </div>
             </template>
@@ -361,7 +362,7 @@
             @click="askAnotherQuestion"
             :disabled="chatLoading || isBotTyping"
             class="inline-flex items-center gap-2 px-4.5 py-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm sm:text-base font-semibold transition cursor-pointer border border-slate-200/60 shadow-2xs group"
-            title="Nhờ AI hỏi một câu hỏi mới theo chủ đề"
+            title="Ask a topic-related question"
           >
             <HelpCircle class="w-4 h-4 text-indigo-600 group-hover:rotate-12 transition-transform" />
             <span>Another question</span>
@@ -372,7 +373,7 @@
             @click="applySuggestedAnswer"
             :disabled="chatLoading || isBotTyping"
             class="inline-flex items-center gap-2 px-4.5 py-2 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-sm sm:text-base font-semibold transition cursor-pointer border border-indigo-200/70 shadow-2xs group"
-            title="Điền sẵn câu trả lời mẫu gợi ý vào ô nhập"
+            title="Insert a sample response"
           >
             <Lightbulb class="w-4 h-4 text-amber-500 group-hover:scale-110 transition-transform" />
             <span>Suggest answer</span>
@@ -388,7 +389,7 @@
               @click="cancelChatVoice"
               type="button"
               class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition shrink-0 cursor-pointer shadow-2xs border border-slate-200/60 hover:border-rose-200"
-              title="Hủy bỏ đoạn ghi âm này"
+              title="Cancel recording"
             >
               <Trash2 class="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
@@ -400,7 +401,7 @@
                 @click="togglePauseRecording"
                 type="button"
                 class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white text-[#2b59ff] flex items-center justify-center shrink-0 cursor-pointer hover:scale-105 active:scale-95 transition shadow-2xs"
-                :title="isRecordingPaused ? 'Tiếp tục ghi âm' : 'Tạm dừng ghi âm'"
+                :title="isRecordingPaused ? 'Resume recording' : 'Pause recording'"
               >
                 <Play v-if="isRecordingPaused" class="w-4 h-4 fill-current ml-0.5" />
                 <Pause v-else class="w-4 h-4 fill-current" />
@@ -432,7 +433,7 @@
               @click="sendChatVoice"
               type="button"
               class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#2b59ff] hover:bg-blue-700 text-white flex items-center justify-center shadow-md shadow-blue-600/30 transition shrink-0 cursor-pointer hover:scale-105 active:scale-95"
-              title="Gửi câu nói đến AI"
+              title="Send voice message"
             >
               <Send class="w-5 h-5 sm:w-6 sm:h-6 fill-current" />
             </button>
@@ -444,7 +445,7 @@
             <button
               :disabled="chatLoading || isBotTyping || !conversationId"
               @click="startChatVoice"
-              title="Ghi âm giọng nói"
+              title="Record voice"
               class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-slate-100 text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 flex items-center justify-center transition shrink-0 cursor-pointer shadow-2xs disabled:opacity-50"
             >
               <Mic class="w-6 h-6" />
@@ -456,7 +457,7 @@
               @keyup.enter="sendChatText"
               :disabled="chatLoading || isBotTyping || !conversationId"
               type="text"
-              placeholder="Aa"
+              placeholder="Type your message..."
               class="flex-1 bg-slate-100 text-base sm:text-lg lg:text-xl text-slate-900 placeholder-slate-400 px-5 sm:px-6 py-3.5 sm:py-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-600 transition"
             />
 
@@ -483,8 +484,8 @@
                 <Sparkles class="w-5 h-5" />
               </div>
               <div>
-                <h3 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">Phản hồi thời gian thực</h3>
-                <p class="text-xs sm:text-sm text-slate-500">Phân tích từ sai & cách nói tự nhiên</p>
+                <h3 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">Real-time Feedback</h3>
+                <p class="text-xs sm:text-sm text-slate-500">Phoneme accuracy & natural phrasing</p>
               </div>
             </div>
           </div>
@@ -495,10 +496,10 @@
             <div class="border border-dashed border-indigo-200 bg-white rounded-2xl p-4.5 shadow-2xs space-y-2">
               <div class="flex items-center justify-between">
                 <span class="text-xs sm:text-sm font-bold text-indigo-700 flex items-center gap-1.5">
-                  <MessageSquare class="w-4 h-4 text-indigo-600" /> Câu bạn đã nói
+                  <MessageSquare class="w-4 h-4 text-indigo-600" /> Your utterance
                 </span>
                 <span v-if="activeFeedbackMsg.fluency_score" class="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
-                  {{ Math.round(activeFeedbackMsg.fluency_score) }}% lưu loát
+                  {{ Math.round(activeFeedbackMsg.fluency_score) }}% fluency
                 </span>
               </div>
               <p class="text-base sm:text-lg font-bold text-slate-900 leading-relaxed">
@@ -510,7 +511,7 @@
             <div class="space-y-5">
               <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-900 text-xs sm:text-sm font-bold">
                 <AlertCircle class="w-4 h-4 text-amber-600 shrink-0" />
-                <span>Phát hiện từ sai hoặc diễn đạt chưa chuẩn</span>
+                <span>Detected unnatural or inaccurate phrasing</span>
               </div>
 
               <!-- Phrasing comparison: Từ sai vs Gợi ý chuẩn -->
@@ -519,7 +520,7 @@
                 <div v-if="activeFeedbackMsg.feedback.original_phrase" class="bg-slate-100/80 border border-slate-200 rounded-2xl p-3.5 flex items-start gap-3">
                   <span class="w-6 h-6 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center shrink-0 font-bold text-sm mt-0.5">✕</span>
                   <div class="min-w-0">
-                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wide block">Từ / Cụm từ cần sửa</span>
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wide block">Needs improvement</span>
                     <p class="text-base font-semibold text-slate-800 line-through decoration-rose-500 decoration-2">
                       {{ activeFeedbackMsg.feedback.original_phrase }}
                     </p>
@@ -530,7 +531,7 @@
                 <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex items-start gap-3 shadow-2xs">
                   <span class="w-6 h-6 rounded-full bg-[#009b4d] text-white flex items-center justify-center shrink-0 font-bold text-sm mt-0.5">✓</span>
                   <div class="min-w-0">
-                    <span class="text-xs font-bold text-emerald-800 uppercase tracking-wide block">Nên nói tự nhiên như sau</span>
+                    <span class="text-xs font-bold text-emerald-800 uppercase tracking-wide block">Better natural expression</span>
                     <p class="text-base sm:text-lg font-bold text-emerald-950 leading-snug">
                       {{ activeFeedbackMsg.feedback.recommended_phrase || activeFeedbackMsg.feedback.original_phrase }}
                     </p>
@@ -541,10 +542,10 @@
               <!-- Explanation Box in Vietnamese -->
               <div class="bg-white border border-slate-200/80 rounded-2xl p-4.5 shadow-2xs space-y-2">
                 <span class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                  <Lightbulb class="w-4 h-4 text-amber-500" /> Giải thích vì sao sai:
+                  <Lightbulb class="w-4 h-4 text-amber-500" /> Explanation & Tip:
                 </span>
                 <p class="text-sm sm:text-base text-slate-700 leading-relaxed font-normal">
-                  {{ activeFeedbackMsg.feedback.explanation || 'Để câu nói tự nhiên và đúng ngữ pháp hơn, hãy sử dụng cách diễn đạt gợi ý phía trên.' }}
+                  {{ activeFeedbackMsg.feedback.explanation || 'To sound more natural and grammatically accurate, use the suggested phrasing above.' }}
                 </p>
               </div>
             </div>
@@ -556,16 +557,16 @@
               <Sparkles class="w-8 h-8" />
             </div>
             <div>
-              <h4 class="text-base font-bold text-slate-800">Trợ lý phân tích từ sai</h4>
+              <h4 class="text-base font-bold text-slate-800">Real-time Feedback Tutor</h4>
               <p class="text-sm text-slate-500 mt-1.5 max-w-[260px] mx-auto leading-relaxed">
-                Khi bạn nói có từ hoặc câu chưa chuẩn, AI sẽ tự động phân tích chi tiết từ sai và cách sửa đúng ngay tại đây!
+                Whenever you say something inaccurate, actionable explanations and natural expressions will appear here!
               </p>
             </div>
           </div>
         </div>
 
         <div class="pt-4 border-t border-slate-200/70 text-xs text-slate-400 text-center">
-          TalkPal Real-time AI Grammar Engine
+          TalkPal Real-time Grammar Engine
         </div>
       </aside>
 
@@ -579,7 +580,7 @@
           <div class="p-4.5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
             <div class="flex items-center gap-2">
               <Sparkles class="w-5 h-5 text-indigo-600" />
-              <h3 class="text-base font-bold text-slate-900">Phản hồi & Sửa từ sai</h3>
+              <h3 class="text-base font-bold text-slate-900">Feedback & Corrections</h3>
             </div>
             <button @click="isMobileFeedbackOpen = false" class="p-1 rounded-full text-slate-400 hover:text-slate-600">
               <X class="w-5 h-5" />
@@ -589,20 +590,20 @@
           <div class="p-5 overflow-y-auto space-y-4">
             <template v-if="activeFeedbackMsg && activeFeedbackMsg.feedback && activeFeedbackMsg.feedback.needs_improvement">
               <div class="border border-dashed border-indigo-200 bg-indigo-50/40 rounded-2xl p-4 space-y-1.5">
-                <span class="text-xs font-bold text-indigo-700">Câu bạn đã nói:</span>
+                <span class="text-xs font-bold text-indigo-700">Your utterance:</span>
                 <p class="text-base sm:text-lg font-bold text-slate-900">"{{ activeFeedbackMsg.message_text || activeFeedbackMsg.text }}"</p>
               </div>
 
               <div class="space-y-3">
                 <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold">
                   <AlertCircle class="w-4 h-4 text-amber-600" />
-                  <span>Phát hiện từ sai / cần cải thiện</span>
+                  <span>Detected expression to improve</span>
                 </div>
 
                 <div v-if="activeFeedbackMsg.feedback.original_phrase" class="bg-slate-100/80 border border-slate-200 rounded-2xl p-3 flex items-start gap-2.5">
                   <span class="w-5 h-5 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center shrink-0 font-bold text-xs mt-0.5">✕</span>
                   <div>
-                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wide block">Từ / cụm từ cần sửa</span>
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wide block">Needs revision</span>
                     <p class="text-base font-semibold text-slate-800 line-through">{{ activeFeedbackMsg.feedback.original_phrase }}</p>
                   </div>
                 </div>
@@ -610,19 +611,19 @@
                 <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-3.5 flex items-start gap-2.5">
                   <span class="w-5 h-5 rounded-full bg-[#009b4d] text-white flex items-center justify-center shrink-0 font-bold text-xs mt-0.5">✓</span>
                   <div>
-                    <span class="text-xs font-bold text-emerald-800 uppercase tracking-wide block">Nên nói như sau</span>
+                    <span class="text-xs font-bold text-emerald-800 uppercase tracking-wide block">Better phrasing</span>
                     <p class="text-base sm:text-lg font-bold text-emerald-950">{{ activeFeedbackMsg.feedback.recommended_phrase || activeFeedbackMsg.feedback.original_phrase }}</p>
                   </div>
                 </div>
 
                 <div class="bg-white border border-slate-200 rounded-2xl p-4 space-y-1">
-                  <span class="text-xs font-bold text-slate-700">Giải thích:</span>
+                  <span class="text-xs font-bold text-slate-700">Explanation:</span>
                   <p class="text-sm sm:text-base text-slate-600 leading-relaxed">{{ activeFeedbackMsg.feedback.explanation }}</p>
                 </div>
               </div>
             </template>
             <div v-else class="text-center py-8 text-sm text-slate-500">
-              Chưa có câu nào cần sửa lỗi. Hãy tiếp tục trò chuyện tự nhiên cùng AI nhé!
+              No errors detected so far. Continue chatting naturally with your tutor!
             </div>
           </div>
         </div>
@@ -635,79 +636,76 @@
       class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200"
       @click.self="closeTopicModal"
     >
-      <div class="bg-white w-full max-w-2xl max-h-[92vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-gray-100">
+      <div class="bg-white w-full max-w-3xl max-h-[90vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-gray-100">
         <!-- Modal Header -->
-        <div class="px-6 py-4.5 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-indigo-50/60 via-white to-violet-50/60">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs">
-              <Compass class="w-6 h-6" />
+        <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between bg-white">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs">
+              <Compass class="w-4.5 h-4.5" />
             </div>
             <div>
-              <h2 class="text-base sm:text-lg font-bold text-gray-900">Khám phá & Tùy chọn chủ đề hội thoại</h2>
-              <p class="text-xs sm:text-sm text-gray-500">Chọn kịch bản thực tế hoặc để AI tự tạo tình huống theo ý bạn</p>
+              <h2 class="text-base font-bold text-gray-900 leading-snug">Conversation Scenarios</h2>
+              <p class="text-xs text-gray-500">Choose a preset topic or create a custom situation</p>
             </div>
           </div>
           <button
             @click="closeTopicModal"
-            aria-label="Đóng"
-            class="w-9 h-9 rounded-full border border-gray-200 hover:bg-gray-100 flex items-center justify-center text-gray-500 transition cursor-pointer"
+            aria-label="Close"
+            class="w-8 h-8 rounded-full border border-gray-200 hover:bg-gray-100 flex items-center justify-center text-gray-500 transition cursor-pointer"
           >
-            <X class="w-5 h-5" />
+            <X class="w-4 h-4" />
           </button>
         </div>
 
         <!-- Modal Body (Scrollable) -->
-        <div class="p-6 overflow-y-auto space-y-5 no-scrollbar">
-          <!-- Section 1: Create Custom Topic (AI Generator) -->
-          <div class="p-5 rounded-2xl bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-pink-500/10 border border-indigo-200/80 shadow-xs space-y-3.5">
+        <div class="p-4 sm:p-5 overflow-y-auto space-y-4 no-scrollbar">
+          <!-- Section 1: Create Custom Topic (Compact & Sleek) -->
+          <div class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-indigo-50/80 via-purple-50/40 to-pink-50/40 border border-indigo-100 shadow-2xs space-y-2.5">
             <div class="flex items-center justify-between">
-              <span class="text-xs sm:text-sm font-bold uppercase tracking-wide text-indigo-700 flex items-center gap-1.5">
-                <Sparkles class="w-4 h-4 text-indigo-600" /> Tự tạo chủ đề theo ý bạn (AI Scenario Generator)
+              <span class="text-xs sm:text-sm font-bold text-indigo-900 flex items-center gap-1.5">
+                <Sparkles class="w-4 h-4 text-indigo-600" /> Create Custom Scenario
               </span>
-              <span class="text-xs font-semibold text-purple-700 bg-purple-100 px-2.5 py-0.5 rounded-full">
-                Tự do sáng tạo
+              <span class="text-[11px] font-semibold text-indigo-600 bg-white/90 px-2 py-0.5 rounded-full border border-indigo-100">
+                Custom Topic
               </span>
             </div>
 
-            <p class="text-xs sm:text-sm text-gray-600 leading-relaxed">
-              Nhập bất kỳ tình huống nào bạn muốn thực hành (tiếng Việt hoặc tiếng Anh), AI sẽ tự động phân vai và soạn kịch bản hội thoại:
-            </p>
-
-            <div class="flex items-center gap-2.5">
+            <!-- Single row Input & Action -->
+            <div class="flex items-center gap-2">
               <input
                 v-model="customTopicInput"
                 @keyup.enter="handleCreateCustom"
                 :disabled="isCreatingCustomTopic || chatLoading"
                 type="text"
-                placeholder="Ví dụ: Gọi trà sữa ở Gong Cha, Hỏi đường ở London, Mặc cả mua áo khoác..."
-                class="flex-1 bg-white border border-indigo-200 text-sm sm:text-base text-gray-800 placeholder-gray-400 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-600 shadow-2xs"
+                placeholder="Enter scenario (e.g. Booking a hotel, Tech job interview, Coffee shop...)"
+                class="flex-1 bg-white border border-indigo-200/90 text-xs sm:text-sm text-gray-800 placeholder-gray-400 px-3.5 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-600 shadow-2xs"
               />
               <button
                 @click="handleCreateCustom"
                 :disabled="isCreatingCustomTopic || chatLoading || !customTopicInput.trim()"
                 type="button"
-                class="shrink-0 px-5 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white rounded-xl text-sm font-bold shadow-md shadow-indigo-600/20 transition disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+                class="shrink-0 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-indigo-600/20 transition disabled:opacity-50 flex items-center gap-1.5 cursor-pointer transform active:scale-98"
               >
                 <Loader2 v-if="isCreatingCustomTopic" class="w-4 h-4 animate-spin" />
                 <Sparkles v-else class="w-4 h-4" />
-                <span>{{ isCreatingCustomTopic ? 'AI đang tạo...' : 'Tạo & Bắt đầu' }}</span>
+                <span>{{ isCreatingCustomTopic ? 'Creating...' : 'Create Scenario' }}</span>
               </button>
             </div>
 
-            <p v-if="customTopicError" class="text-xs sm:text-sm text-rose-600 font-medium">
+            <p v-if="customTopicError" class="text-xs text-rose-600 font-medium">
               ⚠️ {{ customTopicError }}
             </p>
 
-            <!-- Quick Suggestions Chips -->
-            <div class="pt-1">
-              <span class="text-xs font-bold text-gray-500 block mb-2">Gợi ý chủ đề nhanh:</span>
-              <div class="flex flex-wrap gap-2">
+            <!-- Quick Suggestions in a sleek horizontal scroll strip -->
+            <div class="flex items-center gap-2 pt-0.5 overflow-hidden">
+              <span class="text-[11px] font-bold text-gray-400 shrink-0">Suggestions:</span>
+              <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
                 <button
                   v-for="(sug, sIdx) in QUICK_SUGGESTIONS"
                   :key="sIdx"
                   @click="applyCustomSuggestion(sug)"
                   type="button"
-                  class="text-xs sm:text-sm font-medium bg-white hover:bg-indigo-50 text-indigo-900 border border-indigo-100 px-3 py-1.5 rounded-xl transition shadow-2xs cursor-pointer hover:border-indigo-300"
+                  class="text-xs font-medium bg-white hover:bg-indigo-50 text-indigo-900 border border-indigo-100 px-2.5 py-1 rounded-lg transition shadow-2xs cursor-pointer shrink-0 whitespace-nowrap hover:border-indigo-300"
                 >
                   {{ sug }}
                 </button>
@@ -720,7 +718,7 @@
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
               <h3 class="text-xs sm:text-sm font-bold text-gray-800 uppercase tracking-wide flex items-center gap-1.5">
                 <BookOpen class="w-4 h-4 text-indigo-600" />
-                <span>Danh sách các tình huống có sẵn ({{ filteredScenarios.length }})</span>
+                <span>Available Scenarios ({{ filteredScenarios.length }})</span>
               </h3>
 
               <!-- Search Bar -->
@@ -729,7 +727,7 @@
                 <input
                   v-model="searchQuery"
                   type="text"
-                  placeholder="Tìm kiếm kịch bản..."
+                  placeholder="Search scenarios..."
                   class="w-full bg-gray-50 border border-gray-200 text-xs sm:text-sm text-gray-800 placeholder-gray-400 pl-9 pr-3.5 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-600"
                 />
               </div>
@@ -765,7 +763,7 @@
                       v-if="sc.id === chatScenarioId"
                       class="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full"
                     >
-                      <Check class="w-3.5 h-3.5" /> Đang luyện tập
+                      <Check class="w-3.5 h-3.5" /> Current
                     </span>
                     <span
                       v-else
@@ -788,17 +786,17 @@
                 <!-- Role details -->
                 <div class="pt-3 mt-2.5 border-t border-gray-100/80 flex items-center justify-between text-xs sm:text-sm">
                   <div class="text-gray-500 truncate max-w-[190px]">
-                    <span class="font-semibold text-indigo-700">AI:</span> {{ (sc.bot_role || '').split('(')[0] }}
+                    <span class="font-semibold text-indigo-700">Bot:</span> {{ (sc.bot_role || '').split('(')[0] }}
                   </div>
                   <span class="font-bold text-indigo-600 group-hover:translate-x-0.5 transition shrink-0 flex items-center gap-0.5">
-                    Bắt đầu <ChevronRight class="w-3.5 h-3.5" />
+                    Start <ChevronRight class="w-3.5 h-3.5" />
                   </span>
                 </div>
               </div>
             </div>
 
             <div v-else class="p-8 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200 text-sm text-gray-500">
-              Không tìm thấy chủ đề nào phù hợp với từ khóa "{{ searchQuery }}". Hãy thử tự tạo bằng ô bên trên!
+              No topics matched your search for "{{ searchQuery }}". Try creating a custom scenario above!
             </div>
           </div>
         </div>
@@ -842,6 +840,7 @@ import { getFullAudioUrl } from '../services/api';
 
 const ctx = inject('screenContext');
 const goBack = ctx.goBack;
+const hasHistory = ctx.hasHistory;
 const { chatError, requireAuthentication } = ctx;
 
 const activeTab = ctx.activeTab;
@@ -1012,23 +1011,23 @@ const applySuggestedAnswer = () => {
 };
 
 const CATEGORIES = [
-  { id: 'all', label: 'Tất cả' },
-  { id: 'daily', label: '☕ Đời sống & Bạn bè' },
-  { id: 'travel', label: '✈️ Du lịch & Khách sạn' },
-  { id: 'work', label: '💼 Công việc & IT' },
-  { id: 'academic', label: '🎓 Học thuật & Y tế' },
-  { id: 'custom', label: '✨ Tự tạo' },
+  { id: 'all', label: 'All' },
+  { id: 'daily', label: '☕ Daily Life & Friends' },
+  { id: 'travel', label: '✈️ Travel & Hotel' },
+  { id: 'work', label: '💼 Career & Business' },
+  { id: 'academic', label: '🎓 Academic & Health' },
+  { id: 'custom', label: '✨ Custom' },
 ];
 
 const QUICK_SUGGESTIONS = [
-  '☕ Gọi đồ uống tại Starbucks',
-  '💻 Phỏng vấn kỹ thuật Backend / Python',
-  '🎬 Bàn luận về bộ phim yêu thích',
-  '🛍️ Mặc cả mua quà lưu niệm ở chợ đêm',
-  '✈️ Đổi vé máy bay & Thủ tục quá cảnh',
-  '🍕 Gọi điện thoại đặt pizza giao tận nơi',
-  '🚗 Thuê xe tự lái khi đi du lịch',
-  '🩺 Đi khám mắt và lấy đơn thuốc',
+  '☕ Ordering coffee at Starbucks',
+  '💻 Job interview simulation',
+  '🎬 Discussing a favorite movie',
+  '🛍️ Bargaining at a market',
+  '✈️ Airport check-in & customs',
+  '🍕 Ordering pizza delivery',
+  '🚗 Renting a road trip car',
+  '🩺 Visiting an eye doctor',
 ];
 
 const getScenarioEmoji = (sc) => {
@@ -1051,12 +1050,12 @@ const getScenarioEmoji = (sc) => {
 
 const getCategoryLabel = (category) => {
   switch (category) {
-    case 'daily': return 'Đời sống';
-    case 'travel': return 'Du lịch';
-    case 'work': return 'Công việc';
-    case 'academic': return 'Học thuật';
-    case 'custom': return 'Tự tạo';
-    default: return 'Tình huống';
+    case 'daily': return 'Daily Life';
+    case 'travel': return 'Travel';
+    case 'work': return 'Career';
+    case 'academic': return 'Academic';
+    case 'custom': return 'Custom';
+    default: return 'Scenario';
   }
 };
 
@@ -1132,16 +1131,16 @@ const handleCreateCustom = async () => {
     customTopicInput.value = '';
     isTopicModalOpen.value = false;
   } catch (err) {
-    customTopicError.value = 'Không thể tạo kịch bản lúc này. Vui lòng thử lại.';
+    customTopicError.value = 'Could not create scenario at this time. Please try again.';
   } finally {
     isCreatingCustomTopic.value = false;
   }
 };
 
 const formatConversationDate = (date) => {
-  if (!date) return 'Ngày chưa xác định';
-  return new Date(date).toLocaleString('vi-VN', {
-    day: '2-digit', month: '2-digit', year: 'numeric',
+  if (!date) return 'Unknown date';
+  return new Date(date).toLocaleString('en-US', {
+    month: 'short', day: 'numeric', year: 'numeric',
     hour: '2-digit', minute: '2-digit'
   });
 };

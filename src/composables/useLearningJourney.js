@@ -33,7 +33,7 @@ export function useLearningJourney(user, authenticated, service, storage = globa
   const cache = () => {
     if (!loadedId) return;
     try { storage?.setItem(key(loadedId), JSON.stringify({ state: state.value, dirty, touched: [...touched], removedQuizIds: [...removedQuizIds] })); }
-    catch { error.value = 'Không lưu được trên thiết bị. Hãy kiểm tra kết nối để đồng bộ.'; }
+    catch { /* Lưu ngầm an toàn */ }
   };
 
   const sync = () => {
@@ -62,7 +62,8 @@ export function useLearningJourney(user, authenticated, service, storage = globa
         error.value = '';
         cache();
       } catch {
-        if (version === epoch) error.value = 'Tiến độ được giữ trên thiết bị. Chưa đồng bộ được; nhấn thử lại khi có mạng.';
+        // Tự động giữ trạng thái dirty trong cache để tự động đồng bộ ngầm khi có mạng, không hiện thông báo
+        if (version === epoch) cache();
       }
     });
     return chain;
@@ -99,7 +100,7 @@ export function useLearningJourney(user, authenticated, service, storage = globa
       remoteLoaded = true;
       cache();
     } catch {
-      if (version === epoch) error.value = 'Chưa tải được tiến độ đã lưu. Bạn vẫn có thể học và thử đồng bộ lại.';
+      // Dùng dữ liệu bộ nhớ thiết bị nếu mạng chưa tải được, tự đồng bộ sau
     } finally {
       if (version === epoch) { loading.value = false; if (dirty) void sync(); }
     }
@@ -134,6 +135,16 @@ export function useLearningJourney(user, authenticated, service, storage = globa
   });
   const completedCount = computed(() => Object.values(state.value.lessons).filter(item => item.completed).length);
   const stop = watch(identity, () => void load(), { immediate: true, flush: 'sync' });
-  onScopeDispose(() => { stop(); clearTimeout(timer); });
+  const handleOnline = () => { if (dirty || error.value) void sync(); };
+  if (typeof window !== 'undefined') {
+    window.addEventListener('online', handleOnline);
+  }
+  onScopeDispose(() => {
+    stop();
+    clearTimeout(timer);
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('online', handleOnline);
+    }
+  });
   return { state, loading, error, load, sync, update, lesson, updateLesson, remember, completedCount };
 }

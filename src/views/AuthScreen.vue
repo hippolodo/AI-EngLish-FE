@@ -1,18 +1,18 @@
 <template>
-  <section v-if="activeTab === 'auth'" class="w-full max-w-6xl mx-auto py-6 sm:py-10 px-4 sm:px-6">
+  <section class="w-full max-w-6xl mx-auto py-6 sm:py-10 px-4 sm:px-6 my-auto">
     <!-- Header with Back to Home -->
     <div class="mb-8 flex items-center justify-between">
       <button
-        @click="goBack ? goBack() : activeTab = 'home'"
-        class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl border border-slate-200 bg-white text-slate-700 font-bold text-sm hover:bg-slate-50 hover:text-blue-600 transition shadow-2xs cursor-pointer group"
+        @click="goBack ? goBack() : navigateTab('home')"
+        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-slate-200 bg-white text-slate-700 font-bold text-sm hover:bg-slate-50 hover:text-blue-600 transition shadow-2xs cursor-pointer group"
       >
         <ArrowLeft class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-        <span>Quay lại</span>
+        <span>Back to Home</span>
       </button>
 
       <div class="flex items-center gap-2">
         <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span class="text-xs sm:text-sm font-semibold text-slate-500">Hệ thống học tiếng Anh AI trực tuyến</span>
+        <span class="text-xs sm:text-sm font-semibold text-slate-500">Online English Learning Platform</span>
       </div>
     </div>
 
@@ -27,24 +27,25 @@
         <div class="relative z-10 space-y-6">
           <!-- Logo -->
           <div class="flex items-center gap-3">
-            <div class="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center text-white font-black text-xl shadow-inner">
-              <Sparkles class="w-6 h-6 text-amber-300" />
-            </div>
+            <svg class="w-10 h-10 text-white shrink-0 drop-shadow" fill="none" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 6L20 18L12 30" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="4.5"></path>
+              <path d="M20 10L26 18L20 26" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="4.5"></path>
+            </svg>
             <div>
-              <h2 class="text-2xl font-black tracking-tight">AI English Hub</h2>
-              <p class="text-xs text-indigo-200 font-medium">TalkPal Style Learning Platform</p>
+              <h2 class="text-2xl font-black tracking-tight">LingoUp</h2>
+              <p class="text-xs text-indigo-200 font-medium">Smart English Learning Platform</p>
             </div>
           </div>
 
           <!-- Headline -->
           <div class="space-y-2 pt-2">
             <h1 class="text-2xl sm:text-3xl font-extrabold leading-snug">
-              {{ isRegister ? 'Bắt đầu hành trình làm chủ tiếng Anh cùng AI' : 'Chào mừng bạn quay trở lại luyện tập!' }}
+              {{ isRegister ? 'Start Your English Mastery Journey' : 'Welcome Back!' }}
             </h1>
             <p class="text-sm sm:text-base text-indigo-100/90 leading-relaxed">
               {{ isRegister 
-                ? 'Đăng ký tài khoản để AI thiết lập lộ trình học cá nhân hóa, lưu giữ điểm phát âm và bài viết của bạn.'
-                : 'Đăng nhập để tiếp tục các bài học dở dang, luyện phản xạ với Emma và tích lũy streak mỗi ngày.' }}
+                ? 'Create an account to build a personalized study path, save your pronunciation scores, and track your essays.'
+                : 'Sign in to resume lessons, practice conversations, and build your daily streak.' }}
             </p>
           </div>
 
@@ -55,8 +56,8 @@
                 <Mic class="w-4 h-4 text-emerald-300" />
               </div>
               <div>
-                <h4 class="text-sm font-bold text-white">Chấm phát âm chuẩn IPA</h4>
-                <p class="text-xs text-indigo-200 mt-0.5">Phân tích từng âm vị, chỉ rõ từ đọc đúng hay sai bằng công nghệ GOP.</p>
+                <h4 class="text-sm font-bold text-white">Native IPA Pronunciation Scoring</h4>
+                <p class="text-xs text-indigo-200 mt-0.5">Phoneme-level feedback identifying exact pronunciation accuracy with GOP scoring.</p>
               </div>
             </div>
 
@@ -65,8 +66,8 @@
                 <MessageSquare class="w-4 h-4 text-sky-300" />
               </div>
               <div>
-                <h4 class="text-sm font-bold text-white">Hội thoại phản xạ TalkPal</h4>
-                <p class="text-xs text-indigo-200 mt-0.5">Đóng vai theo 12+ tình huống và nhận phân tích lỗi sai trong thời gian thực.</p>
+                <h4 class="text-sm font-bold text-white">Interactive Conversations</h4>
+                <p class="text-xs text-indigo-200 mt-0.5">Roleplay across 12+ scenarios with instant error analysis and suggestions.</p>
               </div>
             </div>
 
@@ -75,16 +76,16 @@
                 <PenTool class="w-4 h-4 text-amber-300" />
               </div>
               <div>
-                <h4 class="text-sm font-bold text-white">Trợ lý viết & Chữa luận AI</h4>
-                <p class="text-xs text-indigo-200 mt-0.5">Sửa lỗi ngữ pháp, nâng cấp từ vựng học thuật theo tiêu chuẩn IELTS.</p>
+                <h4 class="text-sm font-bold text-white">Writing Assistant &amp; Essay Review</h4>
+                <p class="text-xs text-indigo-200 mt-0.5">Grammar correction and vocabulary upgrades benchmarked to IELTS standards.</p>
               </div>
             </div>
           </div>
         </div>
 
         <div class="relative z-10 pt-8 mt-8 border-t border-white/15 text-xs text-indigo-200 flex items-center justify-between">
-          <span>Hoàn toàn miễn phí trải nghiệm</span>
-          <span class="font-bold text-white">100% Bảo mật dữ liệu</span>
+          <span>Completely Free to Start</span>
+          <span class="font-bold text-white">100% Data Privacy</span>
         </div>
       </div>
 
@@ -100,7 +101,7 @@
               class="flex-1 py-3 rounded-xl text-base transition-all text-center cursor-pointer flex items-center justify-center gap-2"
             >
               <LogIn class="w-4 h-4" />
-              <span>Đăng nhập</span>
+              <span>Sign In</span>
             </button>
             <button
               type="button"
@@ -109,17 +110,17 @@
               class="flex-1 py-3 rounded-xl text-base transition-all text-center cursor-pointer flex items-center justify-center gap-2"
             >
               <UserPlus class="w-4 h-4" />
-              <span>Đăng ký mới</span>
+              <span>Register</span>
             </button>
           </div>
 
           <!-- Form Header -->
           <div>
             <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              {{ isRegister ? 'Tạo tài khoản học viên mới' : 'Đăng nhập vào tài khoản' }}
+              {{ isRegister ? 'Create New Account' : 'Sign in to Your Account' }}
             </h3>
             <p class="text-sm sm:text-base text-slate-500 mt-1.5 leading-relaxed">
-              {{ isRegister ? 'Điền thông tin bên dưới để tạo tài khoản và làm khảo sát thiết lập lộ trình.' : 'Nhập thông tin tài khoản của bạn để tiếp tục luyện tập.' }}
+              {{ isRegister ? 'Fill in your details below to set up your account and personalize your study plan.' : 'Enter your credentials to continue your practice.' }}
             </p>
           </div>
 
@@ -127,7 +128,7 @@
           <div v-if="errorMessage" class="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm sm:text-base text-rose-700 flex items-start gap-3">
             <AlertCircle class="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
             <div class="flex-1">
-              <span class="font-bold block">Thông báo lỗi:</span>
+              <span class="font-bold block">Error:</span>
               <span>{{ errorMessage }}</span>
             </div>
           </div>
@@ -137,7 +138,7 @@
             <!-- Full Name (Register only) -->
             <div v-if="isRegister" class="space-y-1.5">
               <label class="block text-sm sm:text-base font-bold text-slate-700">
-                Họ và tên của bạn <span class="text-rose-500">*</span>
+                Full Name <span class="text-rose-500">*</span>
               </label>
               <div class="relative">
                 <input
@@ -146,7 +147,7 @@
                   required
                   maxlength="100"
                   autocomplete="name"
-                  placeholder="Ví dụ: Nguyễn Văn An"
+                  placeholder="e.g. Alex Johnson"
                   class="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 sm:px-5 py-3.5 sm:py-4 text-base sm:text-lg text-slate-900 placeholder-slate-400 outline-none focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition shadow-2xs"
                 />
               </div>
@@ -155,7 +156,7 @@
             <!-- Email -->
             <div class="space-y-1.5">
               <label class="block text-sm sm:text-base font-bold text-slate-700">
-                Địa chỉ Email <span class="text-rose-500">*</span>
+                Email Address <span class="text-rose-500">*</span>
               </label>
               <div class="relative">
                 <input
@@ -163,7 +164,7 @@
                   type="email"
                   required
                   autocomplete="email"
-                  placeholder="ban@example.com"
+                  placeholder="alex@example.com"
                   class="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 sm:px-5 py-3.5 sm:py-4 text-base sm:text-lg text-slate-900 placeholder-slate-400 outline-none focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition shadow-2xs"
                 />
               </div>
@@ -173,9 +174,9 @@
             <div class="space-y-1.5">
               <div class="flex items-center justify-between">
                 <label class="block text-sm sm:text-base font-bold text-slate-700">
-                  Mật khẩu <span class="text-rose-500">*</span>
+                  Password <span class="text-rose-500">*</span>
                 </label>
-                <span v-if="isRegister" class="text-xs text-slate-400 font-medium">Tối thiểu 6 ký tự</span>
+                <span v-if="isRegister" class="text-xs text-slate-400 font-medium">Minimum 6 characters</span>
               </div>
               <div class="relative">
                 <input
@@ -184,7 +185,7 @@
                   :autocomplete="isRegister ? 'new-password' : 'current-password'"
                   :minlength="isRegister ? 6 : undefined"
                   required
-                  :placeholder="isRegister ? 'Nhập mật khẩu an toàn' : 'Nhập mật khẩu của bạn'"
+                  :placeholder="isRegister ? 'Enter a secure password' : 'Enter your password'"
                   class="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 sm:px-5 py-3.5 sm:py-4 pr-12 text-base sm:text-lg text-slate-900 placeholder-slate-400 outline-none focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition shadow-2xs"
                 />
                 <button
@@ -208,7 +209,7 @@
               >
                 <Loader2 v-if="loading" class="w-5 h-5 animate-spin" />
                 <Sparkles v-else class="w-5 h-5" />
-                <span>{{ loading ? 'Đang xử lý...' : isRegister ? 'Đăng ký & Bắt đầu khảo sát' : 'Đăng nhập vào hệ thống' }}</span>
+                <span>{{ loading ? 'Processing...' : isRegister ? 'Register &amp; Personalize' : 'Sign In' }}</span>
               </button>
             </div>
           </form>
@@ -217,13 +218,13 @@
         <!-- Footer Switch helper -->
         <div class="pt-6 mt-6 border-t border-slate-100 text-center">
           <p class="text-sm sm:text-base text-slate-600">
-            {{ isRegister ? 'Bạn đã có tài khoản rồi?' : 'Bạn là học viên mới chưa có tài khoản?' }}
+            {{ isRegister ? 'Already have an account?' : 'New learner without an account?' }}
             <button
               type="button"
               @click="setMode(!isRegister)"
               class="font-bold text-indigo-600 hover:text-indigo-800 ml-1.5 underline cursor-pointer"
             >
-              {{ isRegister ? 'Đăng nhập ngay' : 'Đăng ký miễn phí' }}
+              {{ isRegister ? 'Sign in now' : 'Register for free' }}
             </button>
           </p>
         </div>
@@ -273,12 +274,12 @@ const submitAuth = async () => {
   try {
     if (isRegister.value) {
       if (!fullName.value.trim()) {
-        errorMessage.value = 'Vui lòng nhập họ và tên của bạn.';
+        errorMessage.value = 'Please enter your full name.';
         loading.value = false;
         return;
       }
       if (password.value.length < 6) {
-        errorMessage.value = 'Mật khẩu phải có ít nhất 6 ký tự.';
+        errorMessage.value = 'Password must be at least 6 characters.';
         loading.value = false;
         return;
       }
@@ -296,7 +297,7 @@ const submitAuth = async () => {
     const detail = error.response?.data?.detail;
     errorMessage.value = Array.isArray(detail)
       ? detail.map((item) => item.msg).join(', ')
-      : detail || 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại thông tin và thử lại sau.';
+      : detail || 'Could not connect to server. Please check your information and try again.';
   } finally {
     loading.value = false;
   }

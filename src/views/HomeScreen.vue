@@ -7,8 +7,8 @@
         
         <!-- Header Tiêu đề chính -->
         <div>
-          <h1 class="text-3xl sm:text-4xl font-extrabold text-[#1f242e] tracking-tight">Chế độ luyện tập AI</h1>
-          <p class="text-base sm:text-lg text-[#6b7280] mt-1.5">Lựa chọn kỹ năng bạn muốn trau dồi cùng trợ lý thông minh</p>
+          <h1 class="text-3xl sm:text-4xl font-extrabold text-[#1f242e] tracking-tight">Practice Modes</h1>
+          <p class="text-base sm:text-lg text-[#6b7280] mt-1.5">Choose a skill to sharpen and elevate your English proficiency</p>
         </div>
 
         <!-- Modes Grid (Ô to, cao, hình to, chữ to rõ) -->
@@ -16,7 +16,7 @@
           
           <!-- Card 1: Chat -->
           <div
-            @click="activeTab = 'chat'"
+            @click="ctx.navigateTab ? ctx.navigateTab('chat') : (activeTab = 'chat')"
             class="group cursor-pointer flex flex-col select-none"
           >
             <div class="relative w-full h-56 sm:h-64 rounded-3xl bg-[#ffdc69] flex items-center justify-center overflow-hidden transition-all duration-200 group-hover:shadow-lg">
@@ -41,19 +41,18 @@
               </div>
             </div>
             <div class="mt-4">
-              <h2 class="text-xl sm:text-2xl font-bold text-[#1e2229] mb-1.5 group-hover:text-[#2b59ff] transition-colors">Hội thoại AI thông minh</h2>
-              <p class="text-sm sm:text-base text-[#64748b] leading-relaxed">Giao tiếp phản xạ theo 12+ tình huống thực tế hoặc tự tạo ngữ cảnh trò chuyện cùng AI.</p>
+              <h2 class="text-xl sm:text-2xl font-bold text-[#1e2229] mb-1.5 group-hover:text-[#2b59ff] transition-colors">Chat</h2>
+              <p class="text-sm sm:text-base text-[#64748b] leading-relaxed">Interactive speaking and messaging practice with real-life scenarios or custom topics.</p>
             </div>
           </div>
 
-          <!-- Card 2: Sentence Mode (Luyện phát âm AI) -->
+          <!-- Card 2: Sentence Mode (Luyện phát âm) -->
           <div
-            @click="activeTab = 'speaking'"
+            v-if="isAuthenticated"
+            @click="ctx.navigateTab('speaking')"
             class="group cursor-pointer flex flex-col select-none"
           >
             <div class="relative w-full h-56 sm:h-64 rounded-3xl bg-[#f2f4f7] flex items-center justify-center overflow-hidden transition-all duration-200 group-hover:shadow-lg">
-              <!-- Feature Tag -->
-
               <!-- Character Illustration -->
               <div class="w-48 h-48 flex items-center justify-center text-slate-400 scale-110 sm:scale-120">
                 <svg class="w-full h-full text-slate-400" fill="none" viewBox="0 0 120 120">
@@ -66,8 +65,8 @@
               </div>
             </div>
             <div class="mt-4">
-              <h2 class="text-xl sm:text-2xl font-bold text-[#1e2229] mb-1.5 group-hover:text-[#2b59ff] transition-colors">Luyện phát âm AI (Speaking Lab)</h2>
-              <p class="text-sm sm:text-base text-[#64748b] leading-relaxed">Chấm điểm từng âm vị IPA, chỉ rõ âm đọc đúng/sai và đối chiếu phát âm với người bản xứ.</p>
+              <h2 class="text-xl sm:text-2xl font-bold text-[#1e2229] mb-1.5 group-hover:text-[#2b59ff] transition-colors">Speaking</h2>
+              <p class="text-sm sm:text-base text-[#64748b] leading-relaxed">Phoneme-level IPA scoring, detailed accuracy feedback, and native audio comparison.</p>
             </div>
           </div>
 
@@ -77,9 +76,6 @@
             class="group cursor-pointer flex flex-col select-none"
           >
             <div class="relative w-full h-56 sm:h-64 rounded-3xl bg-[#f2f4f7] flex items-center justify-center overflow-hidden transition-all duration-200 group-hover:shadow-lg">
-              <!-- Feature Tag -->
-              
-
               <!-- Cards Illustration (Apple & Book) -->
               <div class="flex items-center justify-center gap-3 scale-110 sm:scale-120">
                 <div class="w-20 h-28 bg-white rounded-2xl shadow-md border border-gray-200 transform -rotate-12 flex flex-col items-center justify-center p-2">
@@ -97,20 +93,18 @@
               </div>
             </div>
             <div class="mt-4">
-              <h2 class="text-xl sm:text-2xl font-bold text-[#1e2229] mb-1.5 group-hover:text-[#2b59ff] transition-colors">Học từ vựng Flashcard</h2>
-              <p class="text-sm sm:text-base text-[#64748b] leading-relaxed">Ghi nhớ từ vựng dài hạn với phương pháp lặp lại ngắt quãng, tự nhắc thẻ đến hạn ôn.</p>
+              <h2 class="text-xl sm:text-2xl font-bold text-[#1e2229] mb-1.5 group-hover:text-[#2b59ff] transition-colors">Flashcards</h2>
+              <p class="text-sm sm:text-base text-[#64748b] leading-relaxed">Memorize words with 3D flashcards, accurate IPA phonetics, and contextual examples.</p>
             </div>
           </div>
 
-          <!-- Card 4: Writing Mode (Trợ lý luyện viết) -->
+          <!-- Card 4: Writing Mode (Luyện viết) -->
           <div
-            @click="activeTab = 'writing'"
+            v-if="isAuthenticated"
+            @click="ctx.navigateTab('writing')"
             class="group cursor-pointer flex flex-col select-none"
           >
             <div class="relative w-full h-56 sm:h-64 rounded-3xl bg-[#f2f4f7] flex items-center justify-center overflow-hidden transition-all duration-200 group-hover:shadow-lg">
-              <!-- Feature Tag -->
-             
-
               <!-- Speech Bubble & Sound Wave Graphic -->
               <div class="relative w-44 h-32 flex items-center justify-center scale-110 sm:scale-120">
                 <div class="w-24 h-20 bg-slate-300 rounded-2xl p-3 flex flex-col justify-around absolute left-3">
@@ -133,8 +127,8 @@
               </div>
             </div>
             <div class="mt-4">
-              <h2 class="text-xl sm:text-2xl font-bold text-[#1e2229] mb-1.5 group-hover:text-[#2b59ff] transition-colors">Trợ lý luyện viết AI</h2>
-              <p class="text-sm sm:text-base text-[#64748b] leading-relaxed">Viết đoạn văn theo đề hoặc tự do, nhận phân tích chi tiết lỗi ngữ pháp và gợi ý sửa bài.</p>
+              <h2 class="text-xl sm:text-2xl font-bold text-[#1e2229] mb-1.5 group-hover:text-[#2b59ff] transition-colors">Writing</h2>
+              <p class="text-sm sm:text-base text-[#64748b] leading-relaxed">Write essays or free-form text with detailed grammar feedback and suggestions.</p>
             </div>
           </div>
 
@@ -144,9 +138,6 @@
             class="group cursor-pointer flex flex-col select-none"
           >
             <div class="relative w-full h-56 sm:h-64 rounded-3xl bg-[#f2f4f7] flex items-center justify-center overflow-hidden transition-all duration-200 group-hover:shadow-lg">
-              <!-- Feature Tag -->
-              
-
               <!-- Tablet/Flashcard Illustration with hand -->
               <div class="relative flex items-center justify-center scale-110 sm:scale-120">
                 <div class="w-28 h-36 bg-white rounded-2xl shadow-md border border-gray-200 p-2.5 flex flex-col items-center">
@@ -169,49 +160,17 @@
               </div>
             </div>
             <div class="mt-4">
-              <h2 class="text-xl sm:text-2xl font-bold text-[#1e2229] mb-1.5 group-hover:text-[#2b59ff] transition-colors">Kiểm tra trắc nghiệm Quiz</h2>
-              <p class="text-sm sm:text-base text-[#64748b] leading-relaxed">Đánh giá nhanh mức độ ghi nhớ bài học, cấu trúc ngữ pháp và nghĩa của từ vựng.</p>
+              <h2 class="text-xl sm:text-2xl font-bold text-[#1e2229] mb-1.5 group-hover:text-[#2b59ff] transition-colors">Quiz</h2>
+              <p class="text-sm sm:text-base text-[#64748b] leading-relaxed">Assess lesson retention, test grammar comprehension, or create custom topic quizzes.</p>
             </div>
           </div>
 
-          <!-- Card 6: Call Mode (Luyện nói qua Micro) -->
+          <!-- Card 6: Dictionary Mode (Tra cứu từ điển) -->
           <div
-            @click="activeTab = 'chat'"
+            @click="ctx.navigateTab ? ctx.navigateTab('dictionary') : (activeTab = 'dictionary')"
             class="group cursor-pointer flex flex-col select-none"
           >
             <div class="relative w-full h-56 sm:h-64 rounded-3xl bg-[#f2f4f7] flex items-center justify-center overflow-hidden transition-all duration-200 group-hover:shadow-lg">
-              <!-- Feature Tag -->
-           
-
-              <!-- Character on Call Illustration -->
-              <div class="relative w-44 h-44 flex items-center justify-center scale-110 sm:scale-120">
-                <div class="absolute top-4 left-3 w-9 h-9 rounded-xl bg-white shadow-sm border border-gray-200 p-1 z-10">
-                  <div class="w-full h-full bg-slate-300 rounded-lg flex items-center justify-center">
-                    <span class="text-xs">👤</span>
-                  </div>
-                </div>
-                <svg class="w-36 h-36 text-slate-800" fill="none" viewBox="0 0 100 100">
-                  <path d="M50 35c8 0 15 6 15 14v10c0 15-8 23-15 23s-15-8-15-23V49c0-8 7-14 15-14z" fill="#94a3b8"></path>
-                  <path d="M38 70c0-10 6-16 12-16s12 6 12 16v18H38V70z" fill="#1e293b"></path>
-                  <rect fill="#0f172a" height="18" rx="2" transform="rotate(-15 32 52)" width="10" x="32" y="52"></rect>
-                </svg>
-              </div>
-            </div>
-            <div class="mt-4">
-              <h2 class="text-xl sm:text-2xl font-bold text-[#1e2229] mb-1.5 group-hover:text-[#2b59ff] transition-colors">Luyện phản xạ giọng nói</h2>
-              <p class="text-sm sm:text-base text-[#64748b] leading-relaxed">Trò chuyện hoàn toàn bằng giọng nói qua micro cùng AI để tăng tốc độ phản xạ tự nhiên.</p>
-            </div>
-          </div>
-
-          <!-- Card 7: Dictionary Mode (Tra cứu từ điển AI) -->
-          <div
-            @click="activeTab = 'dictionary'"
-            class="group cursor-pointer flex flex-col select-none"
-          >
-            <div class="relative w-full h-56 sm:h-64 rounded-3xl bg-[#f2f4f7] flex items-center justify-center overflow-hidden transition-all duration-200 group-hover:shadow-lg">
-              <!-- Feature Tag -->
-           
-
               <!-- Dictionary Graphic -->
               <div class="relative flex flex-col items-center scale-110 sm:scale-120">
                 <div class="w-28 h-36 bg-white rounded-2xl shadow-md border border-gray-200 p-3 flex flex-col justify-between">
@@ -229,84 +188,12 @@
               </div>
             </div>
             <div class="mt-4">
-              <h2 class="text-xl sm:text-2xl font-bold text-[#1e2229] mb-1.5 group-hover:text-[#2b59ff] transition-colors">Tra cứu từ điển thông minh AI</h2>
-              <p class="text-sm sm:text-base text-[#64748b] leading-relaxed">Tra cứu tức thì, chuẩn phiên âm IPA, giải nghĩa ngữ cảnh chi tiết và tự động phân tích từ mới cùng AI.</p>
+              <h2 class="text-xl sm:text-2xl font-bold text-[#1e2229] mb-1.5 group-hover:text-[#2b59ff] transition-colors">Dictionary</h2>
+              <p class="text-sm sm:text-base text-[#64748b] leading-relaxed">Instant word lookup, IPA pronunciation, contextual definitions, and practical examples.</p>
             </div>
           </div>
 
         </div>
-
-        <!-- KHO CHỦ ĐỀ BÀI HỌC (COURSES & TOPICS) -->
-        <section class="space-y-6 pt-10 border-t border-gray-200" aria-labelledby="home-courses-title">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h2 id="home-courses-title" class="text-2xl sm:text-3xl font-extrabold text-[#1f242e] tracking-tight">Chủ đề bài học theo trình độ</h2>
-              <p class="text-base text-[#6b7280] mt-1">Khám phá các bài học được phân cấp khoa học từ cơ bản đến nâng cao</p>
-            </div>
-
-            <!-- Level Filter Pills -->
-            <div class="flex items-center gap-2 p-1.5 bg-gray-100 rounded-full shrink-0 overflow-x-auto">
-              <button
-                v-for="lvl in levels"
-                :key="lvl.id"
-                @click="selectedTopicLevel = lvl.id; showAllTopics = false"
-                :class="selectedTopicLevel === lvl.id ? 'bg-white text-[#2b59ff] font-bold shadow-2xs' : 'text-[#4a5568] hover:text-black font-semibold'"
-                class="px-5 py-2.5 rounded-full text-sm transition cursor-pointer shrink-0"
-              >
-                {{ lvl.label }}
-              </button>
-            </div>
-          </div>
-
-          <div v-if="homeLoading" role="status" class="flex items-center justify-center gap-3 py-14 text-base text-gray-500 bg-white rounded-3xl border border-gray-100">
-            <Loader2 class="h-6 w-6 animate-spin text-[#2b59ff]" /> Đang tải bài học…
-          </div>
-
-          <template v-else>
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-              <button
-                v-for="topic in visibleTopics"
-                :key="topic.id"
-                @click="startTopic(topic)"
-                class="group flex flex-col justify-between p-6 rounded-3xl bg-white border border-gray-200/80 hover:border-blue-300 text-left shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-md transition duration-200 cursor-pointer min-h-[180px]"
-              >
-                <div>
-                  <div class="flex items-center justify-between mb-3.5">
-                    <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-50 text-2xl group-hover:scale-105 transition-transform">
-                      {{ getTopicEmoji(topic.title) }}
-                    </span>
-                    <span class="rounded-full bg-gray-100 px-3 py-1 text-xs font-bold text-gray-700">
-                      {{ levelLabels[topic.level] || topic.level }}
-                    </span>
-                  </div>
-                  <h4 class="text-base sm:text-lg font-bold text-[#1e2229] leading-snug group-hover:text-[#2b59ff] transition-colors">
-                    {{ topic.title }}
-                  </h4>
-                </div>
-
-                <div class="mt-4 pt-3.5 border-t border-gray-100 flex items-center justify-between text-xs sm:text-sm font-bold text-gray-500 group-hover:text-[#2b59ff]">
-                  <span>Vào bài học</span>
-                  <ChevronRight class="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </button>
-
-              <p v-if="!filteredTopics.length" class="col-span-full rounded-3xl border border-gray-100 bg-white p-10 text-center text-base text-gray-500">
-                Chưa có chủ đề nào ở trình độ này.
-              </p>
-            </div>
-
-            <div v-if="filteredTopics.length > 6" class="text-center pt-3">
-              <button
-                @click="showAllTopics = !showAllTopics"
-                :aria-expanded="showAllTopics"
-                class="inline-flex items-center gap-2.5 px-6 py-3 rounded-full border border-gray-200 bg-white hover:bg-gray-50 text-sm font-bold text-gray-700 transition cursor-pointer shadow-2xs"
-              >
-                <span>{{ showAllTopics ? 'Thu gọn' : `Xem toàn bộ ${filteredTopics.length} chủ đề bài học` }}</span>
-                <ChevronRight :class="showAllTopics ? '-rotate-90' : 'rotate-90'" class="w-4 h-4 transition-transform" />
-              </button>
-            </div>
-          </template>
-        </section>
 
       </div>
 
@@ -317,12 +204,12 @@
         <div class="bg-gradient-to-br from-[#2b59ff] to-[#1d4ed8] rounded-3xl p-7 text-white shadow-md shadow-blue-500/20 space-y-4">
           <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-bold text-white">
             <BookOpen class="w-4 h-4" />
-            <span>Mục tiêu tiếp theo</span>
+            <span>Next Goal</span>
           </div>
 
           <div>
             <h2 class="text-xl sm:text-2xl font-bold leading-tight">
-              {{ journey.state.value.resume ? 'Tiếp tục bài đang dở' : 'Bắt đầu bài học hôm nay' }}
+              {{ journey.state.value.resume ? 'Continue Lesson' : "Start Today's Lesson" }}
             </h2>
             <p class="text-sm text-white/90 leading-relaxed mt-1.5 font-medium">
               {{ nextTopicTitle }}
@@ -334,17 +221,17 @@
             :disabled="journey.loading.value || homeLoading"
             class="w-full bg-white hover:bg-slate-50 transition-colors text-[#1e2026] text-sm font-bold py-3.5 px-6 rounded-full shadow-sm cursor-pointer disabled:opacity-50"
           >
-            {{ journey.state.value.resume ? 'Tiếp tục học ngay' : 'Vào học ngay' }}
+            {{ journey.state.value.resume ? 'Continue Now' : 'Start Learning' }}
           </button>
         </div>
 
         <!-- 2. Level Status Card -->
         <div class="bg-white rounded-3xl p-7 border border-gray-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-3.5">
           <h3 class="text-xl font-bold text-[#1e2026]">
-            Trình độ: {{ levelLabels[userProfile?.target_level] || 'Cơ bản' }}
+            Level: {{ levelLabels[userProfile?.target_level] || userProfile?.target_level || 'Beginner' }}
           </h3>
           <p class="text-xs sm:text-sm text-gray-500 font-medium">
-            Cấp độ mục tiêu hiện tại: {{ userProfile?.target_level || 'Beginner' }}
+            Target level: {{ userProfile?.target_level || 'Beginner' }}
           </p>
 
           <!-- Progress Track -->
@@ -364,26 +251,26 @@
         <div class="bg-white rounded-3xl p-7 border border-gray-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-6">
           <!-- Ongoing streak -->
           <div class="flex items-center justify-between">
-            <span class="text-base sm:text-lg font-bold text-[#1e2026]">Chuỗi học liên tục</span>
+            <span class="text-base sm:text-lg font-bold text-[#1e2026]">Daily Streak</span>
             <span class="bg-[#2036cc] text-white text-xs sm:text-sm font-bold px-4.5 py-2 rounded-full min-w-[80px] text-center shadow-xs">
-              {{ dashboard?.streak || 0 }} ngày
+              {{ dashboard?.streak || 0 }} days
             </span>
           </div>
 
           <!-- Total Practice Count -->
           <div class="flex items-center justify-between pt-2 border-t border-gray-100">
-            <span class="text-base sm:text-lg font-bold text-[#1e2026]">Lượt luyện tập</span>
+            <span class="text-base sm:text-lg font-bold text-[#1e2026]">Practice Sessions</span>
             <span class="bg-[#eef2f9] text-[#2d68ff] text-xs sm:text-sm font-bold px-4.5 py-2 rounded-full min-w-[80px] text-center border border-blue-100">
-              {{ totalPracticeCount || 0 }} lượt
+              {{ totalPracticeCount || 0 }} sessions
             </span>
           </div>
         </div>
 
         <!-- 4. Daily Feedback Card -->
         <div class="bg-white rounded-3xl p-7 border border-gray-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-2">
-          <h3 class="text-lg font-bold text-[#1e2026]">Mẹo luyện tập hôm nay</h3>
+          <h3 class="text-lg font-bold text-[#1e2026]">Daily Practice Tip</h3>
           <p class="text-sm text-gray-600 font-medium leading-relaxed">
-            Luyện phát âm 10–15 phút mỗi ngày với đối chiếu âm vị IPA sẽ giúp não bộ hình thành phản xạ phát âm tự nhiên nhanh gấp 3 lần.
+            Practicing pronunciation for 10–15 minutes daily with IPA feedback helps your brain build natural speaking reflexes 3x faster.
           </p>
         </div>
 
@@ -394,67 +281,49 @@
 </template>
 
 <script setup>
-import { computed, inject, ref } from 'vue';
-import { ChevronRight, Loader2, BookOpen } from 'lucide-vue-next';
+import { computed, inject } from 'vue';
+import { BookOpen } from 'lucide-vue-next';
 
 const ctx = inject('screenContext');
 const {
-  activeTab, userProfile,
-  homeLoading, topics, startTopic, getTopicEmoji, dashboard,
+  activeTab, userProfile, isAuthenticated,
+  homeLoading, topics, dashboard,
   journey, continueLearning, recommendedTopic, totalPracticeCount
 } = ctx;
 
-const selectedTopicLevel = ref('all');
-const showAllTopics = ref(false);
-
-const levels = [
-  { id: 'all', label: 'Tất cả' },
-  { id: 'Beginner', label: 'Cơ bản' },
-  { id: 'Intermediate', label: 'Trung cấp' },
-  { id: 'Advanced', label: 'Nâng cao' }
-];
-
 const levelLabels = {
-  Beginner: 'Cơ bản',
-  Intermediate: 'Trung cấp',
-  Advanced: 'Nâng cao'
+  Beginner: 'Beginner',
+  Intermediate: 'Intermediate',
+  Advanced: 'Advanced'
 };
 
 const nextTopicTitle = computed(() => {
   if (journey.state.value.resume) {
     const found = topics.value?.find(topic => topic.id === journey.state.value.resume.topic_id);
-    return found ? `Bài học thuộc chủ đề "${found.title}"` : 'Bài học đang dở';
+    return found ? `Lesson in "${found.title}"` : 'In-progress lesson';
   }
-  return recommendedTopic.value?.title ? `Gợi ý bắt đầu: "${recommendedTopic.value.title}"` : 'Chọn một chủ đề phù hợp bên dưới để bắt đầu';
+  return recommendedTopic.value?.title ? `Recommended: "${recommendedTopic.value.title}"` : 'Choose a topic to begin in Lessons';
 });
 
 const openReview = () => {
+  if (ctx.pushNavState) ctx.pushNavState();
   ctx.leaveLesson(false);
   ctx.studyDeckId.value = null;
   ctx.studyMode.value = 'flashcard';
-  ctx.activeTab.value = 'study';
+  ctx.activeTab.value = 'flashcard';
   void ctx.loadFlashcardsData();
 };
 
 const openQuizMode = () => {
+  if (ctx.pushNavState) ctx.pushNavState();
   ctx.leaveLesson(false);
   ctx.studyMode.value = 'quiz';
-  ctx.activeTab.value = 'study';
+  ctx.activeTab.value = 'quiz';
   void ctx.loadQuizzesData();
 };
 
 const userLevelPercent = computed(() => {
   const completed = journey.completedCount?.value || 0;
   return Math.min(100, Math.max(25, (completed % 5) * 20 + 20));
-});
-
-const filteredTopics = computed(() => {
-  if (selectedTopicLevel.value === 'all') return topics.value || [];
-  return (topics.value || []).filter(topic => topic.level === selectedTopicLevel.value);
-});
-
-const visibleTopics = computed(() => {
-  if (showAllTopics.value) return filteredTopics.value;
-  return filteredTopics.value.slice(0, 6);
 });
 </script>

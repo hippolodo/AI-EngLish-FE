@@ -1,12 +1,12 @@
 <template>
   <div class="grid grid-cols-1 gap-2.5">
     <div ref="topicRoot" class="relative min-w-0">
-      <span class="mb-1.5 block text-xs font-semibold uppercase tracking-[0.14em] text-violet-500">Chủ đề luyện tập</span>
+      <span class="mb-1.5 block text-xs font-semibold uppercase tracking-[0.14em] text-violet-500">Practice Topic</span>
       <button
         type="button"
         :aria-expanded="topicOpen"
         aria-haspopup="listbox"
-        aria-label="Chọn chủ đề luyện tập"
+        aria-label="Select practice topic"
         class="flex w-full items-center gap-2.5 rounded-2xl border border-violet-100 bg-gradient-to-r from-white to-violet-50/80 p-2.5 text-left shadow-sm shadow-violet-100/70 transition hover:border-violet-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-violet-100"
         @click="topicOpen = !topicOpen; lessonOpen = false"
       >
@@ -14,14 +14,14 @@
           <Layers class="h-4 w-4" />
         </span>
         <span class="min-w-0 flex-1">
-          <span class="block truncate text-sm font-semibold text-slate-800">{{ selectedTopic?.title || 'Chọn chủ đề' }}</span>
-          <span class="mt-0.5 block truncate text-xs font-medium text-slate-500">{{ selectedTopic?.level || 'Khám phá chủ đề học' }}</span>
+          <span class="block truncate text-sm font-semibold text-slate-800">{{ selectedTopic?.title || 'Select Topic' }}</span>
+          <span class="mt-0.5 block truncate text-xs font-medium text-slate-500">{{ selectedTopic?.level || 'Explore topics' }}</span>
         </span>
         <ChevronDown :class="topicOpen ? 'rotate-180' : ''" class="h-4 w-4 shrink-0 text-violet-500 transition-transform" />
       </button>
 
       <Transition name="picker-pop">
-        <div v-if="topicOpen" role="listbox" aria-label="Danh sách chủ đề" class="absolute left-0 right-0 top-full z-50 mt-2 max-h-60 overflow-y-auto rounded-2xl border border-violet-100 bg-white/95 p-1.5 shadow-xl shadow-violet-950/10 backdrop-blur-xl">
+        <div v-if="topicOpen" role="listbox" aria-label="Topic list" class="absolute left-0 right-0 top-full z-50 mt-2 max-h-60 overflow-y-auto rounded-2xl border border-violet-100 bg-white/95 p-1.5 shadow-xl shadow-violet-950/10 backdrop-blur-xl">
           <button
             v-for="topic in topics"
             :key="topic.id"
@@ -39,22 +39,22 @@
             <span class="shrink-0 rounded-full px-2 py-1 text-xs font-semibold" :class="levelClass(topic.level)">{{ topic.level }}</span>
             <Check v-if="topic.id === topicId" class="h-3.5 w-3.5 shrink-0 text-violet-600" />
           </button>
-          <p v-if="topics.length === 0" class="px-3 py-4 text-center text-sm text-slate-500">Chưa có chủ đề.</p>
+          <p v-if="topics.length === 0" class="px-3 py-4 text-center text-sm text-slate-500">No topics available.</p>
         </div>
       </Transition>
     </div>
 
     <div ref="lessonRoot" class="relative min-w-0">
       <span class="mb-1.5 flex items-center justify-between text-xs font-semibold uppercase tracking-[0.14em] text-emerald-600">
-        <span>Bài học</span>
-        <span v-if="!loading && lessons.length" class="normal-case tracking-normal text-slate-500">{{ lessons.length }} bài</span>
+        <span>Lesson</span>
+        <span v-if="!loading && lessons.length" class="normal-case tracking-normal text-slate-500">{{ lessons.length }} lessons</span>
       </span>
       <button
         type="button"
         :disabled="loading || lessons.length === 0"
         :aria-expanded="lessonOpen"
         aria-haspopup="listbox"
-        aria-label="Chọn bài học"
+        aria-label="Select lesson"
         class="flex w-full items-center gap-2.5 rounded-2xl border border-emerald-100 bg-gradient-to-r from-white to-emerald-50/80 p-2.5 text-left shadow-sm shadow-emerald-100/70 transition hover:border-emerald-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-100 disabled:cursor-not-allowed disabled:opacity-60"
         @click="lessonOpen = !lessonOpen; topicOpen = false"
       >
@@ -62,14 +62,14 @@
           <BookOpen class="h-4 w-4" />
         </span>
         <span class="min-w-0 flex-1">
-          <span class="block truncate text-sm font-semibold text-slate-800">{{ loading ? 'Đang tải bài học...' : selectedLesson?.title || 'Chưa có bài Speaking' }}</span>
-          <span class="mt-0.5 block truncate text-xs font-medium text-slate-500">{{ selectedLesson ? `Bài ${selectedLesson.order_index || 1}` : 'Bài học thuộc chủ đề đã chọn' }}</span>
+          <span class="block truncate text-sm font-semibold text-slate-800">{{ loading ? 'Loading lessons...' : selectedLesson?.title || 'No lessons available' }}</span>
+          <span class="mt-0.5 block truncate text-xs font-medium text-slate-500">{{ selectedLesson ? `Lesson ${selectedLesson.order_index || 1}` : 'Lessons from selected topic' }}</span>
         </span>
         <ChevronDown :class="lessonOpen ? 'rotate-180' : ''" class="h-4 w-4 shrink-0 text-emerald-500 transition-transform" />
       </button>
 
       <Transition name="picker-pop">
-        <div v-if="lessonOpen" role="listbox" aria-label="Danh sách bài học" class="absolute left-0 right-0 top-full z-40 mt-2 max-h-60 overflow-y-auto rounded-2xl border border-emerald-100 bg-white/95 p-1.5 shadow-xl shadow-emerald-950/10 backdrop-blur-xl">
+        <div v-if="lessonOpen" role="listbox" aria-label="Lesson list" class="absolute left-0 right-0 top-full z-40 mt-2 max-h-60 overflow-y-auto rounded-2xl border border-emerald-100 bg-white/95 p-1.5 shadow-xl shadow-emerald-950/10 backdrop-blur-xl">
           <button
             v-for="(lesson, index) in lessons"
             :key="lesson.id"
@@ -84,8 +84,8 @@
             <span class="min-w-0 flex-1 truncate text-sm font-semibold text-slate-700">{{ lesson.title }}</span>
             <Check v-if="lesson.id === lessonId" class="h-3.5 w-3.5 shrink-0 text-emerald-600" />
           </button>
-          <p v-if="loading" class="px-3 py-4 text-center text-sm text-slate-500">Đang tải bài học...</p>
-          <p v-else-if="lessons.length === 0" class="px-3 py-4 text-center text-sm text-slate-500">Chủ đề này chưa có bài Speaking.</p>
+          <p v-if="loading" class="px-3 py-4 text-center text-sm text-slate-500">Loading lessons...</p>
+          <p v-else-if="lessons.length === 0" class="px-3 py-4 text-center text-sm text-slate-500">No lessons available for this topic.</p>
         </div>
       </Transition>
     </div>

@@ -37,11 +37,11 @@ apiClient.interceptors.response.use(
   }
 );
 
-export function getErrorMessage(error, fallback = 'Có lỗi xảy ra. Vui lòng thử lại.') {
+export function getErrorMessage(error, fallback = 'An error occurred. Please try again.') {
   const detail = error.response?.data?.detail;
   if (Array.isArray(detail)) return detail.map(item => item.msg).join(', ');
   if (typeof detail === 'string') return detail;
-  if (error.code === 'ECONNABORTED') return 'Yêu cầu quá thời gian chờ. Vui lòng thử lại.';
+  if (error.code === 'ECONNABORTED') return 'Request timed out. Please try again.';
   return error.message && !error.response ? error.message : fallback;
 }
 

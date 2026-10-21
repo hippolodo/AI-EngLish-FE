@@ -16,13 +16,13 @@
               <Sparkles class="w-5 h-5" />
             </div>
             <div>
-              <h2 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">Khảo sát thiết lập lộ trình AI</h2>
-              <p class="text-xs text-slate-500">Cá nhân hóa trải nghiệm học theo mục tiêu của bạn</p>
+              <h2 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">Personalized Learning Survey</h2>
+              <p class="text-xs text-slate-500">Personalize your learning path according to your goals</p>
             </div>
           </div>
 
           <div class="text-xs font-bold px-3 py-1 rounded-full bg-indigo-100 text-indigo-700">
-            Bước {{ currentStep }} / 3
+            Step {{ currentStep }} / 3
           </div>
         </div>
 
@@ -40,9 +40,9 @@
         <!-- STEP 1: Target Level -->
         <div v-if="currentStep === 1" class="space-y-4">
           <div>
-            <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">Bước 1: Trình độ</span>
-            <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-1">Trình độ mục tiêu bạn muốn hướng tới?</h3>
-            <p class="text-sm text-slate-500 mt-1">AI sẽ tinh chỉnh bài nghe, từ vựng và câu nói phù hợp với bạn.</p>
+            <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">Step 1: Proficiency Level</span>
+            <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-1">What target level are you aiming for?</h3>
+            <p class="text-sm text-slate-500 mt-1">We will adjust listening, vocabulary, and speaking exercises to match your level.</p>
           </div>
 
           <div class="space-y-3 pt-2">
@@ -60,7 +60,7 @@
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
                   <h4 class="text-base sm:text-lg font-bold text-slate-900">{{ level.title }}</h4>
-                  <span v-if="level.recommended" class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Khuyên dùng</span>
+                  <span v-if="level.recommended" class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Recommended</span>
                 </div>
                 <p class="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">{{ level.desc }}</p>
               </div>
@@ -71,9 +71,9 @@
         <!-- STEP 2: Primary Goal -->
         <div v-else-if="currentStep === 2" class="space-y-4">
           <div>
-            <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">Bước 2: Mục tiêu chính</span>
-            <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-1">Bạn muốn cải thiện tiếng Anh để làm gì?</h3>
-            <p class="text-sm text-slate-500 mt-1">AI sẽ ưu tiên các chủ đề hội thoại và bài học phục vụ đúng nhu cầu này.</p>
+            <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">Step 2: Primary Goal</span>
+            <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-1">What is your primary goal for learning English?</h3>
+            <p class="text-sm text-slate-500 mt-1">Lessons and conversations will prioritize topics tailored to this goal.</p>
           </div>
 
           <div class="space-y-3 pt-2">
@@ -99,9 +99,9 @@
         <!-- STEP 3: Daily Commitment -->
         <div v-else class="space-y-4">
           <div>
-            <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">Bước 3: Thời gian mỗi ngày</span>
-            <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-1">Mỗi ngày bạn muốn dành bao nhiêu thời gian?</h3>
-            <p class="text-sm text-slate-500 mt-1">Học đều đặn mỗi ngày một chút hiệu quả hơn học dồn dập vào cuối tuần.</p>
+            <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">Step 3: Daily Commitment</span>
+            <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-1">How much time do you want to practice each day?</h3>
+            <p class="text-sm text-slate-500 mt-1">Consistent daily practice is far more effective than cramming on weekends.</p>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-2">
@@ -117,7 +117,7 @@
             >
               <div class="flex items-center justify-between">
                 <span class="text-2xl">{{ time.emoji }}</span>
-                <span v-if="time.recommended" class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">Khuyên dùng</span>
+                <span v-if="time.recommended" class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">Recommended</span>
               </div>
               <div class="mt-3">
                 <h4 class="text-base font-bold text-slate-900">{{ time.title }}</h4>
@@ -129,11 +129,11 @@
           <!-- Quick Recap Badge -->
           <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-600 space-y-1 mt-4">
             <p class="font-bold text-slate-800 flex items-center gap-1.5">
-              <CheckCircle2 class="w-4 h-4 text-emerald-600" /> Tóm tắt hồ sơ học tập:
+              <CheckCircle2 class="w-4 h-4 text-emerald-600" /> Learning Profile Summary:
             </p>
-            <p>• Trình độ: <strong class="text-indigo-600">{{ getLevelLabel(selectedLevel) }}</strong></p>
-            <p>• Mục tiêu: <strong class="text-indigo-600">{{ getGoalLabel(selectedGoal) }}</strong></p>
-            <p>• Thời gian: <strong class="text-indigo-600">{{ selectedMinutes }} phút mỗi ngày</strong></p>
+            <p>• Target Level: <strong class="text-indigo-600">{{ getLevelLabel(selectedLevel) }}</strong></p>
+            <p>• Primary Goal: <strong class="text-indigo-600">{{ getGoalLabel(selectedGoal) }}</strong></p>
+            <p>• Daily Commitment: <strong class="text-indigo-600">{{ selectedMinutes }} mins / day</strong></p>
           </div>
         </div>
 
@@ -151,7 +151,7 @@
           :disabled="submitting"
           class="px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold text-sm hover:bg-slate-100 transition cursor-pointer"
         >
-          Quay lại
+          Back
         </button>
         <div v-else></div>
 
@@ -161,7 +161,7 @@
           @click="currentStep++"
           class="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm sm:text-base shadow-md shadow-indigo-600/20 transition flex items-center gap-2 cursor-pointer"
         >
-          <span>Tiếp tục</span>
+          <span>Continue</span>
           <ChevronRight class="w-4 h-4" />
         </button>
 
@@ -174,7 +174,7 @@
         >
           <Loader2 v-if="submitting" class="w-4 h-4 animate-spin" />
           <Sparkles v-else class="w-4 h-4" />
-          <span>{{ submitting ? 'Đang lưu thiết lập...' : 'Bắt đầu học ngay 🚀' }}</span>
+          <span>{{ submitting ? 'Saving settings...' : 'Start Learning Now 🚀' }}</span>
         </button>
       </div>
     </div>
@@ -203,21 +203,21 @@ const LEVEL_OPTIONS = [
   {
     id: 'Beginner',
     emoji: '🌱',
-    title: 'Cơ bản (Beginner - A1/A2)',
-    desc: 'Mới bắt đầu hoặc mất gốc, muốn học lại từ phát âm bảng IPA và từ vựng thông dụng cơ bản.'
+    title: 'Beginner',
+    desc: 'Complete beginner or restarting; master foundational IPA phonetics and high-frequency vocabulary.'
   },
   {
     id: 'Intermediate',
     emoji: '🚀',
-    title: 'Trung cấp (Intermediate - B1/B2)',
-    desc: 'Đã có nền tảng từ vựng, muốn nâng cao phản xạ tự nhiên và giao tiếp thành câu trôi chảy.',
+    title: 'Intermediate',
+    desc: 'Familiar with basic vocabulary; looking to improve natural speaking reflex and fluency.',
     recommended: true
   },
   {
     id: 'Advanced',
     emoji: '👑',
-    title: 'Nâng cao (Advanced - C1/C2)',
-    desc: 'Đã nói tốt, muốn tinh chỉnh độ tự nhiên như người bản xứ, viết luận và đàm phán công việc.'
+    title: 'Advanced',
+    desc: 'Solid English skills; refining native-like nuances, essay writing, and workplace negotiations.'
   }
 ];
 
@@ -225,28 +225,28 @@ const GOAL_OPTIONS = [
   {
     id: 'communication',
     emoji: '💬',
-    title: 'Giao tiếp hàng ngày (Communication)',
-    desc: 'Tự tin bắt chuyện với người nước ngoài, đi du lịch, xem phim hoặc nghe podcast không phụ đề.'
+    title: 'Daily Communication',
+    desc: 'Confidently converse with foreigners, travel abroad, watch movies, and listen to podcasts without subtitles.'
   },
   {
     id: 'work',
     emoji: '💼',
-    title: 'Công việc & Sự nghiệp (Career & IT)',
-    desc: 'Phỏng vấn xin việc, thuyết trình, trao đổi email và làm việc tự tin trong môi trường quốc tế.'
+    title: 'Career & Business',
+    desc: 'Ace job interviews, lead presentations, draft professional correspondence, and thrive in global teams.'
   },
   {
     id: 'study',
     emoji: '🎓',
-    title: 'Học tập & Luyện thi (Academic & IELTS)',
-    desc: 'Rèn luyện ngữ pháp chuyên sâu, cải thiện kỹ năng viết luận và chuẩn bị cho các kỳ thi chứng chỉ.'
+    title: 'Academic & Exams',
+    desc: 'In-depth grammar mastery, essay writing excellence, and preparation for IELTS or academic tests.'
   }
 ];
 
 const TIME_OPTIONS = [
-  { minutes: 10, emoji: '☕', title: '10 phút / ngày', desc: 'Thư giãn, nhẹ nhàng duy trì thói quen.' },
-  { minutes: 15, emoji: '⭐', title: '15 phút / ngày', desc: 'Tiêu chuẩn, tiến bộ rõ rệt sau 30 ngày.', recommended: true },
-  { minutes: 30, emoji: '🔥', title: '30 phút / ngày', desc: 'Chăm chỉ, bứt phá phản xạ giao tiếp.' },
-  { minutes: 45, emoji: '🚀', title: '45 phút / ngày', desc: 'Cấp tốc, đạt mục tiêu nhanh nhất.' }
+  { minutes: 10, emoji: '☕', title: '10 mins / day', desc: 'Light and relaxed for building a steady habit.' },
+  { minutes: 15, emoji: '⭐', title: '15 mins / day', desc: 'Standard pace with noticeable progress after 30 days.', recommended: true },
+  { minutes: 30, emoji: '🔥', title: '30 mins / day', desc: 'Dedicated focus for accelerated conversational reflex.' },
+  { minutes: 45, emoji: '🚀', title: '45 mins / day', desc: 'Intensive immersion to achieve goals quickly.' }
 ];
 
 const getLevelLabel = (id) => {
@@ -266,7 +266,7 @@ const finishSurvey = async () => {
 
   try {
     const user = authService.getUser() || {};
-    const fullName = user.full_name || 'Học viên';
+    const fullName = user.full_name || 'Learner';
     
     await authService.updatePreferences({
       full_name: fullName,
@@ -286,7 +286,7 @@ const finishSurvey = async () => {
     });
   } catch (err) {
     const detail = err.response?.data?.detail;
-    errorMessage.value = Array.isArray(detail) ? detail.map(d => d.msg).join(', ') : (detail || 'Không thể lưu khảo sát lúc này. Vui lòng thử lại.');
+    errorMessage.value = Array.isArray(detail) ? detail.map(d => d.msg).join(', ') : (detail || 'Could not save survey at this time. Please try again.');
   } finally {
     submitting.value = false;
   }

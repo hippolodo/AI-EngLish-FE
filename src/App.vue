@@ -1,90 +1,75 @@
 <template>
-  <div class="min-h-screen bg-[#f8fafc] flex flex-col lg:flex-row font-sans text-slate-800 antialiased selection:bg-indigo-100 selection:text-indigo-800">
+  <!-- 1. FULL-SCREEN DEDICATED AUTH SCREEN (Màn hình đăng nhập / đăng ký riêng biệt) -->
+  <div
+    v-if="activeTab === 'auth'"
+    class="min-h-screen w-full bg-[#f8fafc] font-sans text-slate-800 antialiased selection:bg-indigo-100 selection:text-indigo-800 flex flex-col justify-center items-center py-6 sm:py-10 px-4 sm:px-6"
+  >
+    <AuthScreen />
+  </div>
+
+  <!-- 2. GIAO DIỆN CHÍNH CỦA ỨNG DỤNG (SIDEBAR + HEADER + MAIN CONTENT) -->
+  <div
+    v-else
+    class="min-h-screen bg-[#f8fafc] flex flex-col lg:flex-row font-sans text-slate-800 antialiased selection:bg-indigo-100 selection:text-indigo-800"
+  >
     
     <!-- DESKTOP / TABLET SIDEBAR NAVIGATION (Sticky on Left) -->
     <aside class="hidden lg:flex w-72 xl:w-80 border-r border-gray-100 flex-col justify-between py-7 px-5 bg-white select-none shrink-0 min-h-screen sticky top-0 h-screen z-30">
       <div class="flex flex-col">
         <!-- Logo -->
-        <div class="px-3 mb-9 flex items-center gap-3.5 cursor-pointer" @click="navigateTab('home')">
-          <svg class="w-9 h-9 text-[#2e5bff] shrink-0" fill="none" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 6L20 18L12 30" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="4.5"></path>
-            <path d="M20 10L26 18L20 26" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="4.5"></path>
-          </svg>
-          <span class="text-2xl font-bold tracking-tight text-[#1f242e]">LingoUp</span>
+        <div class="px-3 mb-8 flex items-center justify-between cursor-pointer" @click="navigateSidebar('home')">
+          <div class="flex items-center gap-3.5">
+            <svg class="w-9 h-9 text-[#2e5bff] shrink-0" fill="none" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 6L20 18L12 30" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="4.5"></path>
+              <path d="M20 10L26 18L20 26" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="4.5"></path>
+            </svg>
+            <span class="text-2xl font-bold tracking-tight text-[#1f242e]">LingoUp</span>
+          </div>
+
+          <!-- Streak Badge in Desktop Sidebar -->
+          <div v-if="dashboard?.streak !== undefined" class="flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-200/80 rounded-full text-xs font-bold text-amber-800 shadow-2xs" title="Daily Study Streak">
+            <span>🔥</span>
+            <span>{{ dashboard?.streak || 0 }}</span>
+          </div>
         </div>
 
         <!-- Main Navigation Menu -->
         <nav aria-label="Main Navigation" class="space-y-2">
           <button
-            @click="navigateTab('home')"
+            @click="navigateSidebar('home')"
             :class="activeTab === 'home' ? 'bg-[#f1f5fd] text-[#2b59ff] font-bold shadow-2xs' : 'text-[#4a5568] hover:bg-gray-50 hover:text-black font-semibold'"
             class="w-full flex items-center gap-4 px-4.5 py-3 rounded-full text-[16px] transition-colors cursor-pointer text-left"
           >
             <LayoutGrid class="w-5.5 h-5.5 shrink-0" :class="activeTab === 'home' ? 'text-[#2b59ff]' : 'text-gray-500'" />
-            <span>Trang chủ</span>
+            <span>Home</span>
           </button>
 
-          <button
-            @click="navigateTab('speaking')"
-            :class="activeTab === 'speaking' ? 'bg-[#f1f5fd] text-[#2b59ff] font-bold shadow-2xs' : 'text-[#4a5568] hover:bg-gray-50 hover:text-black font-semibold'"
-            class="w-full flex items-center gap-4 px-4.5 py-3 rounded-full text-[16px] transition-colors cursor-pointer text-left"
-          >
-            <Mic class="w-5.5 h-5.5 shrink-0" :class="activeTab === 'speaking' ? 'text-[#2b59ff]' : 'text-gray-500'" />
-            <span>Luyện phát âm</span>
-          </button>
 
           <button
-            @click="navigateTab('chat')"
-            :class="activeTab === 'chat' ? 'bg-[#f1f5fd] text-[#2b59ff] font-bold shadow-2xs' : 'text-[#4a5568] hover:bg-gray-50 hover:text-black font-semibold'"
-            class="w-full flex items-center gap-4 px-4.5 py-3 rounded-full text-[16px] transition-colors cursor-pointer text-left"
-          >
-            <MessageSquare class="w-5.5 h-5.5 shrink-0" :class="activeTab === 'chat' ? 'text-[#2b59ff]' : 'text-gray-500'" />
-            <span>Hội thoại AI</span>
-          </button>
-
-          <button
-            @click="navigateTab('writing')"
-            :class="activeTab === 'writing' ? 'bg-[#f1f5fd] text-[#2b59ff] font-bold shadow-2xs' : 'text-[#4a5568] hover:bg-gray-50 hover:text-black font-semibold'"
-            class="w-full flex items-center gap-4 px-4.5 py-3 rounded-full text-[16px] transition-colors cursor-pointer text-left"
-          >
-            <PenTool class="w-5.5 h-5.5 shrink-0" :class="activeTab === 'writing' ? 'text-[#2b59ff]' : 'text-gray-500'" />
-            <span>Luyện viết AI</span>
-          </button>
-
-          <button
-            @click="navigateTab('study')"
-            :class="activeTab === 'study' ? 'bg-[#f1f5fd] text-[#2b59ff] font-bold shadow-2xs' : 'text-[#4a5568] hover:bg-gray-50 hover:text-black font-semibold'"
-            class="w-full flex items-center gap-4 px-4.5 py-3 rounded-full text-[16px] transition-colors cursor-pointer text-left"
-          >
-            <Layers class="w-5.5 h-5.5 shrink-0" :class="activeTab === 'study' ? 'text-[#2b59ff]' : 'text-gray-500'" />
-            <span>Flashcard & Quiz</span>
-          </button>
-
-          <button
-            @click="navigateTab('lesson')"
+            @click="navigateSidebar('lesson')"
             :class="activeTab === 'lesson' ? 'bg-[#f1f5fd] text-[#2b59ff] font-bold shadow-2xs' : 'text-[#4a5568] hover:bg-gray-50 hover:text-black font-semibold'"
             class="w-full flex items-center gap-4 px-4.5 py-3 rounded-full text-[16px] transition-colors cursor-pointer text-left"
           >
             <GraduationCap class="w-5.5 h-5.5 shrink-0" :class="activeTab === 'lesson' ? 'text-[#2b59ff]' : 'text-gray-500'" />
-            <span>Chủ đề bài học</span>
+            <span>Lessons</span>
           </button>
 
           <button
-            @click="navigateTab('dictionary')"
+            @click="navigateSidebar('dictionary')"
             :class="activeTab === 'dictionary' ? 'bg-[#f1f5fd] text-[#2b59ff] font-bold shadow-2xs' : 'text-[#4a5568] hover:bg-gray-50 hover:text-black font-semibold'"
             class="w-full flex items-center gap-4 px-4.5 py-3 rounded-full text-[16px] transition-colors cursor-pointer text-left"
           >
             <BookA class="w-5.5 h-5.5 shrink-0" :class="activeTab === 'dictionary' ? 'text-[#2b59ff]' : 'text-gray-500'" />
-            <span>Từ điển AI</span>
+            <span>Dictionary</span>
           </button>
 
           <button
-            @click="navigateTab('profile')"
+            @click="navigateSidebar('profile')"
             :class="activeTab === 'profile' ? 'bg-[#f1f5fd] text-[#2b59ff] font-bold shadow-2xs' : 'text-[#4a5568] hover:bg-gray-50 hover:text-black font-semibold'"
             class="w-full flex items-center gap-4 px-4.5 py-3 rounded-full text-[16px] transition-colors cursor-pointer text-left"
           >
             <TrendingUp class="w-5.5 h-5.5 shrink-0" :class="activeTab === 'profile' ? 'text-[#2b59ff]' : 'text-gray-500'" />
-            <span>Tiến độ học tập</span>
+            <span>Progress</span>
           </button>
         </nav>
       </div>
@@ -97,7 +82,7 @@
           :class="activeTab === (isAuthenticated ? 'profile' : 'auth') ? 'bg-[#f1f5fd] text-[#2b59ff] font-bold shadow-2xs' : ''"
         >
           <UserRound class="w-5.5 h-5.5 shrink-0 text-gray-500" />
-          <span class="truncate">{{ isAuthenticated ? (userProfile?.full_name || 'Tài khoản') : 'Đăng nhập / Đăng ký' }}</span>
+          <span class="truncate">{{ isAuthenticated ? (userProfile?.full_name || 'Account') : 'Sign In / Register' }}</span>
         </button>
       </div>
     </aside>
@@ -105,61 +90,29 @@
     <!-- MAIN RIGHT CONTENT COLUMN -->
     <div class="flex-1 flex flex-col min-w-0 min-h-screen">
       
-      <!-- TOP GLOBAL APP BAR (Desktop & Mobile) -->
-      <header class="sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b border-gray-100 px-6 sm:px-8 lg:px-12 py-4 flex items-center justify-between shadow-2xs">
-        <!-- Left: Brand (Mobile) or Breadcrumb (Desktop) -->
-        <div class="flex items-center gap-3 min-w-0">
-          <!-- Universal Back Button (When not on home screen) -->
-          <button
-            v-if="activeTab !== 'home'"
-            @click="goBack"
-            class="flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-blue-600 font-bold text-xs sm:text-sm transition-all shadow-2xs cursor-pointer shrink-0"
-            title="Quay lại"
-          >
-            <ArrowLeft class="w-4 h-4 text-slate-600" />
-            <span>Quay lại</span>
-          </button>
-
-          <!-- Mobile Brand Logo -->
-          <div class="flex items-center gap-2 lg:hidden">
-            <svg class="w-7 h-7 text-[#2e5bff] shrink-0" fill="none" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 6L20 18L12 30" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="4.5"></path>
-              <path d="M20 10L26 18L20 26" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="4.5"></path>
-            </svg>
-            <span class="text-lg font-bold tracking-tight text-slate-900">LingoUp</span>
-          </div>
-
-          <!-- Desktop Page Context Title -->
-          <div class="hidden lg:flex items-center gap-2 text-base">
-            <span class="font-bold text-slate-800 text-lg">
-              {{ activeTab === 'home' ? 'Trang chủ' : activeTab === 'speaking' ? 'Luyện phát âm AI (Speaking Lab)' : activeTab === 'writing' ? 'Trợ lý luyện viết AI (Writing Coach)' : activeTab === 'chat' ? 'Hội thoại đóng vai (AI Roleplay Chat)' : activeTab === 'study' ? 'Ôn tập Flashcard & Quiz' : activeTab === 'lesson' ? 'Chủ đề bài học & Lộ trình' : activeTab === 'dictionary' ? 'Tra cứu từ điển thông minh AI' : activeTab === 'auth' ? 'Đăng nhập & Đăng ký tài khoản' : 'Hồ sơ học viên' }}
-            </span>
-          </div>
+      <!-- MOBILE-ONLY APP BAR (lg:hidden - On Desktop there is NO top header, exactly like TalkPal) -->
+      <header class="lg:hidden sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-gray-100 px-4 py-3 flex items-center justify-between shadow-2xs">
+        <!-- Mobile Brand Logo -->
+        <div class="flex items-center gap-2 cursor-pointer" @click="navigateSidebar('home')">
+          <svg class="w-7 h-7 text-[#2e5bff] shrink-0" fill="none" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 6L20 18L12 30" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="4.5"></path>
+            <path d="M20 10L26 18L20 26" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="4.5"></path>
+          </svg>
+          <span class="text-lg font-bold tracking-tight text-slate-900">LingoUp</span>
         </div>
 
-        <!-- Right: Actions, Streak & Profile -->
-        <div class="flex items-center gap-3 sm:gap-4 shrink-0">
-          <!-- Active Lesson Pill (if studying) -->
-          <div v-if="currentLesson && activeTab !== 'home' && activeTab !== 'lesson' && activeTab !== 'profile' && activeTab !== 'auth'" class="hidden sm:flex items-center gap-2 px-3.5 py-1.5 bg-violet-50 border border-violet-200 rounded-full text-xs font-semibold">
-            <button @click="activeTab = 'lesson'" class="font-bold text-violet-800 hover:underline truncate max-w-[200px]">
-              Bài đang học: {{ currentLesson.title }}
-            </button>
-            <button @click="leaveLesson" class="text-slate-400 hover:text-slate-600 font-bold ml-1">✕</button>
+        <!-- Mobile Right: Streak & Profile -->
+        <div class="flex items-center gap-2.5 shrink-0">
+          <div class="flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-200/80 rounded-full text-xs font-bold text-amber-700">
+            <span>🔥</span>
+            <span>{{ dashboard?.streak || 0 }} days</span>
           </div>
 
-          <!-- Streak Badge -->
-          <div class="flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-200/80 rounded-full text-xs font-bold text-amber-700 shadow-2xs">
-            <span class="text-sm">🔥</span>
-            <span>{{ dashboard?.streak || 0 }} ngày</span>
-          </div>
-
-          <!-- Profile / Login Button -->
           <button
             @click="openAuthOrProfile"
-            class="flex items-center gap-2.5 p-1 sm:px-3.5 sm:py-2 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 transition cursor-pointer shadow-2xs"
+            class="flex items-center p-1 rounded-full border border-slate-200 bg-white shadow-2xs cursor-pointer"
           >
-            <img :src="userAvatarUrl" alt="" class="w-7 h-7 rounded-full border border-slate-200 object-cover" />
-            <span class="hidden sm:inline">{{ isAuthenticated ? (userProfile?.full_name || 'Tài khoản') : 'Đăng nhập' }}</span>
+            <img :src="userAvatarUrl" alt="" class="w-7 h-7 rounded-full object-cover" />
           </button>
         </div>
       </header>
@@ -167,17 +120,13 @@
       <!-- Active Lesson Alert for Mobile -->
       <div v-if="currentLesson && activeTab !== 'home' && activeTab !== 'lesson' && activeTab !== 'profile' && activeTab !== 'auth'" class="sm:hidden mx-4 mt-3 flex items-center justify-between gap-2 p-3 bg-violet-50 border border-violet-200 rounded-2xl text-xs font-semibold">
         <button @click="activeTab = 'lesson'" class="font-bold text-violet-800 truncate">
-          Bài đang học: {{ currentLesson.title }}
+          Current Lesson: {{ currentLesson.title }}
         </button>
         <button @click="leaveLesson" class="text-slate-500 font-bold px-2 py-0.5 rounded hover:bg-violet-100">✕</button>
       </div>
 
       <!-- MAIN PAGE CONTENT (Max width 1540px, generous padding, spacious) -->
       <main class="flex-1 w-full max-w-[1540px] mx-auto px-6 sm:px-8 lg:px-12 py-8 pb-24 lg:pb-12">
-        <div v-if="journey.error.value" role="status" class="mb-4 rounded-2xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800 flex items-center justify-between">
-          <span>{{ journey.error.value }}</span>
-          <button @click="journey.sync" class="font-bold underline cursor-pointer">Thử đồng bộ lại</button>
-        </div>
 
         <HomeScreen />
         <ProfileScreen />
@@ -185,17 +134,17 @@
         <SpeakingScreen />
         <WritingScreen />
         <ChatScreen />
-        <StudyScreen />
+        <FlashcardScreen />
+        <QuizScreen />
         <DictionaryScreen />
-        <AuthScreen />
       </main>
 
       <!-- MOBILE BOTTOM NAVIGATION BAR (lg:hidden) -->
       <nav class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 px-3 py-2 z-40 shadow-[0_-8px_30px_rgba(44,35,94,0.08)]">
         <div class="flex items-center justify-around">
           <button
-            @click="navigateTab('home')"
-            :class="activeTab === 'home' ? 'text-indigo-600 font-bold' : 'text-slate-400 font-medium'"
+            @click="navigateSidebar('home')"
+            :class="activeTab === 'home' ? 'text-[#2b59ff] font-bold' : 'text-slate-400 font-medium'"
             class="flex flex-col items-center py-1 px-2 text-xs transition cursor-pointer"
           >
             <Home :class="activeTab === 'home' ? 'scale-110 stroke-[2.5]' : ''" class="w-5 h-5 transition-transform" />
@@ -203,57 +152,49 @@
           </button>
 
           <button
-            @click="navigateTab('speaking')"
-            :class="activeTab === 'speaking' ? 'text-indigo-600 font-bold' : 'text-slate-400 font-medium'"
+            @click="navigateSidebar('lesson')"
+            :class="activeTab === 'lesson' ? 'text-[#2b59ff] font-bold' : 'text-slate-400 font-medium'"
             class="flex flex-col items-center py-1 px-2 text-xs transition cursor-pointer"
           >
-            <Mic :class="activeTab === 'speaking' ? 'scale-110 stroke-[2.5]' : ''" class="w-5 h-5 transition-transform" />
-            <span class="mt-1">Phát âm</span>
+            <GraduationCap :class="activeTab === 'lesson' ? 'scale-110 stroke-[2.5]' : ''" class="w-5 h-5 transition-transform" />
+            <span class="mt-1">Lessons</span>
           </button>
 
           <button
-            @click="navigateTab('writing')"
-            :class="activeTab === 'writing' ? 'text-indigo-600 font-bold' : 'text-slate-400 font-medium'"
+            @click="navigateSidebar('dictionary')"
+            :class="activeTab === 'dictionary' ? 'text-[#2b59ff] font-bold' : 'text-slate-400 font-medium'"
             class="flex flex-col items-center py-1 px-2 text-xs transition cursor-pointer"
           >
-            <PenTool :class="activeTab === 'writing' ? 'scale-110 stroke-[2.5]' : ''" class="w-5 h-5 transition-transform" />
-            <span class="mt-1">Luyện viết</span>
+            <BookA :class="activeTab === 'dictionary' ? 'scale-110 stroke-[2.5]' : ''" class="w-5 h-5 transition-transform" />
+            <span class="mt-1">Dictionary</span>
           </button>
 
           <button
-            @click="navigateTab('chat')"
-            :class="activeTab === 'chat' ? 'text-indigo-600 font-bold' : 'text-slate-400 font-medium'"
+            @click="navigateSidebar('profile')"
+            :class="activeTab === 'profile' ? 'text-[#2b59ff] font-bold' : 'text-slate-400 font-medium'"
             class="flex flex-col items-center py-1 px-2 text-xs transition cursor-pointer"
           >
-            <MessageSquare :class="activeTab === 'chat' ? 'scale-110 stroke-[2.5]' : ''" class="w-5 h-5 transition-transform" />
-            <span class="mt-1">Hội thoại</span>
-          </button>
-
-          <button
-            @click="navigateTab('study')"
-            :class="activeTab === 'study' ? 'text-indigo-600 font-bold' : 'text-slate-400 font-medium'"
-            class="flex flex-col items-center py-1 px-2 text-xs transition cursor-pointer"
-          >
-            <BookOpen :class="activeTab === 'study' ? 'scale-110 stroke-[2.5]' : ''" class="w-5 h-5 transition-transform" />
-            <span class="mt-1">Ôn tập</span>
+            <TrendingUp :class="activeTab === 'profile' ? 'scale-110 stroke-[2.5]' : ''" class="w-5 h-5 transition-transform" />
+            <span class="mt-1">Progress</span>
           </button>
         </div>
       </nav>
 
-      <AuthModal
-        :is-open="isAuthOpen"
-        @close="isAuthOpen = false"
-        @auth-success="onAuthSuccess"
-      />
-      <OnboardingSurveyModal
-        :is-open="isOnboardingOpen"
-        @close="isOnboardingOpen = false"
-        @completed="onOnboardingCompleted"
-      />
-      <SaveWordModal :is-open="saveWordOpen" :initial-word="wordToSave" :example="wordExample" :initial-meaning="wordMeaning" :initial-ipa="wordIpa" @close="saveWordOpen = false" @saved="onWordSaved" />
-
     </div>
   </div>
+
+  <!-- GLOBAL MODALS -->
+  <AuthModal
+    :is-open="isAuthOpen"
+    @close="isAuthOpen = false"
+    @auth-success="onAuthSuccess"
+  />
+  <OnboardingSurveyModal
+    :is-open="isOnboardingOpen"
+    @close="isOnboardingOpen = false"
+    @completed="onOnboardingCompleted"
+  />
+  <SaveWordModal :is-open="saveWordOpen" :initial-word="wordToSave" :example="wordExample" :initial-meaning="wordMeaning" :initial-ipa="wordIpa" @close="saveWordOpen = false" @saved="onWordSaved" />
 </template>
 
 <script setup>
@@ -266,7 +207,8 @@ import HomeScreen from './views/HomeScreen.vue';
 import SpeakingScreen from './views/SpeakingScreen.vue';
 import WritingScreen from './views/WritingScreen.vue';
 import ChatScreen from './views/ChatScreen.vue';
-import StudyScreen from './views/StudyScreen.vue';
+import FlashcardScreen from './views/FlashcardScreen.vue';
+import QuizScreen from './views/QuizScreen.vue';
 import AuthScreen from './views/AuthScreen.vue';
 import DictionaryScreen from './views/DictionaryScreen.vue';
 import OnboardingSurveyModal from './components/OnboardingSurveyModal.vue';
@@ -313,6 +255,7 @@ const pendingLesson = ref(null);
 const lessonDetail = ref(null);
 const lessonQuizzes = ref([]);
 const lessonDecks = ref([]);
+const lessonCards = ref([]);
 const lessonLoading = ref(false);
 const lessonError = ref('');
 const lessonStep = ref('practice');
@@ -335,35 +278,147 @@ const recommendedTopic = computed(() => {
   return candidates.find(topic => pattern.test(topic.title)) || candidates[0];
 });
 const previousTab = ref('home');
+const navHistory = ref([]);
+const hasHistory = computed(() => navHistory.value.length > 0);
+
+const navigateSidebar = tab => {
+  if ((tab === 'speaking' || tab === 'writing') && !isAuthenticated.value) {
+    requireAuthentication();
+    return;
+  }
+  // Khi ấn vào các mục ở sidebar thì xóa lịch sử để không hiện nút quay lại
+  navHistory.value = [];
+
+  if (tab === 'lesson') {
+    currentLesson.value = null;
+    selectedTopic.value = null;
+    lessonCards.value = [];
+  } else if (tab === 'speaking') {
+    currentLesson.value = null;
+  } else if (tab === 'writing') {
+    currentLesson.value = null;
+    writingPickerOpen.value = false;
+  } else if (tab === 'study' || tab === 'flashcard') {
+    currentLesson.value = null;
+    studyDeckId.value = null;
+    studyLessonId.value = null;
+    studyTopicId.value = null;
+  } else if (tab === 'quiz') {
+    currentLesson.value = null;
+  } else if (tab === 'chat') {
+    currentLesson.value = null;
+  }
+
+  activeTab.value = tab;
+  if (tab === 'study' || tab === 'flashcard') void loadFlashcardsData();
+  else if (tab === 'quiz') void loadQuizzesData();
+};
+
+const pushNavState = () => {
+  const current = {
+    tab: activeTab.value,
+    currentLesson: currentLesson.value,
+    lessonDetail: lessonDetail.value,
+    lessonStep: lessonStep.value,
+    selectedTopic: selectedTopic.value,
+    studyMode: studyMode.value,
+    studyDeckId: studyDeckId.value,
+    studyLessonId: studyLessonId.value,
+    studyTopicId: studyTopicId.value,
+    selectedSpeakingContentId: selectedSpeakingContentId.value
+  };
+  const last = navHistory.value[navHistory.value.length - 1];
+  if (
+    last &&
+    last.tab === current.tab &&
+    last.currentLesson?.id === current.currentLesson?.id &&
+    last.selectedTopic?.id === current.selectedTopic?.id &&
+    last.studyMode === current.studyMode &&
+    last.studyDeckId === current.studyDeckId
+  ) {
+    return;
+  }
+  navHistory.value.push(current);
+};
 
 const navigateTab = tab => {
+  if ((tab === 'speaking' || tab === 'writing') && !isAuthenticated.value) {
+    requireAuthentication();
+    return;
+  }
   if (tab === activeTab.value && !currentLesson.value) return;
+  if (currentLesson.value && (tab === 'study' || tab === 'flashcard' || tab === 'quiz')) {
+    leaveLesson(false);
+  }
   if (activeTab.value !== tab) {
+    pushNavState();
     previousTab.value = activeTab.value;
   }
-  if (tab !== 'home') leaveLesson(false);
   activeTab.value = tab;
   if (tab === 'study') void (studyMode.value === 'quiz' ? loadQuizzesData() : loadFlashcardsData());
+  else if (tab === 'flashcard') void loadFlashcardsData();
+  else if (tab === 'quiz') void loadQuizzesData();
 };
 
 const goBack = () => {
-  // Nếu đang học một bài cụ thể trong LessonScreen, quay lại danh mục bài học
-  if (activeTab.value === 'lesson' && currentLesson.value) {
-    leaveLesson();
-    return;
-  }
-  // Nếu đang mở bảng chọn đề viết trong WritingScreen, đóng bảng chọn
+  // 1. Nếu đang mở bảng chọn đề viết trong WritingScreen, đóng bảng chọn trước
   if (activeTab.value === 'writing' && writingPickerOpen.value) {
     writingPickerOpen.value = false;
     return;
   }
-  // Nếu có trang trước đó và khác trang hiện tại, quay lại trang đó
-  if (previousTab.value && previousTab.value !== activeTab.value) {
-    const target = previousTab.value;
-    previousTab.value = 'home';
-    navigateTab(target);
-  } else {
-    navigateTab('home');
+
+  // 2. Nếu có lịch sử trong navHistory stack, pop và khôi phục chính xác
+  while (navHistory.value.length > 0) {
+    const prev = navHistory.value.pop();
+    const isSameAsCurrent =
+      prev.tab === activeTab.value &&
+      prev.currentLesson?.id === currentLesson.value?.id &&
+      prev.selectedTopic?.id === selectedTopic.value?.id &&
+      prev.studyMode === studyMode.value &&
+      prev.studyDeckId === studyDeckId.value;
+
+    if (isSameAsCurrent) continue;
+
+    activeTab.value = prev.tab;
+    currentLesson.value = prev.currentLesson;
+    lessonDetail.value = prev.lessonDetail;
+    lessonStep.value = prev.lessonStep || 'practice';
+    selectedTopic.value = prev.selectedTopic;
+    studyMode.value = prev.studyMode || 'flashcard';
+    studyDeckId.value = prev.studyDeckId;
+    studyLessonId.value = prev.studyLessonId;
+    studyTopicId.value = prev.studyTopicId;
+
+    if (prev.tab === 'speaking' && prev.selectedSpeakingContentId && lessonDetail.value?.contents) {
+      const c = lessonDetail.value.contents.find(item => item.id === prev.selectedSpeakingContentId);
+      if (c) selectSpeakingSentence(c);
+    }
+
+    if (prev.tab === 'study') {
+      if (prev.studyMode === 'quiz') void loadQuizzesData();
+      else void loadFlashcardsData();
+    } else if (prev.tab === 'flashcard') {
+      void loadFlashcardsData();
+    } else if (prev.tab === 'quiz') {
+      void loadQuizzesData();
+    }
+    return;
+  }
+
+  // 3. Fallback khi stack rỗng:
+  if (activeTab.value === 'lesson') {
+    if (currentLesson.value) {
+      leaveLesson();
+      return;
+    }
+    if (selectedTopic.value) {
+      selectedTopic.value = null;
+      return;
+    }
+  }
+  if (activeTab.value !== 'home') {
+    activeTab.value = 'home';
+    return;
   }
 };
 const chatSummary = ref(null);
@@ -388,7 +443,7 @@ const userAvatarUrl = computed(() => {
 
 const openAuthOrProfile = () => {
   if (isAuthenticated.value) {
-    navigateTab('profile');
+    navigateSidebar('profile');
   } else {
     navigateTab('auth');
   }
@@ -524,12 +579,15 @@ const logout = () => {
   isAuthenticated.value = false;
   userProfile.value = null;
   isProfileOpen.value = false;
+  if (activeTab.value === 'speaking' || activeTab.value === 'writing' || activeTab.value === 'profile') {
+    activeTab.value = 'home';
+  }
   void loadHomeData();
 };
 
 const onSessionExpired = () => {
   logout();
-  isAuthOpen.value = true;
+  activeTab.value = 'auth';
 };
 
 // ==========================================
@@ -575,6 +633,7 @@ const loadHomeData = async () => {
 
 const startTopic = async (topic) => {
   if (!topic) return;
+  pushNavState();
   const requestId = ++lessonRequestId;
   selectedTopic.value = topic;
   currentLesson.value = null;
@@ -595,6 +654,7 @@ const startTopic = async (topic) => {
 
 const startLesson = async (lesson, resume = null) => {
   if (!requireAuthentication()) { pendingLesson.value = lesson; return; }
+  pushNavState();
   const requestId = ++lessonRequestId;
   const version = sessionVersion;
   lessonLoading.value = true;
@@ -612,9 +672,27 @@ const startLesson = async (lesson, resume = null) => {
     lessonQuizzes.value = quizzes.status === 'fulfilled' ? (quizzes.value || [])
       .filter(q => q.lesson_id === detail.id || (!q.lesson_id && q.topic_id === detail.topic_id))
       .sort((a, b) => Number(b.lesson_id === detail.id) - Number(a.lesson_id === detail.id) || b.id - a.id) : [];
-    lessonDecks.value = decks.status === 'fulfilled' ? decks.value || [] : [];
+    const loadedDecks = decks.status === 'fulfilled' ? decks.value || [] : [];
+    lessonDecks.value = loadedDecks;
     if (quizzes.status === 'rejected' || decks.status === 'rejected') lessonError.value = 'Đã tải bài học; chưa tải được đầy đủ quiz/bộ từ. Bạn có thể thử lại.';
-    lessonStep.value = resume?.step || 'practice';
+
+    // Tải trước danh sách từ vựng flashcard của bài để người học học từ trước
+    let cards = [];
+    if (loadedDecks.length > 0) {
+      try {
+        cards = await studyService.getFlashcards(loadedDecks[0].id);
+      } catch (err) {
+        console.warn('Could not prefetch lesson flashcards:', err);
+      }
+    }
+    lessonCards.value = cards || [];
+
+    // Mặc định: Ưu tiên bước 1 học từ vựng Flashcard trước nếu bài có bộ từ, sau đó mới đến luyện phát âm
+    if (cards && cards.length > 0) {
+      lessonStep.value = resume?.step || 'vocabulary';
+    } else {
+      lessonStep.value = resume?.step || 'practice';
+    }
     studyLessonId.value = detail.id;
     studyTopicId.value = detail.topic_id;
     if (!selectedTopic.value || selectedTopic.value.id !== detail.topic_id) {
@@ -659,30 +737,48 @@ const continueLearning = async () => {
   }
 };
 
-const beginLessonPractice = () => {
+const beginLessonPractice = (specificContent = null) => {
   if (!currentLesson.value) return;
+  if (!requireAuthentication()) return;
+  pushNavState();
   lessonStep.value = 'practice';
-  journey.remember(currentLesson.value.topic_id, currentLesson.value.id);
-  activeTab.value = currentLesson.value.type === 'SPEAKING' ? 'speaking' : 'writing';
+  if (currentLesson.value.type === 'SPEAKING') {
+    speakingTopicId.value = currentLesson.value.topic_id;
+    speakingLessonId.value = currentLesson.value.id;
+    if (lessonDetail.value?.contents?.length) {
+      speakingLessonContents.value = lessonDetail.value.contents;
+      const isContentObj = specificContent && typeof specificContent === 'object' && ('id' in specificContent) && ('target_text' in specificContent);
+      const targetContent = isContentObj
+        ? (lessonDetail.value.contents.find(c => c.id === specificContent.id) || specificContent)
+        : (selectedSpeakingContentId.value ? lessonDetail.value.contents.find(c => c.id === selectedSpeakingContentId.value) : null) || lessonDetail.value.contents[0];
+      selectSpeakingSentence(targetContent);
+    }
+    activeTab.value = 'speaking';
+  } else {
+    activeTab.value = 'writing';
+  }
+  journey.remember(currentLesson.value.topic_id, currentLesson.value.id, 'practice', selectedSpeakingContentId.value);
 };
 
 const openLessonQuiz = async () => {
   if (!currentLesson.value || !requireAuthentication()) return;
+  pushNavState();
   studyMode.value = 'quiz';
   studyLessonId.value = currentLesson.value.id;
   studyTopicId.value = currentLesson.value.topic_id;
   lessonStep.value = 'quiz';
   journey.remember(currentLesson.value.topic_id, currentLesson.value.id, 'quiz', currentLesson.value.type === 'SPEAKING' ? selectedSpeakingContentId.value : null);
-  activeTab.value = 'study';
+  activeTab.value = 'quiz';
   await loadQuizzesData();
 };
 
 const openLessonDeck = async (deck) => {
   if (!requireAuthentication()) return;
+  pushNavState();
   studyDeckId.value = deck.id;
   flashcardMode.value = 'all';
   studyMode.value = 'flashcard';
-  activeTab.value = 'study';
+  activeTab.value = 'flashcard';
   await loadFlashcardsData();
 };
 
@@ -704,10 +800,12 @@ const nextLesson = async () => {
 const leaveLesson = (reloadStudy = true) => {
   currentLesson.value = null;
   lessonDetail.value = null;
+  lessonCards.value = [];
   studyDeckId.value = null;
   studyLessonId.value = null;
   studyTopicId.value = null;
-  if (reloadStudy && activeTab.value === 'study') void (studyMode.value === 'quiz' ? loadQuizzesData() : loadFlashcardsData());
+  if (reloadStudy && (activeTab.value === 'study' || activeTab.value === 'flashcard')) void loadFlashcardsData();
+  if (reloadStudy && activeTab.value === 'quiz') void loadQuizzesData();
   if (activeTab.value === 'writing') essayInput.value = journey.state.value.writing_drafts.free || '';
 };
 
@@ -721,10 +819,11 @@ const openSaveWord = (word = '', example = '', meaning = '', ipa = '') => {
 };
 const onWordSaved = () => {
   saveWordOpen.value = false;
-  savedWordMessage.value = 'Đã lưu vào bộ thẻ "Từ đã lưu" trong mục Flashcard & Quiz!';
+  savedWordMessage.value = 'Đã lưu vào bộ thẻ "Từ đã lưu" trong mục Flashcard!';
 };
 
 const openLessonChat = async () => {
+  pushNavState();
   const title = selectedTopic.value?.title?.toLowerCase() || '';
   const scenarioId = /food|restaurant|order/.test(title) ? 'restaurant_order' : /hotel|travel/.test(title) ? 'hotel_checkin' : /job|career|interview/.test(title) ? 'job_interview' : 'daily_smalltalk';
   if (scenarios.value.some(item => item.id === scenarioId)) chatScenarioId.value = scenarioId;
@@ -880,7 +979,7 @@ const toggleRecording = async () => {
   speakingError.value = '';
   if (isRecording.value) return stopAndAnalyzeSpeaking();
   if (!targetSpeakingText.value.trim()) {
-    speakingError.value = 'Hãy chọn hoặc nhập câu luyện tập trước khi ghi âm.';
+    speakingError.value = 'Please select or enter a practice sentence before recording.';
     return;
   }
   if (!requireAuthentication()) return;
@@ -890,7 +989,7 @@ const toggleRecording = async () => {
     if (version !== sessionVersion) { recorder.cleanup(); return; }
     isRecording.value = true;
   } catch (err) {
-    if (version === sessionVersion) speakingError.value = getErrorMessage(err, 'Không thể mở micro.');
+    if (version === sessionVersion) speakingError.value = getErrorMessage(err, 'Could not access microphone.');
   }
 };
 
@@ -916,7 +1015,7 @@ const stopAndAnalyzeSpeaking = async () => {
     });
     void loadHomeData();
   } catch (err) {
-    if (version === sessionVersion) speakingError.value = getErrorMessage(err, 'Chấm điểm thất bại.');
+    if (version === sessionVersion) speakingError.value = getErrorMessage(err, 'Pronunciation evaluation failed.');
   } finally {
     if (version === sessionVersion) { isRecording.value = false; isAnalyzingSpeaking.value = false; }
   }
@@ -965,7 +1064,7 @@ const loadWritingTasks = async () => {
     writingTaskCatalog.value = (lessons || []).filter(lesson => lesson.type === 'WRITING');
     if (!writingPickerTopics.value.some(topic => topic.id === writingPickerTopicId.value)) writingPickerTopicId.value = null;
   } catch (err) {
-    if (version === sessionVersion && requestId === writingPickerRequestId) writingPickerError.value = getErrorMessage(err, 'Không tải được danh sách đề viết. Hãy thử lại.');
+    if (version === sessionVersion && requestId === writingPickerRequestId) writingPickerError.value = getErrorMessage(err, 'Could not load writing topics. Please try again.');
   } finally {
     if (version === sessionVersion && requestId === writingPickerRequestId) writingPickerLoading.value = false;
   }
@@ -995,7 +1094,7 @@ const openWritingLesson = async lesson => {
       writingPickerOpen.value = false;
       beginLessonPractice();
     } else {
-      writingPickerError.value = lessonError.value || 'Chưa mở được đề bài. Hãy thử lại.';
+      writingPickerError.value = lessonError.value || 'Could not load prompt. Please try again.';
       activeTab.value = 'writing';
     }
   } finally {
@@ -1031,7 +1130,7 @@ const submitWritingEvaluation = async () => {
     });
     void loadHomeData();
   } catch (err) {
-    if (version === sessionVersion) writingError.value = getErrorMessage(err, 'Chấm bài thất bại.');
+    if (version === sessionVersion) writingError.value = getErrorMessage(err, 'Essay assessment failed.');
   } finally {
     if (version === sessionVersion) isEvaluating.value = false;
   }
@@ -1046,7 +1145,7 @@ const copyRewritten = async () => {
     copied.value = true;
     setTimeout(() => { if (version === sessionVersion) copied.value = false; }, 1800);
   } catch (err) {
-    if (version === sessionVersion) writingError.value = 'Không thể sao chép. Hãy chọn văn bản để sao chép thủ công.';
+    if (version === sessionVersion) writingError.value = 'Could not copy text. Please select text to copy manually.';
   }
 };
 
@@ -1082,7 +1181,7 @@ const loadChatConversations = async () => {
     const list = await chatService.getConversations();
     if (version === sessionVersion) chatConversations.value = list || [];
   } catch (err) {
-    if (version === sessionVersion) chatHistoryError.value = getErrorMessage(err, 'Không tải được lịch sử trò chuyện.');
+    if (version === sessionVersion) chatHistoryError.value = getErrorMessage(err, 'Could not load chat history.');
   } finally {
     if (version === sessionVersion) chatHistoryLoading.value = false;
   }
@@ -1111,7 +1210,7 @@ const openChatConversation = async (conversation) => {
     isChatHistoryOpen.value = false;
     await scrollChatToBottom();
   } catch (err) {
-    if (version === sessionVersion && requestId === chatRequestId) chatHistoryError.value = getErrorMessage(err, 'Không mở được cuộc trò chuyện.');
+    if (version === sessionVersion && requestId === chatRequestId) chatHistoryError.value = getErrorMessage(err, 'Could not open conversation.');
   } finally {
     if (version === sessionVersion && requestId === chatRequestId) chatLoading.value = false;
   }
@@ -1129,7 +1228,7 @@ const loadChatScenarios = async () => {
       chatScenarioId.value = scenarios.value[0].id;
     }
   } catch (err) {
-    if (requestId === chatRequestId) chatError.value = getErrorMessage(err, 'Không tải được kịch bản hội thoại.');
+    if (requestId === chatRequestId) chatError.value = getErrorMessage(err, 'Could not load conversation scenarios.');
   } finally {
     if (requestId === chatRequestId) chatLoading.value = false;
   }
@@ -1160,7 +1259,7 @@ const startChatConversation = async (customTopic = null) => {
       speakBotMessage(chatMessages.value[0]);
     }
   } catch (err) {
-    if (version === sessionVersion && requestId === chatRequestId) chatError.value = getErrorMessage(err, 'Không bắt đầu được cuộc trò chuyện.');
+    if (version === sessionVersion && requestId === chatRequestId) chatError.value = getErrorMessage(err, 'Could not start conversation.');
   } finally {
     if (version === sessionVersion && requestId === chatRequestId) chatLoading.value = false;
   }
@@ -1179,7 +1278,7 @@ const createAndSelectCustomScenario = async (topic) => {
     await startChatConversation();
     return newScenario;
   } catch (err) {
-    chatError.value = getErrorMessage(err, 'Không thể tạo kịch bản mới.');
+    chatError.value = getErrorMessage(err, 'Could not create new scenario.');
     throw err;
   } finally {
     chatLoading.value = false;
@@ -1233,7 +1332,7 @@ const sendChatText = async (customText = null) => {
     void loadHomeData();
   } catch (err) {
     if (version === sessionVersion) {
-      chatError.value = getErrorMessage(err, 'Không gửi được tin nhắn. Bạn có thể thử lại.');
+      chatError.value = getErrorMessage(err, 'Could not send message. Please try again.');
       // Restore draft if empty so user can retry without retyping
       if (!chatInput.value) {
         chatInput.value = text;
@@ -1287,7 +1386,7 @@ const startChatVoice = async () => {
     isRecordingPaused.value = false;
     startRecordingTimer();
   } catch (err) {
-    if (version === sessionVersion) chatError.value = getErrorMessage(err, 'Không thể truy cập microphone.');
+    if (version === sessionVersion) chatError.value = getErrorMessage(err, 'Could not access microphone.');
   }
 };
 
@@ -1370,7 +1469,7 @@ const sendChatVoice = async () => {
     void loadHomeData();
   } catch (err) {
     if (version === sessionVersion) {
-      chatError.value = getErrorMessage(err, 'Không gửi được ghi âm.');
+      chatError.value = getErrorMessage(err, 'Could not send audio recording.');
       if (tempUserMsg) {
         const pendingIdx = chatMessages.value.findIndex(m => m.id === tempUserMsg.id);
         if (pendingIdx !== -1) {
@@ -1410,9 +1509,9 @@ const speakBotMessage = (msg) => {
 // ==========================================
 const studyMode = ref('flashcard');
 const flashcardMode = ref('all');
-const NOTE_ADDED = 'Đã thêm vào Từ đã note.';
-const NOTE_REMOVED = 'Đã bỏ tick từ này.';
-const NOTE_FAILED = 'Không lưu được dấu tick. Hãy thử lại.';
+const NOTE_ADDED = 'Added to Bookmarked Cards.';
+const NOTE_REMOVED = 'Removed from Bookmarked Cards.';
+const NOTE_FAILED = 'Could not save bookmark. Please try again.';
 const studyLoading = ref(false);
 const studyError = ref('');
 const currentStudyIndex = ref(0);
@@ -1435,7 +1534,7 @@ const loadFlashcardDecks = async () => {
     if (version !== sessionVersion || requestId !== flashcardDeckRequestId) return;
     flashcardDecks.value = decks || [];
   } catch (err) {
-    if (version === sessionVersion && requestId === flashcardDeckRequestId) flashcardDecksError.value = getErrorMessage(err, 'Không tải được danh sách bộ từ.');
+    if (version === sessionVersion && requestId === flashcardDeckRequestId) flashcardDecksError.value = getErrorMessage(err, 'Could not load vocabulary decks.');
   } finally {
     if (version === sessionVersion && requestId === flashcardDeckRequestId) flashcardDecksLoading.value = false;
   }
@@ -1499,7 +1598,7 @@ const switchStudyMode = async (mode) => {
   studyError.value = '';
   isFlipped.value = false;
   if (mode === 'flashcard') {
-    if (flashcardMode.value === 'all' && currentLesson.value && !lessonDecks.value.length) { flashcards.value = []; studyError.value = 'Bài chưa có bộ từ riêng. Bạn có thể mở Từ đã note hoặc chọn Luyện tự do.'; return; }
+    if (flashcardMode.value === 'all' && currentLesson.value && !lessonDecks.value.length) { flashcards.value = []; studyError.value = 'This lesson has no cards yet. You can open Bookmarked Cards or select another deck.'; return; }
     if (currentLesson.value && lessonDecks.value.length) studyDeckId.value = lessonDecks.value[0].id;
     await loadFlashcardsData();
   }
@@ -1527,7 +1626,7 @@ const loadFlashcardsData = async () => {
     flashcards.value = list || [];
     currentStudyIndex.value = 0;
   } catch (err) {
-    if (version === sessionVersion && requestId === studyRequestId) studyError.value = getErrorMessage(err, 'Không tải được thẻ từ vựng.');
+    if (version === sessionVersion && requestId === studyRequestId) studyError.value = getErrorMessage(err, 'Could not load vocabulary cards.');
   } finally {
     if (version === sessionVersion && requestId === studyRequestId) studyLoading.value = false;
   }
@@ -1593,7 +1692,7 @@ const loadQuizzesData = async () => {
     selectedQuizId.value = quizzesList.value[0]?.id || null;
     if (selectedQuizId.value) await onQuizChange();
   } catch (err) {
-    if (version === sessionVersion && requestId === studyRequestId) studyError.value = getErrorMessage(err, 'Không tải được đề kiểm tra.');
+    if (version === sessionVersion && requestId === studyRequestId) studyError.value = getErrorMessage(err, 'Could not load quizzes.');
   } finally {
     if (version === sessionVersion && requestId === studyRequestId) studyLoading.value = false;
   }
@@ -1616,7 +1715,7 @@ const onQuizChange = async () => {
     const saved = journey.state.value.quiz_drafts[String(selectedQuizId.value)];
     if (saved) { quizAnswers.value = saved.answers || {}; currentStudyIndex.value = Math.min(saved.index || 0, Math.max(0, quizQuestions.value.length - 1)); restoreQuizAnswer(); }
   } catch (err) {
-    if (version === sessionVersion && requestId === studyRequestId) studyError.value = getErrorMessage(err, 'Không tải được câu hỏi.');
+    if (version === sessionVersion && requestId === studyRequestId) studyError.value = getErrorMessage(err, 'Could not load quiz questions.');
   } finally {
     if (version === sessionVersion && requestId === studyRequestId) studyLoading.value = false;
   }
@@ -1645,7 +1744,7 @@ const checkQuizAnswer = async () => {
       if (version !== sessionVersion || attempt !== quizAttemptVersion || quizId !== selectedQuizId.value) return;
       quizFeedback.value[question.id] = feedback;
     } catch (err) {
-      if (version === sessionVersion && attempt === quizAttemptVersion) studyError.value = getErrorMessage(err, 'Chưa kiểm tra được đáp án. Hãy thử lại.');
+      if (version === sessionVersion && attempt === quizAttemptVersion) studyError.value = getErrorMessage(err, 'Could not check answer. Please try again.');
     } finally {
       if (version === sessionVersion && attempt === quizAttemptVersion) quizFeedbackLoading.value = false;
     }
@@ -1675,7 +1774,7 @@ const submitQuizAttempt = async () => {
     currentStudyIndex.value = 0;
     restoreQuizAnswer();
   } catch (err) {
-    if (version === sessionVersion && attempt === quizAttemptVersion) studyError.value = getErrorMessage(err, 'Chưa nộp được bài. Đáp án đã chọn được giữ lại để thử lại.');
+    if (version === sessionVersion && attempt === quizAttemptVersion) studyError.value = getErrorMessage(err, 'Could not submit quiz. Your selected answers have been preserved so you can retry.');
   } finally {
     if (version === sessionVersion && attempt === quizAttemptVersion) isSubmittingQuiz.value = false;
   }
@@ -1715,7 +1814,7 @@ const getQuizAnswerClass = (answer) => {
 };
 
 watch(activeTab, (tab, previous) => {
-  if (previous === 'study' && tab !== 'study') {
+  if ((previous === 'study' || previous === 'flashcard' || previous === 'quiz') && tab !== 'study' && tab !== 'flashcard' && tab !== 'quiz') {
     studyRequestId += 1;
     studyLoading.value = false;
     isSavingCardNote.value = false;
@@ -1770,7 +1869,7 @@ const updateClock = () => {
 
 let clockInterval = null;
 
-provide('screenContext', { flashcardMode, setFlashcardMode, goBack, previousTab, openAuthOrProfile, isOnboardingOpen, onOnboardingCompleted, writingPickerOpen, writingPickerLoading, writingPickerError, writingPickerTopicId, writingPickerTopics, writingPickerLessons, loadWritingTasks, openWritingTaskPicker, openWritingLesson, quizFeedbackMode, quizFeedbackLoading, quizModeLocked, setQuizFeedbackMode, flashcardDecks, flashcardDecksLoading, flashcardDecksError, availableFlashcardDecks, loadFlashcardDecks, onStudyDeckChange, navigateTab, chatSummary, endChatSession, journey, selectedTopic, topicLessons, currentLesson, lessonDetail, lessonQuizzes, lessonDecks, lessonLoading, lessonError, lessonStep, lessonProgress, canFinishLesson, recommendedTopic, startLesson, continueLearning, beginLessonPractice, openLessonQuiz, openLessonDeck, finishLesson, nextLesson, leaveLesson, openSaveWord, savedWordMessage, openLessonChat, studyDeckId, homeError, studyError, chatError, isSavingCardNote, quizInputText, quizResult, canAnswerQuiz, previousQuizQuestion, restartQuiz, requireAuthentication, activeTab, chatConversations, chatHistoryError, chatHistoryLoading, chatInput, chatLoading, chatMessages, chatRecorder, chatScenarioId, chatScrollContainer, checkQuizAnswer, clockInterval, conversationId, copied, copyRewritten, currentCard, currentChatScenario, currentQuestion, currentSpeakingSentenceIndex, currentStudyIndex, currentTime, dashboard, essayInput, flashcards, getActivityBadgeClass, getQuizAnswerClass, getTopicColor, getTopicEmoji, getWordBg, getWordTextColor, homeLoading, isAnalyzingSpeaking, isAuthOpen, isAuthenticated, isBotTyping, isChatHistoryOpen, isChatRecording, startChatVoice, cancelChatVoice, togglePauseRecording, sendChatVoice, isRecordingPaused, recordingDuration, formattedRecordingTime, isCustomSpeakingMode, isEvaluating, isFlipped, isProfileOpen, isRecording, isSubmittingQuiz, loadChatConversations, loadChatScenarios, loadFlashcardsData, loadHomeData, loadQuizzesData, logout, nativeAudioUrl, navigateSpeakingSentence, nextQuizQuestion, onAuthSuccess, onProfileUpdated, onQuizChange, onSpeakingLessonChange, onSpeakingTopicChange, openAuthModal, openChatConversation, playNativeAudio, quizChecked, quizQuestions, quizzesList, recorder, resetChatConversation, scenarios, scrollChatToBottom, selectQuizAnswer, selectedQuizAnswer, selectedQuizId, selectedSpeakingContentId, sendChatText, speakBotMessage, speakText, speakingError, speakingLessonContents, speakingLessonId, speakingLessons, speakingLessonsLoading, speakingResult, speakingTopicId, startChatConversation, createAndSelectCustomScenario, startTopic, stopAndAnalyzeSpeaking, studyLoading, studyMode, submitWritingEvaluation, submittedQuizDetail, switchChatScenario, switchStudyMode, targetIpa, targetSpeakingText, targetTranslation, toggleChatHistory, toggleChatVoice, toggleRecording, topics, totalPracticeCount, totalStudyItems, updateClock, userAvatarUrl, userProfile, wordCount, writingError, writingResult, writingSubTab, flashcardToast, toggleCardNote, nextFlashcard, prevFlashcard, jumpToFlashcard });
+provide('screenContext', { hasHistory, navigateSidebar, pushNavState, flashcardMode, setFlashcardMode, goBack, previousTab, openAuthOrProfile, isOnboardingOpen, onOnboardingCompleted, writingPickerOpen, writingPickerLoading, writingPickerError, writingPickerTopicId, writingPickerTopics, writingPickerLessons, loadWritingTasks, openWritingTaskPicker, openWritingLesson, quizFeedbackMode, quizFeedbackLoading, quizModeLocked, setQuizFeedbackMode, flashcardDecks, flashcardDecksLoading, flashcardDecksError, availableFlashcardDecks, loadFlashcardDecks, onStudyDeckChange, navigateTab, chatSummary, endChatSession, journey, selectedTopic, topicLessons, currentLesson, lessonDetail, lessonQuizzes, lessonDecks, lessonCards, lessonLoading, lessonError, lessonStep, lessonProgress, canFinishLesson, recommendedTopic, startLesson, continueLearning, beginLessonPractice, openLessonQuiz, openLessonDeck, finishLesson, nextLesson, leaveLesson, openSaveWord, savedWordMessage, openLessonChat, studyDeckId, homeError, studyError, chatError, isSavingCardNote, quizInputText, quizResult, canAnswerQuiz, previousQuizQuestion, restartQuiz, requireAuthentication, activeTab, chatConversations, chatHistoryError, chatHistoryLoading, chatInput, chatLoading, chatMessages, chatRecorder, chatScenarioId, chatScrollContainer, checkQuizAnswer, clockInterval, conversationId, copied, copyRewritten, currentCard, currentChatScenario, currentQuestion, currentSpeakingSentenceIndex, currentStudyIndex, currentTime, dashboard, essayInput, flashcards, getActivityBadgeClass, getQuizAnswerClass, getTopicColor, getTopicEmoji, getWordBg, getWordTextColor, homeLoading, isAnalyzingSpeaking, isAuthOpen, isAuthenticated, isBotTyping, isChatHistoryOpen, isChatRecording, startChatVoice, cancelChatVoice, togglePauseRecording, sendChatVoice, isRecordingPaused, recordingDuration, formattedRecordingTime, isCustomSpeakingMode, isEvaluating, isFlipped, isProfileOpen, isRecording, isSubmittingQuiz, loadChatConversations, loadChatScenarios, loadFlashcardsData, loadHomeData, loadQuizzesData, logout, nativeAudioUrl, navigateSpeakingSentence, nextQuizQuestion, onAuthSuccess, onProfileUpdated, onQuizChange, onSpeakingLessonChange, onSpeakingTopicChange, openAuthModal, openChatConversation, playNativeAudio, quizChecked, quizQuestions, quizzesList, recorder, resetChatConversation, scenarios, scrollChatToBottom, selectQuizAnswer, selectedQuizAnswer, selectedQuizId, selectedSpeakingContentId, sendChatText, speakBotMessage, speakText, speakingError, speakingLessonContents, speakingLessonId, speakingLessons, speakingLessonsLoading, speakingResult, speakingTopicId, startChatConversation, createAndSelectCustomScenario, startTopic, stopAndAnalyzeSpeaking, studyLoading, studyMode, submitWritingEvaluation, submittedQuizDetail, switchChatScenario, switchStudyMode, targetIpa, targetSpeakingText, targetTranslation, toggleChatHistory, toggleChatVoice, toggleRecording, topics, totalPracticeCount, totalStudyItems, updateClock, userAvatarUrl, userProfile, wordCount, writingError, writingResult, writingSubTab, flashcardToast, toggleCardNote, nextFlashcard, prevFlashcard, jumpToFlashcard });
 
 onMounted(async () => {
   updateClock();

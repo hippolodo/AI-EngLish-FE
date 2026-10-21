@@ -24,7 +24,7 @@ export class AudioRecorder {
   async startRecording(generation) {
     this.audioChunks = [];
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
-      throw new Error('Trình duyệt của bạn không hỗ trợ thu âm qua MediaDevices.');
+      throw new Error('Your browser does not support audio recording via MediaDevices.');
     }
 
     const stream = await navigator.mediaDevices.getUserMedia({
@@ -37,7 +37,7 @@ export class AudioRecorder {
     });
     if (generation !== this.generation) {
       stream.getTracks().forEach(track => track.stop());
-      throw new Error('Ghi âm đã được hủy.');
+      throw new Error('Audio recording was cancelled.');
     }
     this.stream = stream;
 

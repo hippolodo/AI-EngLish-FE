@@ -46,5 +46,20 @@ export const studyService = {
 
   async checkQuizAnswer(quizId, answer) {
     return (await apiClient.post(`/quizzes/${quizId}/check`, answer)).data;
+  },
+
+  async generateQuiz(payload) {
+    const res = await apiClient.post('/quizzes/generate', payload);
+    return res.data;
+  },
+
+  async createQuiz(payload) {
+    const res = await apiClient.post('/quizzes', payload);
+    return res.data;
+  },
+
+  async getMyQuizHistory() {
+    const res = await apiClient.get('/quizzes/history/my');
+    return res.data;
   }
 };

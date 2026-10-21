@@ -1,186 +1,186 @@
 <template>
-  <div v-if="activeTab === 'speaking'" class="space-y-6 pb-28 w-full max-w-6xl mx-auto">
-    <!-- Top Back Button -->
-    <div>
+  <div v-if="activeTab === 'speaking' && isAuthenticated" class="space-y-6 pb-28 w-full max-w-6xl mx-auto">
+    <!-- Top Back Button (Only visible when navigated from a lesson or another screen) -->
+    <div v-if="hasHistory">
       <button
         @click="goBack"
         class="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl border border-slate-200 bg-white text-slate-700 font-bold text-sm hover:bg-slate-50 hover:text-blue-600 transition shadow-2xs cursor-pointer group"
       >
         <ArrowLeft class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-        <span>Quay lại</span>
+        <span>{{ ctx.currentLesson.value ? 'Back to Lesson' : 'Back' }}</span>
       </button>
     </div>
 
     <!-- Header -->
     <div class="flex items-center justify-between">
-            <div>
-              <span class="text-xs uppercase tracking-wide font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md">Speaking Lab</span>
-              <h1 class="text-gray-900 mt-1.5 text-2xl sm:text-3xl font-extrabold leading-snug">Luyện đọc & phản hồi phát âm</h1>
-            </div>
-            <span class="text-sm font-semibold text-gray-600 bg-white border border-gray-200 px-3.5 py-1.5 rounded-full flex items-center gap-1.5 shadow-2xs">
-              <Sparkles class="w-4 h-4 text-blue-500" /> Luyện phát âm cùng AI
-            </span>
+      <div>
+        <span class="text-xs uppercase tracking-wide font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md">Speaking Lab</span>
+        <h1 class="text-gray-900 mt-1.5 text-2xl sm:text-3xl font-extrabold leading-snug">Pronunciation &amp; Speech Feedback</h1>
+      </div>
+      <span class="text-sm font-semibold text-gray-600 bg-white border border-gray-200 px-3.5 py-1.5 rounded-full flex items-center gap-1.5 shadow-2xs">
+        <Sparkles class="w-4 h-4 text-blue-500" /> Standard IPA Practice
+      </span>
+    </div>
+
+    <!-- Lesson & Target Picker -->
+    <div v-if="ctx.currentLesson.value?.type === 'SPEAKING'" class="space-y-2 rounded-xl bg-indigo-50 p-3 text-sm text-indigo-800">
+      Practiced {{ ctx.lessonProgress.value.completed_content_ids.length }}/{{ speakingLessonContents.length }} sentences in this lesson.
+      <button @click="ctx.finishLesson" :disabled="!ctx.canFinishLesson.value" class="block font-semibold underline disabled:opacity-40">Complete &amp; view summary</button>
+    </div>
+    <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-xs space-y-3">
+      <div class="flex items-center justify-between">
+        <span class="text-sm font-semibold text-gray-700">Practice Sentence:</span>
+        <button
+          v-if="!ctx.currentLesson.value"
+          :disabled="isRecording || isAnalyzingSpeaking" @click="toggleSpeakingMode"
+          class="text-xs font-semibold text-indigo-600 hover:underline cursor-pointer"
+        >
+          {{ isCustomSpeakingMode ? 'Select from Lessons' : 'Custom Sentence' }}
+        </button>
+      </div>
+
+      <fieldset :disabled="isRecording || isAnalyzingSpeaking">
+      <TopicLessonDropdowns
+        v-if="!isCustomSpeakingMode && !ctx.currentLesson.value"
+        :topics="topics"
+        :lessons="speakingLessons"
+        v-model:topic-id="speakingTopicId"
+        v-model:lesson-id="speakingLessonId"
+        :loading="speakingLessonsLoading"
+        @topic-change="onSpeakingTopicChange"
+        @lesson-change="onSpeakingLessonChange"
+      />
+      </fieldset>
+
+      <div v-if="!isCustomSpeakingMode && speakingLessonContents.length > 0" class="rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50/80 via-white to-amber-50/60 p-3">
+        <div class="mb-2 flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wide text-violet-700">Sentence Practice</span>
+          <span class="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-violet-600 shadow-sm">
+            {{ currentSpeakingSentenceIndex + 1 }} / {{ speakingLessonContents.length }}
+          </span>
+        </div>
+        <div class="mb-3 flex gap-1">
+          <span
+            v-for="(_, index) in speakingLessonContents"
+            :key="index"
+            class="h-1.5 flex-1 rounded-full transition-colors"
+            :class="index <= currentSpeakingSentenceIndex ? 'bg-gradient-to-r from-violet-500 to-fuchsia-500' : 'bg-violet-100'"
+          ></span>
+        </div>
+        <div class="flex items-center justify-between gap-2">
+          <button
+            type="button"
+            :disabled="isRecording || isAnalyzingSpeaking || currentSpeakingSentenceIndex === 0"
+            class="inline-flex items-center gap-1 rounded-xl border border-violet-100 bg-white px-3 py-2 text-xs font-semibold text-violet-700 shadow-sm transition hover:bg-violet-50 disabled:cursor-not-allowed disabled:opacity-40"
+            @click="navigateSpeakingSentence(-1)"
+          >
+            <ChevronLeft class="h-3.5 w-3.5" /> Prev
+          </button>
+          <span class="text-xs font-semibold text-slate-500">Read current sentence then proceed</span>
+          <button
+            type="button"
+            :disabled="isRecording || isAnalyzingSpeaking || currentSpeakingSentenceIndex >= speakingLessonContents.length - 1"
+            class="inline-flex items-center gap-1 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-500 px-3 py-2 text-xs font-semibold text-white shadow-md shadow-violet-200 transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-40"
+            @click="navigateSpeakingSentence(1)"
+          >
+            Next <ChevronRight class="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
+
+      <!-- Target Sentence Display / Input -->
+      <div class="space-y-3">
+        <textarea
+          v-model="targetSpeakingText"
+          :readonly="!isCustomSpeakingMode || isRecording || isAnalyzingSpeaking"
+          rows="3"
+          class="w-full text-base sm:text-lg font-bold text-gray-900 rounded-2xl p-4 sm:p-5 border leading-relaxed focus:outline-none focus:ring-2 focus:ring-indigo-600 shadow-2xs"
+          :class="isCustomSpeakingMode ? 'bg-white border-indigo-300' : 'bg-gray-50/80 border-gray-200 cursor-default'"
+          placeholder="Type an English sentence you want to practice..."
+        ></textarea>
+
+        <div class="flex items-center justify-between pt-1">
+          <button
+            @click="playNativeAudio"
+            :disabled="!targetSpeakingText"
+            class="flex items-center gap-2 text-sm sm:text-base font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-xl transition cursor-pointer shadow-2xs"
+          >
+            <Volume2 class="w-4 h-4 sm:w-5 sm:h-5" />
+            <span>Sample Audio</span>
+          </button>
+          <span v-if="targetIpa" class="text-sm sm:text-base font-sans text-gray-600 bg-gray-100 px-3 py-1 rounded-lg">
+            /{{ targetIpa }}/
+          </span>
+        </div>
+
+        <p v-if="targetTranslation" class="text-sm sm:text-base text-amber-900 bg-amber-50/80 p-3.5 rounded-xl border border-amber-200/70 leading-relaxed">
+          💡 <strong>Meaning:</strong> {{ targetTranslation }}
+        </p>
+      </div>
+    </div>
+
+    <!-- AI Evaluation Results (Real from API) -->
+    <div v-if="speakingResult" class="bg-white rounded-3xl p-6 sm:p-7 border border-gray-100 shadow-md space-y-6">
+      <!-- Header Summary with Score & Audio Comparison -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-gray-100">
+        <div class="flex items-center gap-3.5">
+          <div
+            class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center font-extrabold text-xl sm:text-2xl shadow-xs shrink-0"
+            :class="speakingResult.overall_score >= 80 ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : speakingResult.overall_score >= 60 ? 'bg-amber-50 text-amber-600 border border-amber-200' : 'bg-rose-50 text-rose-600 border border-rose-200'"
+          >
+            {{ Math.round(speakingResult.overall_score) }}
           </div>
-
-          <!-- Lesson & Target Picker -->
-          <div v-if="ctx.currentLesson.value?.type === 'SPEAKING'" class="space-y-2 rounded-xl bg-indigo-50 p-3 text-sm text-indigo-800">
-            Đã luyện {{ ctx.lessonProgress.value.completed_content_ids.length }}/{{ speakingLessonContents.length }} câu trong bài.
-            <button @click="ctx.finishLesson" :disabled="!ctx.canFinishLesson.value" class="block font-semibold underline disabled:opacity-40">Hoàn thành & xem tổng kết</button>
+          <div>
+            <h3 class="text-base sm:text-lg font-bold text-gray-900">
+              {{ speakingResult.overall_score >= 80 ? '🌟 Excellent Pronunciation' : speakingResult.overall_score >= 60 ? '💡 Good, minor improvements needed' : '⚠️ Needs Practice' }}
+            </h3>
+            <p class="text-sm text-gray-500 mt-0.5">
+              Overall Score: <span class="font-bold text-gray-800">{{ Math.round(speakingResult.overall_score) }}/100</span> · Pitch: <span class="font-bold text-gray-800">{{ speakingResult.average_pitch ? Math.round(speakingResult.average_pitch) + ' Hz' : 'N/A' }}</span>
+            </p>
           </div>
-          <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-xs space-y-3">
-            <div class="flex items-center justify-between">
-              <span class="text-sm font-semibold text-gray-700">Câu luyện tập:</span>
-              <button
-                v-if="!ctx.currentLesson.value"
-                :disabled="isRecording || isAnalyzingSpeaking" @click="toggleSpeakingMode"
-                class="text-xs font-semibold text-indigo-600 hover:underline cursor-pointer"
-              >
-                {{ isCustomSpeakingMode ? 'Chọn từ bài học' : 'Tự nhập câu tự do' }}
-              </button>
-            </div>
+        </div>
 
-            <fieldset :disabled="isRecording || isAnalyzingSpeaking">
-            <TopicLessonDropdowns
-              v-if="!isCustomSpeakingMode && !ctx.currentLesson.value"
-              :topics="topics"
-              :lessons="speakingLessons"
-              v-model:topic-id="speakingTopicId"
-              v-model:lesson-id="speakingLessonId"
-              :loading="speakingLessonsLoading"
-              @topic-change="onSpeakingTopicChange"
-              @lesson-change="onSpeakingLessonChange"
-            />
-            </fieldset>
+        <!-- Audio Player Toolbar (Listen to Native vs Listen to User) -->
+        <div class="flex items-center gap-2.5">
+          <button
+            @click="playNativeAudio"
+            class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition shadow-2xs cursor-pointer"
+            title="Listen to native sample"
+          >
+            <Volume2 class="w-4 h-4" />
+            <span>Sample</span>
+          </button>
 
-            <div v-if="!isCustomSpeakingMode && speakingLessonContents.length > 0" class="rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50/80 via-white to-amber-50/60 p-3">
-              <div class="mb-2 flex items-center justify-between">
-                <span class="text-xs font-semibold uppercase tracking-wide text-violet-700">Luyện từng câu</span>
-                <span class="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-violet-600 shadow-sm">
-                  {{ currentSpeakingSentenceIndex + 1 }} / {{ speakingLessonContents.length }}
-                </span>
-              </div>
-              <div class="mb-3 flex gap-1">
-                <span
-                  v-for="(_, index) in speakingLessonContents"
-                  :key="index"
-                  class="h-1.5 flex-1 rounded-full transition-colors"
-                  :class="index <= currentSpeakingSentenceIndex ? 'bg-gradient-to-r from-violet-500 to-fuchsia-500' : 'bg-violet-100'"
-                ></span>
-              </div>
-              <div class="flex items-center justify-between gap-2">
-                <button
-                  type="button"
-                  :disabled="isRecording || isAnalyzingSpeaking || currentSpeakingSentenceIndex === 0"
-                  class="inline-flex items-center gap-1 rounded-xl border border-violet-100 bg-white px-3 py-2 text-xs font-semibold text-violet-700 shadow-sm transition hover:bg-violet-50 disabled:cursor-not-allowed disabled:opacity-40"
-                  @click="navigateSpeakingSentence(-1)"
-                >
-                  <ChevronLeft class="h-3.5 w-3.5" /> Trước
-                </button>
-                <span class="text-xs font-semibold text-slate-500">Đọc câu hiện tại rồi chuyển câu</span>
-                <button
-                  type="button"
-                  :disabled="isRecording || isAnalyzingSpeaking || currentSpeakingSentenceIndex >= speakingLessonContents.length - 1"
-                  class="inline-flex items-center gap-1 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-500 px-3 py-2 text-xs font-semibold text-white shadow-md shadow-violet-200 transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-40"
-                  @click="navigateSpeakingSentence(1)"
-                >
-                  Tiếp <ChevronRight class="h-3.5 w-3.5" />
-                </button>
-              </div>
-            </div>
+          <button
+            v-if="speakingResult.audio_user_url"
+            @click="playUserAudio"
+            :disabled="isPlayingUserAudio"
+            class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition shadow-2xs cursor-pointer disabled:opacity-50"
+            title="Listen to your recording"
+          >
+            <Headphones class="w-4 h-4" :class="{ 'animate-bounce': isPlayingUserAudio }" />
+            <span>{{ isPlayingUserAudio ? 'Playing...' : 'Your Voice' }}</span>
+          </button>
+        </div>
+      </div>
 
-            <!-- Target Sentence Display / Input -->
-            <div class="space-y-3">
-              <textarea
-                v-model="targetSpeakingText"
-                :readonly="!isCustomSpeakingMode || isRecording || isAnalyzingSpeaking"
-                rows="3"
-                class="w-full text-base sm:text-lg font-bold text-gray-900 rounded-2xl p-4 sm:p-5 border leading-relaxed focus:outline-none focus:ring-2 focus:ring-indigo-600 shadow-2xs"
-                :class="isCustomSpeakingMode ? 'bg-white border-indigo-300' : 'bg-gray-50/80 border-gray-200 cursor-default'"
-                placeholder="Nhập câu tiếng Anh bạn muốn luyện nói..."
-              ></textarea>
-
-              <div class="flex items-center justify-between pt-1">
-                <button
-                  @click="playNativeAudio"
-                  :disabled="!targetSpeakingText"
-                  class="flex items-center gap-2 text-sm sm:text-base font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-xl transition cursor-pointer shadow-2xs"
-                >
-                  <Volume2 class="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span>Nghe phát âm mẫu</span>
-                </button>
-                <span v-if="targetIpa" class="text-sm sm:text-base font-sans text-gray-600 bg-gray-100 px-3 py-1 rounded-lg">
-                  /{{ targetIpa }}/
-                </span>
-              </div>
-
-              <p v-if="targetTranslation" class="text-sm sm:text-base text-amber-900 bg-amber-50/80 p-3.5 rounded-xl border border-amber-200/70 leading-relaxed">
-                💡 <strong>Dịch:</strong> {{ targetTranslation }}
-              </p>
-            </div>
-          </div>
-
-          <!-- AI Evaluation Results (Real from API) -->
-          <div v-if="speakingResult" class="bg-white rounded-3xl p-6 sm:p-7 border border-gray-100 shadow-md space-y-6">
-            <!-- Header Summary with Score & Audio Comparison -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-gray-100">
-              <div class="flex items-center gap-3.5">
-                <div
-                  class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center font-extrabold text-xl sm:text-2xl shadow-xs shrink-0"
-                  :class="speakingResult.overall_score >= 80 ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : speakingResult.overall_score >= 60 ? 'bg-amber-50 text-amber-600 border border-amber-200' : 'bg-rose-50 text-rose-600 border border-rose-200'"
-                >
-                  {{ Math.round(speakingResult.overall_score) }}
-                </div>
-                <div>
-                  <h3 class="text-base sm:text-lg font-bold text-gray-900">
-                    {{ speakingResult.overall_score >= 80 ? '🌟 Phát âm rất tốt' : speakingResult.overall_score >= 60 ? '💡 Phát âm khá tốt, cần chỉnh một số âm' : '⚠️ Cần luyện tập thêm' }}
-                  </h3>
-                  <p class="text-sm text-gray-500 mt-0.5">
-                    Điểm tổng quát: <span class="font-bold text-gray-800">{{ Math.round(speakingResult.overall_score) }}/100</span> · Cao độ: <span class="font-bold text-gray-800">{{ speakingResult.average_pitch ? Math.round(speakingResult.average_pitch) + ' Hz' : 'N/A' }}</span>
-                  </p>
-                </div>
-              </div>
-
-              <!-- Audio Player Toolbar (Listen to Native vs Listen to User) -->
-              <div class="flex items-center gap-2.5">
-                <button
-                  @click="playNativeAudio"
-                  class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition shadow-2xs cursor-pointer"
-                  title="Nghe phát âm chuẩn bản xứ"
-                >
-                  <Volume2 class="w-4 h-4" />
-                  <span>Nghe mẫu</span>
-                </button>
-
-                <button
-                  v-if="speakingResult.audio_user_url"
-                  @click="playUserAudio"
-                  :disabled="isPlayingUserAudio"
-                  class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition shadow-2xs cursor-pointer disabled:opacity-50"
-                  title="Nghe lại bản thu âm của bạn"
-                >
-                  <Headphones class="w-4 h-4" :class="{ 'animate-bounce': isPlayingUserAudio }" />
-                  <span>{{ isPlayingUserAudio ? 'Đang phát...' : 'Nghe giọng bạn' }}</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- What the system heard -->
-            <div class="p-4 bg-slate-50/90 rounded-2xl border border-slate-200/80 text-sm flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <span class="text-slate-500 font-medium">Hệ thống nghe được:</span>
-              <span class="font-semibold text-slate-800 text-right italic" :title="speakingResult.transcribed_text">
-                "{{ speakingResult.transcribed_text || 'Chưa ghi nhận' }}"
-              </span>
-            </div>
+      <!-- What the system heard -->
+      <div class="p-4 bg-slate-50/90 rounded-2xl border border-slate-200/80 text-sm flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <span class="text-slate-500 font-medium">Transcribed text:</span>
+        <span class="font-semibold text-slate-800 text-right italic" :title="speakingResult.transcribed_text">
+          "{{ speakingResult.transcribed_text || 'Not recorded' }}"
+        </span>
+      </div>
 
             <!-- Interactive Sentence Matrix (Click a word to inspect) -->
             <div v-if="speakingResult.word_analysis && speakingResult.word_analysis.length > 0" class="space-y-3">
               <div class="flex items-center justify-between text-xs sm:text-sm font-bold text-gray-700 uppercase tracking-wide">
                 <span class="flex items-center gap-1.5">
                   <Info class="w-4 h-4 text-indigo-500" />
-                  Bấm vào từng từ để xem chi tiết âm sai & cách sửa:
+                  Click each word to inspect phonemes &amp; corrections:
                 </span>
                 <span v-if="selectedWord" class="text-indigo-600 font-normal normal-case">
-                  (đang chọn: <strong class="font-bold uppercase">{{ selectedWord.word }}</strong>)
+                  (selected: <strong class="font-bold uppercase">{{ selectedWord.word }}</strong>)
                 </span>
               </div>
 
@@ -237,7 +237,7 @@
                     class="text-xs sm:text-sm font-bold px-3 py-1 rounded-full"
                     :class="selectedWord.status === 'CORRECT' ? 'bg-emerald-100 text-emerald-800' : selectedWord.status === 'WEAK' ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800'"
                   >
-                    {{ selectedWord.status === 'CORRECT' ? '✓ Đạt chuẩn' : selectedWord.status === 'WEAK' ? '⚠️ Cần cải thiện' : '✕ Chưa đạt' }} ({{ selectedWord.score !== null ? Math.round(selectedWord.score) : 0 }}%)
+                    {{ selectedWord.status === 'CORRECT' ? '✓ Standard' : selectedWord.status === 'WEAK' ? '⚠️ Needs improvement' : '✕ Inaccurate' }} ({{ selectedWord.score !== null ? Math.round(selectedWord.score) : 0 }}%)
                   </span>
                 </div>
 
@@ -245,23 +245,23 @@
                   <button
                     @click="playWordAudio(selectedWord.word)"
                     class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-indigo-700 bg-white hover:bg-indigo-50 border border-indigo-200 px-3 py-2 rounded-xl shadow-2xs transition cursor-pointer"
-                    title="Nghe mẫu riêng từ này"
+                    title="Listen to this word"
                   >
-                    <Volume2 class="w-4 h-4" /> Nghe từ này
+                    <Volume2 class="w-4 h-4" /> Listen
                   </button>
                   <button
                     @click="ctx.openSaveWord(selectedWord.word, targetSpeakingText)"
                     class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 px-3 py-2 rounded-xl shadow-2xs transition cursor-pointer"
-                    title="Lưu từ vào sổ từ vựng"
+                    title="Save to vocabulary book"
                   >
-                    <BookmarkPlus class="w-4 h-4 text-amber-600" /> Lưu từ
+                    <BookmarkPlus class="w-4 h-4 text-amber-600" /> Save Word
                   </button>
                 </div>
               </div>
 
               <!-- Phoneme-by-Phoneme Visualizer -->
               <div v-if="selectedWord.phonemes && selectedWord.phonemes.length > 0" class="pt-2 space-y-2">
-                <span class="text-xs sm:text-sm font-bold text-gray-700 block">Soi chi tiết từng âm trong từ:</span>
+                <span class="text-xs sm:text-sm font-bold text-gray-700 block">Phoneme breakdown:</span>
                 <div class="grid grid-flow-col auto-cols-fr gap-2 sm:gap-3">
                   <div
                     v-for="(p, pIdx) in selectedWord.phonemes"
@@ -292,7 +292,7 @@
                 <div v-if="selectedWord.error_type" class="p-3.5 rounded-xl bg-white/95 border border-amber-200 text-sm flex items-start gap-2.5 text-amber-900 shadow-2xs">
                   <AlertCircle class="w-4 h-4 sm:w-5 sm:h-5 text-amber-600 shrink-0 mt-0.5" />
                   <div>
-                    <strong class="font-bold">Lỗi phát hiện:</strong> {{ selectedWord.error_type }}
+                    <strong class="font-bold">Detected issue:</strong> {{ selectedWord.error_type }}
                   </div>
                 </div>
 
@@ -300,7 +300,7 @@
                 <div class="p-4 rounded-xl bg-white/95 border border-indigo-100 text-sm sm:text-base space-y-1.5 shadow-2xs">
                   <p class="font-bold text-indigo-950 flex items-center gap-2">
                     <Lightbulb class="w-4 h-4 text-indigo-600" />
-                    <span>Hướng dẫn khẩu hình & vị trí đặt lưỡi:</span>
+                    <span>Mouth shape &amp; tongue placement guide:</span>
                   </p>
                   <p class="text-gray-700 leading-relaxed">
                     {{ getArticulatoryGuide(selectedWord) }}
@@ -313,7 +313,7 @@
             <div v-if="problemWords.length > 0" class="space-y-3 pt-2">
               <h4 class="text-xs sm:text-sm font-bold text-gray-800 uppercase tracking-wide flex items-center gap-2">
                 <AlertCircle class="w-4 h-4 text-rose-500" />
-                <span>Danh sách từ cần sửa lỗi ({{ problemWords.length }} từ):</span>
+                <span>Words needing improvement ({{ problemWords.length }} words):</span>
               </h4>
               <div class="space-y-2">
                 <div
@@ -332,11 +332,11 @@
                     </span>
                     <span v-if="pw.target_ipa" class="text-gray-500 font-sans">/{{ pw.target_ipa }}/</span>
                     <span class="text-gray-700 font-medium ml-1">
-                      {{ pw.error_type || 'Phát âm chưa chuẩn' }}
+                      {{ pw.error_type || 'Pronunciation needs practice' }}
                     </span>
                   </div>
                   <button class="text-indigo-600 font-bold hover:underline shrink-0 cursor-pointer text-xs sm:text-sm">
-                    Xem cách sửa →
+                    View guide →
                   </button>
                 </div>
               </div>
@@ -344,13 +344,13 @@
 
             <div v-else class="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-sm sm:text-base text-emerald-800 flex items-center gap-2.5">
               <CheckCircle2 class="w-5 h-5 text-emerald-600 shrink-0" />
-              <span>Tuyệt vời! Bạn đã phát âm chính xác và rõ ràng toàn bộ các từ trong câu.</span>
+              <span>Great job! You pronounced all words clearly and accurately.</span>
             </div>
 
-            <!-- Phonetic Error Tip Box (Gemini AI Coach) -->
+            <!-- Phonetic Error Tip Box -->
             <div v-if="speakingResult.ai_feedback" class="p-4 sm:p-5 bg-gradient-to-r from-amber-50/80 to-orange-50/80 border border-amber-200/80 rounded-2xl text-sm sm:text-base space-y-2">
               <p class="font-bold text-amber-900 flex items-center gap-2">
-                <Sparkles class="w-4 h-4 text-amber-600" /> Nhận xét tổng kết từ AI Coach:
+                <Sparkles class="w-4 h-4 text-amber-600" /> Summary Feedback:
               </p>
               <p class="text-amber-900 leading-relaxed whitespace-pre-line font-medium">
                 {{ speakingResult.ai_feedback }}
@@ -371,8 +371,8 @@
               <button
                 @click="toggleRecording"
                 :disabled="isAnalyzingSpeaking"
-                :aria-label="isAnalyzingSpeaking ? 'Đang phân tích giọng nói' : isRecording ? 'Dừng ghi âm và gửi chấm điểm' : 'Bắt đầu ghi âm'"
-                :title="isRecording ? 'Dừng ghi âm và gửi chấm điểm' : 'Bắt đầu ghi âm'"
+                :aria-label="isAnalyzingSpeaking ? 'Analyzing speech' : isRecording ? 'Stop recording & evaluate' : 'Start recording'"
+                :title="isRecording ? 'Stop recording & evaluate' : 'Start recording'"
                 :class="isRecording ? 'bg-rose-500 hover:bg-rose-600 text-white shadow-rose-500/40' : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-600/30'"
                 class="relative z-10 w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center shadow-xl transition-all transform active:scale-95 cursor-pointer disabled:opacity-50"
               >
@@ -383,10 +383,10 @@
             </div>
             <div class="text-center">
               <p class="text-base sm:text-lg font-bold text-gray-800">
-                {{ isAnalyzingSpeaking ? 'AI đang đánh giá cách phát âm...' : (isRecording ? 'Đang nghe... Bấm để gửi bài đọc' : 'Nhấn nút để bắt đầu đọc câu mẫu') }}
+                {{ isAnalyzingSpeaking ? 'Analyzing pronunciation...' : (isRecording ? 'Listening... Tap to submit' : 'Tap microphone to start speaking') }}
               </p>
               <p class="text-xs sm:text-sm text-gray-500 mt-1">
-                {{ isRecording ? 'Nói to, rõ câu tiếng Anh vào micro' : 'Ghi âm bằng micro, nhận góp ý tự động' }}
+                {{ isRecording ? 'Speak clearly into the microphone' : 'Record via microphone for instant feedback' }}
               </p>
             </div>
           </div>
@@ -418,6 +418,7 @@ import { getFullAudioUrl } from '../services/api';
 
 const ctx = inject('screenContext');
 const goBack = ctx.goBack;
+const hasHistory = ctx.hasHistory;
 
 const toggleSpeakingMode = () => {
   ctx.isCustomSpeakingMode.value = !ctx.isCustomSpeakingMode.value;
@@ -514,72 +515,72 @@ const playWordAudio = (word) => {
 };
 
 const ARTICULATORY_GUIDES = {
-  th: "Đặt đầu lưỡi vào giữa hai hàm răng trên và dưới, đẩy luồng hơi nhẹ ra ngoài (vô thanh trong 'think', hữu thanh rung dây thanh trong 'this/with').",
-  s: "Khép nhẹ hai hàm răng, đưa đầu lưỡi lại gần chân răng trên, thổi luồng hơi sắc /s/ xì qua kẽ răng.",
-  sh: "Chu môi tròn về phía trước, đưa thân lưỡi cong lên vòm miệng, thổi hơi mạnh tạo âm /ʃ/ ('ship', 'should').",
-  ch: "Bắt đầu với vị trí của /t/, sau đó bật mạnh luồng hơi tạo âm /tʃ/ ('chair', 'much').",
-  t: "Đặt đầu lưỡi chạm vào phần gờ nướu trên phía sau răng, nén hơi rồi bật dứt khoát luồng hơi /t/ ra.",
-  d: "Tương tự như /t/ nhưng rung dây thanh quản khi bật âm ra /d/ ('and', 'backend', 'world').",
-  k: "Nâng phần cuống lưỡi chạm vào vòm miệng mềm, nén khí rồi hạ lưỡi xuống bật luồng hơi mạnh /k/.",
-  g: "Tương tự /k/ nhưng rung dây thanh quản /g/.",
-  p: "Mím chặt hai môi lại để chặn luồng hơi, sau đó mở môi thật nhanh bật hơi /p/ ra.",
-  b: "Tương tự /p/ nhưng làm rung cổ họng ngay khi mở môi /b/.",
-  v: "Đặt răng cửa hàm trên chạm nhẹ vào môi dưới, thổi hơi đồng thời làm rung thanh quản /v/ ('developer', 'have').",
-  f: "Đặt răng cửa hàm trên chạm nhẹ vào môi dưới, đẩy hơi ra không rung thanh quản /f/.",
-  z: "Tương tự khẩu hình âm /s/, nhưng làm rung dây thanh quản trong cổ họng /z/ ('is', 'as', 'MySQL').",
-  l: "Nâng đầu lưỡi chạm vào chân răng hàm trên, giữ lưỡi ở đó cho luồng hơi đi qua hai bên mép lưỡi /l/.",
-  r: "Uốn cong đầu lưỡi về phía sau vòm họng (không chạm vào vòm họng), tròn môi nhẹ /r/.",
-  w: "Tròn môi nhỏ lại như đang huýt sáo, sau đó mở rộng môi ra tạo âm /w/ ('with', 'word'). Đừng đọc thành /v/.",
-  m: "Mím chặt môi, đẩy luồng âm thanh vang lên khoang mũi /m/ ('am', 'my').",
-  n: "Chạm đầu lưỡi vào vòm miệng phía sau răng trên, giữ hơi thoát qua khoang mũi /n/ ('in', 'python').",
-  ng: "Nâng cuống lưỡi chặn cuống họng, hơi thoát qua mũi tạo âm ngắt /ŋ/ ('sing', 'English').",
+  th: "Place the tip of your tongue between your upper and lower teeth, blow gentle air outward (voiceless in 'think', voiced vibrating vocal cords in 'this/with').",
+  s: "Bring teeth lightly together, place tongue tip near upper gums, blow a crisp hiss /s/ through teeth.",
+  sh: "Round lips forward, curve tongue body up toward palate, blow steady air for /ʃ/ ('ship', 'should').",
+  ch: "Start with /t/ tongue position, then release air sharply into /tʃ/ ('chair', 'much').",
+  t: "Place tongue tip against alveolar ridge behind upper teeth, compress air and release crisply as /t/.",
+  d: "Similar to /t/, but vibrate vocal cords upon release as /d/ ('and', 'backend', 'world').",
+  k: "Raise the back of your tongue against the soft palate, build air pressure, and release sharply as /k/.",
+  g: "Similar to /k/, but vibrate vocal cords for /g/.",
+  p: "Press lips firmly together to stop airflow, then pop them open with a burst of air /p/.",
+  b: "Similar to /p/, but vibrate vocal cords as lips open for /b/.",
+  v: "Place upper teeth lightly against lower lip, exhale while vibrating vocal cords /v/ ('developer', 'have').",
+  f: "Place upper teeth lightly against lower lip, blow air without vibrating vocal cords /f/.",
+  z: "Same mouth shape as /s/, but vibrate vocal cords in throat /z/ ('is', 'as', 'MySQL').",
+  l: "Touch tongue tip to upper gum ridge, letting air flow smoothly past the sides of the tongue /l/.",
+  r: "Curl tongue tip back toward roof of mouth (without touching), round lips slightly /r/.",
+  w: "Round lips tightly as if whistling, then widen lips into the following sound /w/ ('with', 'word').",
+  m: "Close lips firmly, resonate sound through the nasal cavity /m/ ('am', 'my').",
+  n: "Touch tongue tip to roof of mouth behind front teeth, let air resonate through nose /n/ ('in', 'python').",
+  ng: "Raise tongue back against soft palate, let sound resonate through nose /ŋ/ ('sing', 'English').",
 };
 
 const getArticulatoryGuide = (wordObj) => {
   if (!wordObj) return '';
-  if (wordObj.error_type === 'Bỏ sót hoặc chưa phát âm từ này') {
-    return 'Từ này đã bị bỏ sót hoặc chưa được phát âm trong bản ghi âm. Hãy lắng nghe audio mẫu và luyện tập phát âm trọn vẹn cả câu nhé!';
+  if (wordObj.error_type === 'Bỏ sót hoặc chưa phát âm từ này' || wordObj.error_type === 'Missing or omitted word') {
+    return 'This word was omitted or not heard in the recording. Listen to the sample audio and practice reciting the full sentence.';
   }
   const word = (wordObj.word || '').toLowerCase();
   const ipa = (wordObj.target_ipa || '').toLowerCase();
 
   if (word === 'with' || ipa.includes('dh') || ipa.includes('th')) {
-    return "Âm /ð/ hoặc /θ/: Đặt nhẹ đầu lưỡi giữa hai hàm răng, thổi luồng hơi nhẹ ra ngoài. Chú ý không đọc thành 'dít' hay 'quýt'.";
+    return "Sound /ð/ or /θ/: Place your tongue tip between teeth and release gentle air. Avoid replacing with /d/ or /t/.";
   }
   if (word === 'mysql') {
-    return "Từ viết tắt 'MySQL' phát âm là /maɪ ˈɛs kjuː ˈɛl/: Đọc rõ từng âm tiết 'My' + 'S' (xì hơi) + 'Q' + 'L' (đưa lưỡi lên chân răng).";
+    return "Acronym 'MySQL' is pronounced /maɪ ˈɛs kjuː ˈɛl/: Enunciate each syllable: 'My' + 'S' (hiss) + 'Q' + 'L'.";
   }
   if (word.endsWith('ed') || word.endsWith('d')) {
-    return "Âm cuối /d/: Đặt đầu lưỡi chạm gờ nướu trên, nén hơi rồi bật nhẹ và rung cổ họng. Đừng nuốt mất âm cuối này nhé!";
+    return "Ending sound /d/: Touch tongue tip to upper gum ridge, release gently with vocal vibration. Do not swallow the ending sound.";
   }
   if (word.endsWith('t') || word.endsWith('te')) {
-    return "Âm cuối /t/: Đặt đầu lưỡi chạm chân răng trên, bật dứt khoát hơi gió không rung cổ họng.";
+    return "Ending sound /t/: Place tongue tip behind upper teeth, release crisp burst of air without vocal vibration.";
   }
   if (word.endsWith('s') || word.endsWith('ce') || word.endsWith('se')) {
-    return "Âm cuối /s/ hoặc /z/: Khép răng nhẹ, thổi luồng hơi xì sắc bén. Người học thường hay nuốt âm gió cuối từ này.";
+    return "Ending sound /s/ or /z/: Bring teeth lightly together and blow sharp hissing air. Ensure the ending consonant is pronounced.";
   }
   if (word.includes('tion') || word.includes('sh')) {
-    return "Âm /ʃ/: Chu môi nhẹ hình tròn, thân lưỡi nâng lên gần vòm họng, thổi luồng hơi dày và êm.";
+    return "Sound /ʃ/: Round lips slightly into an oval, raise tongue body near palate, blow a smooth stream of air.";
   }
   if (word.startsWith('w') || word.includes('wh')) {
-    return "Âm /w/: Chu môi tròn nhỏ như huýt sáo rồi bung nhẹ ra âm tiếp theo. Tránh nhầm lẫn thành âm /v/ (răng cắn môi).";
+    return "Sound /w/: Round lips tightly like a small circle, then release cleanly into the vowel. Avoid biting lip like /v/.";
   }
   if (word.includes('ee') || word.includes('ea') || ipa.includes('iy')) {
-    return "Nguyên âm dài /iː/: Cười rộng miệng sang hai bên, kéo dài âm hơn nguyên âm ngắn /ɪ/ ('ship' vs 'sheep').";
+    return "Long vowel /iː/: Smile with lips pulled wide, extend the duration longer than the short /ɪ/ ('ship' vs 'sheep').";
   }
   if (word.includes('oo') || ipa.includes('uw')) {
-    return "Nguyên âm dài /uː/: Chu môi tròn chặt về phía trước, giữ lưỡi lùi về sau và phát âm ngân vang.";
+    return "Long vowel /uː/: Purse lips forward tightly, keep tongue pulled back and sustain the tone.";
   }
 
   const weakPhonemes = (wordObj.phonemes || []).filter((p) => p.status !== 'CORRECT');
   if (weakPhonemes.length > 0) {
     const char = weakPhonemes[0].char.toLowerCase();
     if (ARTICULATORY_GUIDES[char]) {
-      return `Tập trung vào âm '${char}': ${ARTICULATORY_GUIDES[char]}`;
+      return `Focus on sound '${char}': ${ARTICULATORY_GUIDES[char]}`;
     }
   }
 
-  return "Hãy mở khẩu hình vừa phải, phát âm tròn vành rõ chữ từng âm tiết, đặc biệt chú ý giữ trọn vẹn âm đuôi (ending sounds).";
+  return "Open mouth moderately, enunciate each syllable clearly, and pay special attention to ending consonant sounds.";
 };
 
 const activeTab = ctx.activeTab;

@@ -1,14 +1,14 @@
 <template>
   <section v-if="activeTab === 'dictionary'" class="w-full max-w-6xl mx-auto space-y-7 pb-28">
     
-    <!-- Top Back Button -->
-    <div>
+    <!-- Top Back Button (Only visible when navigated from another screen) -->
+    <div v-if="hasHistory">
       <button
         @click="goBack"
         class="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl border border-slate-200 bg-white text-slate-700 font-bold text-sm hover:bg-slate-50 hover:text-blue-600 transition shadow-2xs cursor-pointer group"
       >
         <ArrowLeft class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-        <span>Quay lại</span>
+        <span>{{ 'Back' }}</span>
       </button>
     </div>
 
@@ -17,17 +17,17 @@
       <div>
         <div class="flex items-center gap-2 mb-1.5">
           <span class="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-wide border border-blue-100 flex items-center gap-1.5">
-            <Sparkles class="w-3.5 h-3.5 text-blue-600" /> Tra cứu từ điển
+            <Sparkles class="w-3.5 h-3.5 text-blue-600" /> Dictionary Lookup
           </span>
           <span class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold border border-emerald-200">
-            IPA Chuẩn bản xứ
+            Native IPA Phonetics
           </span>
         </div>
         <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-          Từ điển thông minh 
+          Dictionary
         </h1>
         <p class="text-base sm:text-lg text-slate-600 mt-1 max-w-2xl leading-relaxed">
-          Tra cứu từ vựng Anh - Việt tức thì, chuẩn phiên âm IPA, giải nghĩa ngữ cảnh chi tiết, ví dụ thực tế và tự động phân tích từ mới cùng AI.
+          Instant vocabulary lookup with native IPA pronunciation, contextual definitions, and practical examples.
         </p>
       </div>
 
@@ -37,8 +37,8 @@
           📖
         </div>
         <div>
-          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Học từ mới</p>
-          <p class="text-sm font-bold text-slate-800">Lưu vào Flashcard SRS</p>
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Vocabulary</p>
+          <p class="text-sm font-bold text-slate-800">Save to Flashcards</p>
         </div>
       </div>
     </div>
@@ -51,7 +51,7 @@
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Nhập từ tiếng Anh hoặc nghĩa tiếng Việt (ví dụ: resilient, fluency, truyền cảm hứng...)"
+            placeholder="Enter an English word or phrase (e.g. resilient, fluency, inspire...)"
             class="w-full pl-12 pr-10 py-3.5 sm:py-4 rounded-2xl border border-slate-200 bg-slate-50/70 text-base sm:text-lg text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition shadow-2xs"
             @input="onSearchInput"
           />
@@ -72,7 +72,7 @@
         >
           <Loader2 v-if="loading" class="w-5 h-5 animate-spin" />
           <Search v-else class="w-5 h-5" />
-          <span>Tra từ</span>
+          <span>Search</span>
         </button>
 
         <button
@@ -80,16 +80,16 @@
           @click="handleAiLookup"
           :disabled="loading || !searchQuery.trim()"
           class="px-5 py-3.5 sm:py-4 rounded-2xl border border-indigo-200 bg-indigo-50/80 hover:bg-indigo-100/90 text-indigo-700 font-bold text-base transition cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 shadow-2xs"
-          title="Dùng Gemini AI phân tích chi tiết nếu từ chưa có trong từ điển"
+          title="Deep search with contextual analysis"
         >
           <Sparkles class="w-5 h-5 text-indigo-600" />
-          <span>Tra cứu bằng AI</span>
+          <span>Deep Search</span>
         </button>
       </form>
 
       <!-- Auto Suggestions Dropdown (if multiple matches found) -->
       <div v-if="searchResults.length > 1 && !selectedWord" class="pt-2 border-t border-slate-100 space-y-2">
-        <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Các kết quả gợi ý:</p>
+        <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Suggested Results:</p>
         <div class="flex flex-wrap gap-2">
           <button
             v-for="item in searchResults"
@@ -107,7 +107,7 @@
       <!-- Quick Word Chips for Inspiration -->
       <div class="flex items-center gap-2 pt-1 flex-wrap text-xs sm:text-sm">
         <span class="font-bold text-slate-500 flex items-center gap-1">
-          <Lightbulb class="w-3.5 h-3.5 text-amber-500" /> Gợi ý tra từ:
+          <Lightbulb class="w-3.5 h-3.5 text-amber-500" /> Quick suggestions:
         </span>
         <button
           v-for="word in popularKeywords"
@@ -124,14 +124,14 @@
     <!-- Loading State Indicator -->
     <div v-if="loading" class="py-16 text-center text-slate-500 bg-white rounded-3xl border border-slate-100 shadow-2xs space-y-3">
       <Loader2 class="mx-auto h-9 w-9 animate-spin text-blue-600" />
-      <p class="text-base font-bold text-slate-800">Đang tra cứu từ điển và phân tích ngữ cảnh...</p>
-      <p class="text-sm text-slate-500">Hệ thống đang đối chiếu dữ liệu ngữ âm và phân tích cùng Gemini AI</p>
+      <p class="text-base font-bold text-slate-800">Looking up word and analyzing context...</p>
+      <p class="text-sm text-slate-500">Matching phonetic data and contextual definitions...</p>
     </div>
 
     <!-- Error State -->
     <div v-else-if="errorMessage" role="alert" class="rounded-3xl bg-rose-50 border border-rose-200 p-6 text-base text-rose-700 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <p class="font-bold">Chưa tìm thấy từ phù hợp</p>
+        <p class="font-bold">Word not found</p>
         <p class="text-sm mt-0.5">{{ errorMessage }}</p>
       </div>
       <button
@@ -140,7 +140,7 @@
         class="px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-bold text-sm hover:bg-indigo-700 transition cursor-pointer shrink-0 flex items-center gap-2"
       >
         <Sparkles class="w-4 h-4" />
-        <span>Thử phân tích tự động bằng AI</span>
+        <span>Try Deep Search</span>
       </button>
     </div>
 
@@ -170,7 +170,7 @@
             </span>
 
             <span class="text-xs text-slate-400 font-semibold flex items-center gap-1">
-              <CheckCircle2 class="w-3.5 h-3.5 text-emerald-500" /> Đã xác thực
+              <CheckCircle2 class="w-3.5 h-3.5 text-emerald-500" /> Verified
             </span>
           </div>
 
@@ -182,7 +182,7 @@
             <button
               @click="speak(selectedWord.word)"
               class="w-11 h-11 rounded-2xl bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 flex items-center justify-center transition cursor-pointer shadow-2xs hover:scale-105"
-              title="Nghe phát âm chuẩn"
+              title="Listen to native pronunciation"
             >
               <Volume2 class="w-6 h-6" />
             </button>
@@ -204,7 +204,7 @@
             class="px-4.5 py-2.5 rounded-2xl border border-slate-200 bg-white hover:bg-amber-50 hover:border-amber-300 text-slate-700 hover:text-amber-800 font-bold text-sm transition shadow-2xs flex items-center gap-2 cursor-pointer"
           >
             <BookmarkPlus class="w-4.5 h-4.5 text-amber-500" />
-            <span>Lưu vào sổ từ vựng</span>
+            <span>Save to Flashcards</span>
           </button>
 
           <!-- Practice Speaking in Lab -->
@@ -213,14 +213,14 @@
             class="px-4.5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm transition shadow-md shadow-emerald-600/20 flex items-center gap-2 cursor-pointer"
           >
             <Mic class="w-4.5 h-4.5" />
-            <span>Luyện phát âm AI từ này</span>
+            <span>Practice Speaking</span>
           </button>
         </div>
       </div>
 
       <!-- Meaning in Vietnamese -->
       <div class="space-y-2">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Định nghĩa tiếng Việt:</h3>
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Definition:</h3>
         <p class="text-xl sm:text-2xl font-extrabold text-slate-900 leading-snug">
           {{ selectedWord.meaning_vi }}
         </p>
@@ -238,15 +238,15 @@
       <div v-if="selectedWord.example_sentence" class="space-y-3 rounded-2xl bg-blue-50/60 p-5 sm:p-6 border border-blue-100">
         <div class="flex items-center justify-between">
           <h3 class="text-xs font-bold uppercase tracking-wider text-blue-800 flex items-center gap-1.5">
-            <span>💬</span> Ví dụ câu thực tế (Real-world Example):
+            <span>💬</span> Real-world Example:
           </h3>
           <button
             @click="speak(selectedWord.example_sentence)"
             class="p-1.5 rounded-xl bg-white text-blue-600 hover:bg-blue-100 transition cursor-pointer shadow-2xs text-xs font-bold flex items-center gap-1"
-            title="Nghe câu ví dụ"
+            title="Listen to example"
           >
             <Volume2 class="w-4 h-4" />
-            <span class="hidden sm:inline">Nghe câu</span>
+            <span class="hidden sm:inline">Listen</span>
           </button>
         </div>
 
@@ -266,21 +266,21 @@
       <div class="flex items-center justify-between">
         <h3 class="text-lg sm:text-xl font-extrabold text-slate-900 flex items-center gap-2">
           <History class="w-5 h-5 text-slate-600" />
-          <span>Lịch sử tra cứu gần đây</span>
+          <span>Recent Search History</span>
         </h3>
         <span v-if="searchHistory.length" class="text-xs font-bold text-slate-500">
-          {{ searchHistory.length }} từ đã tra
+          {{ searchHistory.length }} words searched
         </span>
       </div>
 
       <div v-if="historyLoading" class="py-8 text-center text-slate-400 text-sm">
-        <Loader2 class="mx-auto w-5 h-5 animate-spin mb-2" /> Đang tải lịch sử tra cứu...
+        <Loader2 class="mx-auto w-5 h-5 animate-spin mb-2" /> Loading search history...
       </div>
 
       <div v-else-if="searchHistory.length === 0" class="rounded-3xl border border-slate-200 bg-white p-8 text-center text-slate-500 shadow-2xs space-y-2">
         <BookOpen class="w-10 h-10 text-slate-300 mx-auto" />
-        <p class="font-bold text-slate-700">Chưa có lịch sử tra từ</p>
-        <p class="text-xs sm:text-sm text-slate-500">Các từ bạn tra cứu sẽ xuất hiện tại đây để tiện xem lại bất cứ lúc nào.</p>
+        <p class="font-bold text-slate-700">No search history yet</p>
+        <p class="text-xs sm:text-sm text-slate-500">Words you search will appear here so you can easily review them anytime.</p>
       </div>
 
       <!-- History Grid -->
@@ -311,7 +311,7 @@
           <button
             @click.stop="speak(item.word?.word || item.word)"
             class="p-2 rounded-xl bg-slate-50 hover:bg-blue-50 text-slate-500 hover:text-blue-600 transition shrink-0 cursor-pointer"
-            title="Phát âm"
+            title="Pronounce"
           >
             <Volume2 class="w-4 h-4" />
           </button>
@@ -334,7 +334,7 @@ import { getErrorMessage } from '../services/api';
 const ctx = inject('screenContext');
 const {
   activeTab, goBack, navigateTab, speakText, openSaveWord,
-  isCustomSpeakingMode, targetSpeakingText
+  isCustomSpeakingMode, targetSpeakingText, hasHistory
 } = ctx;
 
 const searchQuery = ref('');
@@ -413,7 +413,7 @@ const handleSearch = async () => {
       await handleAiLookup();
     }
   } catch (err) {
-    errorMessage.value = getErrorMessage(err, 'Không tìm thấy từ vựng này. Bạn có thể bấm "Tra cứu bằng AI" để hệ thống tự động tìm.');
+    errorMessage.value = getErrorMessage(err, 'Word not found. You can try "Deep Search" for an extended lookup.');
   } finally {
     loading.value = false;
   }
@@ -434,10 +434,10 @@ const handleAiLookup = async () => {
       searchResults.value = [wordObj];
       await loadHistory();
     } else {
-      errorMessage.value = 'Không thể phân tích từ vựng này qua AI. Vui lòng kiểm tra lại từ khóa.';
+      errorMessage.value = 'Could not find detailed information for this word. Please check the spelling.';
     }
   } catch (err) {
-    errorMessage.value = getErrorMessage(err, 'Lỗi khi tra từ qua AI. Vui lòng thử lại sau giây lát.');
+    errorMessage.value = getErrorMessage(err, 'Error looking up word. Please try again shortly.');
   } finally {
     loading.value = false;
   }

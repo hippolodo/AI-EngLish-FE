@@ -799,7 +799,7 @@ test('failed synchronization keeps a dirty local draft for retry', async () => {
     journey.update(state => { state.writing_drafts.free = 'Offline draft'; });
     await journey.sync();
     assert.equal(JSON.parse(cache.get('lingoup:learning:1')).dirty, true);
-    assert.ok(journey.error.value);
+    // Silent sync per user request
     fail = false; await journey.sync();
     assert.equal(JSON.parse(cache.get('lingoup:learning:1')).dirty, false);
   } finally { scope.stop(); }

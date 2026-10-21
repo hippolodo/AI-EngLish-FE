@@ -1,146 +1,146 @@
 <template>
-  <div v-if="activeTab === 'writing'" class="space-y-6 pb-28 w-full max-w-6xl mx-auto">
-    <!-- Top Back Button -->
-    <div>
+  <div v-if="activeTab === 'writing' && isAuthenticated" class="space-y-6 pb-28 w-full max-w-6xl mx-auto">
+    <!-- Top Back Button (Only visible when navigated from a lesson or another screen) -->
+    <div v-if="hasHistory">
       <button
         @click="goBack"
         class="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl border border-slate-200 bg-white text-slate-700 font-bold text-sm hover:bg-slate-50 hover:text-blue-600 transition shadow-2xs cursor-pointer group"
       >
         <ArrowLeft class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-        <span>Quay lại</span>
+        <span>{{ ctx.currentLesson.value ? 'Back to Lesson' : 'Back' }}</span>
       </button>
     </div>
 
     <!-- Header -->
     <div class="flex items-center justify-between">
-            <div>
-              <span class="text-xs uppercase tracking-wide font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md">Writing Assistant</span>
-              <h1 class="text-gray-900 mt-1.5 text-2xl sm:text-3xl font-extrabold leading-snug">{{ ctx.currentLesson.value?.type === 'WRITING' ? 'Viết theo đề bài' : 'Luyện viết tự do' }}</h1>
-            </div>
+      <div>
+        <span class="text-xs uppercase tracking-wide font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md">Writing Assistant</span>
+        <h1 class="text-gray-900 mt-1.5 text-2xl sm:text-3xl font-extrabold leading-snug">{{ ctx.currentLesson.value?.type === 'WRITING' ? 'Guided Writing' : 'Free Writing Practice' }}</h1>
+      </div>
+    </div>
+
+    <!-- Input Area -->
+    <div v-if="ctx.currentLesson.value?.type === 'WRITING'" class="space-y-3 rounded-2xl bg-indigo-50/80 p-5 sm:p-6 text-sm sm:text-base text-indigo-950 border border-indigo-100">
+      <div class="flex items-start justify-between gap-3"><h2 class="text-lg font-bold">{{ ctx.currentLesson.value.title }}</h2><button @click="ctx.openWritingTaskPicker" :disabled="isEvaluating" class="shrink-0 rounded-xl bg-white px-3.5 py-2 text-xs sm:text-sm font-bold text-indigo-700 shadow-2xs disabled:opacity-50 cursor-pointer">Change Prompt</button></div>
+      <div v-for="content in ctx.lessonDetail.value?.contents || []" :key="content.id" class="space-y-2.5">
+        <p class="pt-1 font-bold">Writing Prompt</p><p class="reading-text whitespace-pre-line text-base sm:text-lg leading-relaxed text-slate-900">{{ content.target_text }}</p>
+        <details v-if="content.hint_translation"><summary class="cursor-pointer text-xs sm:text-sm font-semibold text-indigo-700">View Vietnamese Translation</summary><p class="mt-2 whitespace-pre-line text-slate-600 text-sm sm:text-base">{{ content.hint_translation }}</p></details>
+        <div v-if="content.task_guidance" class="rounded-xl bg-white/80 p-4 border border-indigo-100"><p class="mb-1 font-bold text-indigo-900">Writing Guidance</p><p class="whitespace-pre-line text-indigo-800 text-sm sm:text-base leading-relaxed">{{ content.task_guidance }}</p></div>
+        <details v-if="content.sample_text" class="rounded-xl bg-white/90 p-4 border border-indigo-100">
+          <summary class="cursor-pointer font-bold text-indigo-900">View Sample Reference</summary>
+          <p class="mt-2 text-xs sm:text-sm text-slate-500">Reference idea development; write in your own words.</p>
+          <p class="reading-text mt-2 whitespace-pre-line text-slate-800 text-sm sm:text-base leading-relaxed">{{ content.sample_text }}</p>
+        </details>
+      </div>
+      <p class="text-indigo-700 font-medium text-xs sm:text-sm">Draft your response, inspect feedback, then revise and resubmit. Drafts are auto-saved.</p>
+    </div>
+    <div v-else class="rounded-2xl border border-indigo-100 bg-indigo-50/80 p-5 sm:p-6 text-sm sm:text-base text-indigo-950">
+      <p class="leading-relaxed">Write paragraphs, emails, or essays. The system analyzes grammar, vocabulary, and provides suggestions to raise your score.</p>
+      <button @click="ctx.openWritingTaskPicker" :disabled="isEvaluating" :aria-expanded="ctx.writingPickerOpen.value" aria-controls="writing-task-picker" class="mt-3.5 rounded-xl bg-indigo-700 px-5 py-2.5 font-bold text-sm sm:text-base text-white transition hover:bg-indigo-800 shadow-md shadow-indigo-700/20 disabled:opacity-50 cursor-pointer">Select Prompt from Topics →</button>
+    </div>
+    <section v-if="ctx.writingPickerOpen.value" id="writing-task-picker" aria-labelledby="writing-picker-title" class="space-y-4 rounded-3xl border border-violet-200 bg-gradient-to-br from-violet-50 to-sky-50 p-5 sm:p-6">
+      <div class="flex items-center justify-between gap-3"><h2 id="writing-picker-title" class="text-lg font-bold text-violet-950">Select Writing Prompt</h2><button @click="ctx.writingPickerOpen.value = false" class="rounded-xl bg-white px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-600 cursor-pointer shadow-2xs">Close</button></div>
+      <p v-if="ctx.writingPickerLoading.value" role="status" class="flex items-center gap-2 py-3 text-sm sm:text-base text-indigo-700"><Loader2 class="h-5 w-5 animate-spin" />Loading prompts…</p>
+      <div v-else-if="ctx.writingPickerError.value" role="alert" class="rounded-2xl bg-rose-50 p-4 text-sm text-rose-700">{{ ctx.writingPickerError.value }} <button @click="ctx.loadWritingTasks" class="font-semibold underline">Retry</button></div>
+      <template v-else>
+        <label class="block space-y-2 text-sm sm:text-base font-semibold text-slate-800"><span>Topics with writing prompts</span><select v-model="ctx.writingPickerTopicId.value" class="w-full rounded-xl border border-violet-200 bg-white p-3.5 text-sm sm:text-base text-slate-800"><option :value="null">All topics with writing prompts</option><option v-for="topic in ctx.writingPickerTopics.value" :key="topic.id" :value="topic.id">{{ topic.title }}</option></select></label>
+        <div class="space-y-2.5">
+          <button v-for="lesson in ctx.writingPickerLessons.value" :key="lesson.id" @click="ctx.openWritingLesson(lesson)" :disabled="isEvaluating" class="flex w-full items-center gap-3.5 rounded-2xl border border-violet-100 bg-white p-4 sm:p-5 text-left shadow-2xs transition hover:border-violet-300 hover:bg-violet-50 disabled:opacity-50 cursor-pointer"><span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-100 text-violet-700"><PenLine class="h-5 w-5" aria-hidden="true" /></span><span class="min-w-0 flex-1"><span class="block text-sm sm:text-base font-bold text-slate-900">{{ lesson.title }}</span><span class="mt-1 block text-xs sm:text-sm text-slate-500">{{ ctx.writingPickerTopics.value.find(topic => topic.id === lesson.topic_id)?.title }}</span></span><ArrowRight class="h-4 w-4 shrink-0 text-violet-600" aria-hidden="true" /></button>
+        </div>
+        <p v-if="!ctx.writingPickerLessons.value.length" class="rounded-2xl bg-white p-5 text-sm text-slate-600">No writing prompts in this topic yet. Please choose another topic.</p>
+      </template>
+    </section>
+    <div class="space-y-4">
+      <div class="bg-white rounded-3xl p-5 sm:p-6 border border-gray-200/90 shadow-xs relative focus-within:ring-2 focus-within:ring-indigo-600 focus-within:border-transparent">
+        <textarea
+          v-model="essayInput" :readonly="isEvaluating" maxlength="10000"
+          rows="8"
+          class="w-full text-base sm:text-lg text-gray-900 placeholder-gray-400 bg-transparent resize-none focus:outline-none leading-relaxed"
+          :placeholder="ctx.currentLesson.value?.type === 'WRITING' ? 'Write your essay in English following the instructions above…' : 'Type your paragraph, email, or essay in English…'"
+        ></textarea>
+        <div class="flex justify-between items-center pt-3 border-t border-gray-100 text-xs sm:text-sm text-gray-500">
+          <span>{{ wordCount }} words · {{ essayInput.length }} chars</span>
+          <span class="text-indigo-600 font-bold">{{ isAuthenticated ? 'Draft auto-saved' : 'Sign in to save draft' }}</span>
+        </div>
+      </div>
+
+      <!-- Error message if any -->
+      <div v-if="writingError" class="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-sm sm:text-base text-rose-700 font-medium">
+        ⚠️ {{ writingError }}
+      </div>
+
+      <!-- Evaluate Button -->
+      <button
+        @click="submitWritingEvaluation"
+        :disabled="isEvaluating || !essayInput.trim()"
+        class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white rounded-2xl text-base font-bold shadow-md shadow-indigo-600/20 transition flex items-center justify-center gap-2 cursor-pointer"
+      >
+        <Sparkles v-if="!isEvaluating" class="w-5 h-5" />
+        <Loader2 v-else class="w-5 h-5 animate-spin" />
+        <span>{{ isEvaluating ? 'Evaluating writing…' : 'Get Feedback & Suggestions' }}</span>
+      </button>
+    </div>
+
+    <!-- Real Results Dashboard -->
+    <div v-if="writingResult" class="space-y-5 pt-2 border-t border-gray-200/70">
+      <p class="text-xs sm:text-sm text-slate-500">{{ writingResult.assessment_method === 'rules' ? 'Basic rule-based check result.' : 'Evaluation result is for reference to improve writing skills.' }}</p>
+      <div v-if="writingResult.task_feedback" role="status" class="rounded-2xl border border-indigo-100 bg-indigo-50/80 p-5 text-sm sm:text-base text-indigo-950 leading-relaxed"><p class="mb-1 font-bold text-indigo-900">General Feedback</p><p>{{ writingResult.task_feedback }}</p></div>
+      <p v-if="ctx.currentLesson.value?.type === 'WRITING' && ctx.lessonProgress.value.writing_previous_score != null && writingResult.overall_score != null" class="text-sm font-semibold text-indigo-700">Previous: {{ ctx.lessonProgress.value.writing_previous_score }}/100 · Current: {{ ctx.lessonProgress.value.writing_score }}/100. Review feedback to compare fixed errors.</p>
+      <div class="flex gap-4 text-sm sm:text-base font-bold text-indigo-600">
+        <button @click="ctx.openSaveWord('', essayInput)" class="hover:underline cursor-pointer">Save Words</button>
+        <button v-if="ctx.currentLesson.value?.type === 'WRITING'" @click="ctx.finishLesson" class="hover:underline cursor-pointer">Complete &amp; Summary →</button>
+      </div>
+      <!-- Score Card -->
+      <div v-if="writingResult.overall_score != null" class="bg-gradient-to-r from-gray-900 to-indigo-950 rounded-3xl p-6 sm:p-7 text-white shadow-lg flex items-center justify-between">
+        <div>
+          <p class="text-xs sm:text-sm font-bold text-indigo-300 uppercase tracking-wide">Overall Score</p>
+          <div class="flex items-baseline gap-2 mt-1">
+            <span class="text-4xl sm:text-5xl font-black text-white">{{ writingResult.overall_score }}</span>
+            <span class="text-base text-gray-400">/ 100</span>
           </div>
+        </div>
+        <div class="text-right">
+          <span v-if="writingResult.task_type === 'ielts_task2' && writingResult.estimated_band" class="inline-block px-4 py-1.5 rounded-full text-sm sm:text-base font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
+            Estimated IELTS Band {{ writingResult.estimated_band }}
+          </span>
+          <p class="text-xs sm:text-sm text-gray-400 mt-1.5 font-medium">
+            {{ (writingResult.errors || []).length }} issues to revise
+          </p>
+        </div>
+      </div>
 
-          <!-- Input Area -->
-          <div v-if="ctx.currentLesson.value?.type === 'WRITING'" class="space-y-3 rounded-2xl bg-indigo-50/80 p-5 sm:p-6 text-sm sm:text-base text-indigo-950 border border-indigo-100">
-            <div class="flex items-start justify-between gap-3"><h2 class="text-lg font-bold">{{ ctx.currentLesson.value.title }}</h2><button @click="ctx.openWritingTaskPicker" :disabled="isEvaluating" class="shrink-0 rounded-xl bg-white px-3.5 py-2 text-xs sm:text-sm font-bold text-indigo-700 shadow-2xs disabled:opacity-50 cursor-pointer">Đổi đề</button></div>
-            <div v-for="content in ctx.lessonDetail.value?.contents || []" :key="content.id" class="space-y-2.5">
-              <p class="pt-1 font-bold">Đề bài</p><p class="reading-text whitespace-pre-line text-base sm:text-lg leading-relaxed text-slate-900">{{ content.target_text }}</p>
-              <details v-if="content.hint_translation"><summary class="cursor-pointer text-xs sm:text-sm font-semibold text-indigo-700">Xem đề bằng tiếng Việt</summary><p class="mt-2 whitespace-pre-line text-slate-600 text-sm sm:text-base">{{ content.hint_translation }}</p></details>
-              <div v-if="content.task_guidance" class="rounded-xl bg-white/80 p-4 border border-indigo-100"><p class="mb-1 font-bold text-indigo-900">Hướng dẫn viết</p><p class="whitespace-pre-line text-indigo-800 text-sm sm:text-base leading-relaxed">{{ content.task_guidance }}</p></div>
-              <details v-if="content.sample_text" class="rounded-xl bg-white/90 p-4 border border-indigo-100">
-                <summary class="cursor-pointer font-bold text-indigo-900">Xem bài mẫu tham khảo</summary>
-                <p class="mt-2 text-xs sm:text-sm text-slate-500">Tham khảo cách triển khai ý; hãy viết bằng lời của bạn.</p>
-                <p class="reading-text mt-2 whitespace-pre-line text-slate-800 text-sm sm:text-base leading-relaxed">{{ content.sample_text }}</p>
-              </details>
-            </div>
-            <p class="text-indigo-700 font-medium text-xs sm:text-sm">Viết bản nháp, xem phản hồi rồi sửa và nộp lại. Bản nháp được lưu theo bài.</p>
-          </div>
-          <div v-else class="rounded-2xl border border-indigo-100 bg-indigo-50/80 p-5 sm:p-6 text-sm sm:text-base text-indigo-950">
-            <p class="leading-relaxed">Viết đoạn văn, email hoặc nội dung bạn muốn luyện. Hệ thống phân tích ngữ pháp, từ vựng và đưa ra gợi ý nâng cao band điểm.</p>
-            <button @click="ctx.openWritingTaskPicker" :disabled="isEvaluating" :aria-expanded="ctx.writingPickerOpen.value" aria-controls="writing-task-picker" class="mt-3.5 rounded-xl bg-indigo-700 px-5 py-2.5 font-bold text-sm sm:text-base text-white transition hover:bg-indigo-800 shadow-md shadow-indigo-700/20 disabled:opacity-50 cursor-pointer">Chọn đề từ một chủ đề →</button>
-          </div>
-          <section v-if="ctx.writingPickerOpen.value" id="writing-task-picker" aria-labelledby="writing-picker-title" class="space-y-4 rounded-3xl border border-violet-200 bg-gradient-to-br from-violet-50 to-sky-50 p-5 sm:p-6">
-            <div class="flex items-center justify-between gap-3"><h2 id="writing-picker-title" class="text-lg font-bold text-violet-950">Chọn đề viết</h2><button @click="ctx.writingPickerOpen.value = false" class="rounded-xl bg-white px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-600 cursor-pointer shadow-2xs">Đóng</button></div>
-            <p v-if="ctx.writingPickerLoading.value" role="status" class="flex items-center gap-2 py-3 text-sm sm:text-base text-indigo-700"><Loader2 class="h-5 w-5 animate-spin" />Đang tải đề viết…</p>
-            <div v-else-if="ctx.writingPickerError.value" role="alert" class="rounded-2xl bg-rose-50 p-4 text-sm text-rose-700">{{ ctx.writingPickerError.value }} <button @click="ctx.loadWritingTasks" class="font-semibold underline">Thử lại</button></div>
-            <template v-else>
-              <label class="block space-y-2 text-sm sm:text-base font-semibold text-slate-800"><span>Chủ đề có bài viết</span><select v-model="ctx.writingPickerTopicId.value" class="w-full rounded-xl border border-violet-200 bg-white p-3.5 text-sm sm:text-base text-slate-800"><option :value="null">Tất cả chủ đề có bài viết</option><option v-for="topic in ctx.writingPickerTopics.value" :key="topic.id" :value="topic.id">{{ topic.title }}</option></select></label>
-              <div class="space-y-2.5">
-                <button v-for="lesson in ctx.writingPickerLessons.value" :key="lesson.id" @click="ctx.openWritingLesson(lesson)" :disabled="isEvaluating" class="flex w-full items-center gap-3.5 rounded-2xl border border-violet-100 bg-white p-4 sm:p-5 text-left shadow-2xs transition hover:border-violet-300 hover:bg-violet-50 disabled:opacity-50 cursor-pointer"><span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-100 text-violet-700"><PenLine class="h-5 w-5" aria-hidden="true" /></span><span class="min-w-0 flex-1"><span class="block text-sm sm:text-base font-bold text-slate-900">{{ lesson.title }}</span><span class="mt-1 block text-xs sm:text-sm text-slate-500">{{ ctx.writingPickerTopics.value.find(topic => topic.id === lesson.topic_id)?.title }}</span></span><ArrowRight class="h-4 w-4 shrink-0 text-violet-600" aria-hidden="true" /></button>
-              </div>
-              <p v-if="!ctx.writingPickerLessons.value.length" class="rounded-2xl bg-white p-5 text-sm text-slate-600">Chưa có đề viết ở chủ đề này. Hãy chọn chủ đề khác.</p>
-            </template>
-          </section>
-          <div class="space-y-4">
-            <div class="bg-white rounded-3xl p-5 sm:p-6 border border-gray-200/90 shadow-xs relative focus-within:ring-2 focus-within:ring-indigo-600 focus-within:border-transparent">
-              <textarea
-                v-model="essayInput" :readonly="isEvaluating" maxlength="10000"
-                rows="8"
-                class="w-full text-base sm:text-lg text-gray-900 placeholder-gray-400 bg-transparent resize-none focus:outline-none leading-relaxed"
-                :placeholder="ctx.currentLesson.value?.type === 'WRITING' ? 'Viết bài bằng tiếng Anh theo yêu cầu bên trên…' : 'Nhập đoạn văn, email hoặc bài viết bằng tiếng Anh…'"
-              ></textarea>
-              <div class="flex justify-between items-center pt-3 border-t border-gray-100 text-xs sm:text-sm text-gray-500">
-                <span>{{ wordCount }} từ · {{ essayInput.length }} ký tự</span>
-                <span class="text-indigo-600 font-bold">{{ isAuthenticated ? 'Bản nháp tự động lưu' : 'Đăng nhập để lưu bản nháp' }}</span>
-              </div>
-            </div>
-
-            <!-- Error message if any -->
-            <div v-if="writingError" class="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-sm sm:text-base text-rose-700 font-medium">
-              ⚠️ {{ writingError }}
-            </div>
-
-            <!-- Evaluate Button -->
-            <button
-              @click="submitWritingEvaluation"
-              :disabled="isEvaluating || !essayInput.trim()"
-              class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white rounded-2xl text-base font-bold shadow-md shadow-indigo-600/20 transition flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <Sparkles v-if="!isEvaluating" class="w-5 h-5" />
-              <Loader2 v-else class="w-5 h-5 animate-spin" />
-              <span>{{ isEvaluating ? 'Đang đánh giá bài viết…' : 'Nhận góp ý & sửa bài' }}</span>
-            </button>
-          </div>
-
-          <!-- Real Results Dashboard -->
-          <div v-if="writingResult" class="space-y-5 pt-2 border-t border-gray-200/70">
-            <p class="text-xs sm:text-sm text-slate-500">{{ writingResult.assessment_method === 'rules' ? 'Kết quả kiểm tra lỗi cơ bản; chưa có đánh giá đầy đủ từ AI.' : 'Đánh giá AI là kết quả tham khảo để luyện tập.' }}</p>
-            <div v-if="writingResult.task_feedback" role="status" class="rounded-2xl border border-indigo-100 bg-indigo-50/80 p-5 text-sm sm:text-base text-indigo-950 leading-relaxed"><p class="mb-1 font-bold text-indigo-900">Nhận xét về bài viết</p><p>{{ writingResult.task_feedback }}</p></div>
-            <p v-if="ctx.currentLesson.value?.type === 'WRITING' && ctx.lessonProgress.value.writing_previous_score != null && writingResult.overall_score != null" class="text-sm font-semibold text-indigo-700">Lần trước: {{ ctx.lessonProgress.value.writing_previous_score }}/100 · Lần này: {{ ctx.lessonProgress.value.writing_score }}/100. Xem lại phản hồi để so sánh các lỗi đã sửa.</p>
-            <div class="flex gap-4 text-sm sm:text-base font-bold text-indigo-600">
-              <button @click="ctx.openSaveWord('', essayInput)" class="hover:underline cursor-pointer">Lưu từ cần ôn</button>
-              <button v-if="ctx.currentLesson.value?.type === 'WRITING'" @click="ctx.finishLesson" class="hover:underline cursor-pointer">Hoàn thành & tổng kết →</button>
-            </div>
-            <!-- Score Card -->
-            <div v-if="writingResult.overall_score != null" class="bg-gradient-to-r from-gray-900 to-indigo-950 rounded-3xl p-6 sm:p-7 text-white shadow-lg flex items-center justify-between">
-              <div>
-                <p class="text-xs sm:text-sm font-bold text-indigo-300 uppercase tracking-wide">Điểm đánh giá AI</p>
-                <div class="flex items-baseline gap-2 mt-1">
-                  <span class="text-4xl sm:text-5xl font-black text-white">{{ writingResult.overall_score }}</span>
-                  <span class="text-base text-gray-400">/ 100</span>
-                </div>
-              </div>
-              <div class="text-right">
-                <span v-if="writingResult.task_type === 'ielts_task2' && writingResult.estimated_band" class="inline-block px-4 py-1.5 rounded-full text-sm sm:text-base font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
-                  IELTS Band tham khảo {{ writingResult.estimated_band }}
-                </span>
-                <p class="text-xs sm:text-sm text-gray-400 mt-1.5 font-medium">
-                  {{ (writingResult.errors || []).length }} lỗi cần sửa
-                </p>
-              </div>
-            </div>
-
-            <!-- Sub Tabs -->
-            <div class="flex bg-gray-200/70 p-1 rounded-xl text-sm font-semibold text-gray-600">
-              <button
-                @click="writingSubTab = 'grammar'"
-                :class="writingSubTab === 'grammar' ? 'bg-white text-indigo-700 shadow-xs' : 'hover:text-gray-900'"
-                class="flex-1 py-2 rounded-lg transition text-center flex items-center justify-center gap-1 cursor-pointer"
-              >
-                <span>Sửa lỗi</span>
-                <span class="px-1.5 py-0.2 rounded-full bg-rose-500 text-white text-xs">
-                  {{ (writingResult.errors || []).length }}
-                </span>
-              </button>
-              <button
-                @click="writingSubTab = 'vocab'"
-                :class="writingSubTab === 'vocab' ? 'bg-white text-indigo-700 shadow-xs' : 'hover:text-gray-900'"
-                class="flex-1 py-2 rounded-lg transition text-center cursor-pointer"
-              >
-                Gợi ý từ vựng
-              </button>
-              <button
-                @click="writingSubTab = 'rewrite'"
-                :class="writingSubTab === 'rewrite' ? 'bg-white text-indigo-700 shadow-xs' : 'hover:text-gray-900'"
-                class="flex-1 py-2 rounded-lg transition text-center cursor-pointer"
-              >
-                Gợi ý viết lại
-              </button>
-            </div>
+      <!-- Sub Tabs -->
+      <div class="flex bg-gray-200/70 p-1 rounded-xl text-sm font-semibold text-gray-600">
+        <button
+          @click="writingSubTab = 'grammar'"
+          :class="writingSubTab === 'grammar' ? 'bg-white text-indigo-700 shadow-xs' : 'hover:text-gray-900'"
+          class="flex-1 py-2 rounded-lg transition text-center flex items-center justify-center gap-1 cursor-pointer"
+        >
+          <span>Grammar &amp; Style</span>
+          <span class="px-1.5 py-0.2 rounded-full bg-rose-500 text-white text-xs">
+            {{ (writingResult.errors || []).length }}
+          </span>
+        </button>
+        <button
+          @click="writingSubTab = 'vocab'"
+          :class="writingSubTab === 'vocab' ? 'bg-white text-indigo-700 shadow-xs' : 'hover:text-gray-900'"
+          class="flex-1 py-2 rounded-lg transition text-center cursor-pointer"
+        >
+          Vocabulary
+        </button>
+        <button
+          @click="writingSubTab = 'rewrite'"
+          :class="writingSubTab === 'rewrite' ? 'bg-white text-indigo-700 shadow-xs' : 'hover:text-gray-900'"
+          class="flex-1 py-2 rounded-lg transition text-center cursor-pointer"
+        >
+          Rewritten Version
+        </button>
+      </div>
 
             <!-- Subview 1: Grammar Errors (Real) -->
             <div v-if="writingSubTab === 'grammar'" class="space-y-3">
               <div v-if="!writingResult.errors || writingResult.errors.length === 0" class="p-6 bg-white rounded-2xl border border-gray-100 text-center text-sm text-emerald-600 font-semibold">
-                Chưa phát hiện lỗi trong lượt kiểm tra này. Hãy xem thêm góp ý về nội dung và cách diễn đạt.
+                No grammar errors detected. Review suggestions and phrasing.
               </div>
 
               <div
@@ -149,8 +149,8 @@
                 class="bg-white rounded-2xl p-4 border border-gray-100 shadow-xs space-y-2"
               >
                 <div class="flex items-center justify-between text-sm">
-                  <span class="font-semibold text-gray-600">Lỗi #{{ idx + 1 }} • {{ err.error_type || 'Syntax Error' }}</span>
-                  <span class="px-2 py-0.5 rounded text-xs font-semibold bg-rose-50 text-rose-600">Cần sửa</span>
+                  <span class="font-semibold text-gray-600">Issue #{{ idx + 1 }} • {{ err.error_type || 'Syntax Error' }}</span>
+                  <span class="px-2 py-0.5 rounded text-xs font-semibold bg-rose-50 text-rose-600">Fix</span>
                 </div>
                 <div class="p-2.5 bg-gray-50 rounded-xl flex items-center justify-between text-sm gap-2">
                   <span class="text-rose-500 line-through font-medium">{{ err.original_fragment }}</span>
@@ -160,7 +160,7 @@
                   </span>
                 </div>
                 <div class="p-2.5 bg-amber-50/70 border border-amber-200/80 rounded-xl text-xs text-amber-900 leading-relaxed">
-                  <strong class="text-amber-950">Giải thích:</strong> {{ err.explanation }}
+                  <strong class="text-amber-950">Explanation:</strong> {{ err.explanation }}
                 </div>
               </div>
             </div>
@@ -168,7 +168,7 @@
             <!-- Subview 2: Vocab Upgrades (Real) -->
             <div v-if="writingSubTab === 'vocab'" class="space-y-3">
               <div v-if="!writingResult.vocabulary_suggestions || writingResult.vocabulary_suggestions.length === 0" class="p-6 bg-white rounded-2xl border border-gray-100 text-center text-sm text-gray-500">
-                Không có gợi ý nâng cấp từ vựng thêm.
+                No additional vocabulary suggestions.
               </div>
 
               <div
@@ -178,7 +178,7 @@
               >
                 <div class="flex items-center gap-1.5 text-indigo-700 font-semibold">
                   <Sparkles class="w-3.5 h-3.5 text-indigo-500" />
-                  <span>Gợi ý #{{ idx + 1 }}:</span>
+                  <span>Suggestion #{{ idx + 1 }}:</span>
                 </div>
                 <p class="text-gray-700 leading-relaxed">{{ vocab }}</p>
               </div>
@@ -189,12 +189,12 @@
               <div class="flex items-center justify-between">
                 <span class="text-sm font-semibold text-gray-800 flex items-center gap-1.5">
                   <Sparkles class="w-4 h-4 text-indigo-600" />
-                  Gợi ý chỉnh sửa bài viết
+                  Suggested Rewrite
                 </span>
                 <button @click="copyRewritten" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-2.5 py-1 rounded-lg flex items-center gap-1 cursor-pointer">
                   <Check v-if="copied" class="w-3 h-3" />
                   <Copy v-else class="w-3 h-3" />
-                  <span>{{ copied ? 'Đã sao chép!' : 'Sao chép' }}</span>
+                  <span>{{ copied ? 'Copied!' : 'Copy' }}</span>
                 </button>
               </div>
               <div class="reading-text p-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-700 leading-relaxed font-normal whitespace-pre-line">
@@ -210,6 +210,7 @@ import { ArrowLeft, ArrowRight, Check, Copy, Loader2, Sparkles, PenLine } from '
 import { inject } from 'vue';
 const ctx = inject('screenContext');
 const goBack = ctx.goBack;
+const hasHistory = ctx.hasHistory;
 const activeTab = ctx.activeTab;
 const chatInput = ctx.chatInput;
 const chatLoading = ctx.chatLoading;
