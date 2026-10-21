@@ -45,8 +45,8 @@
 
     <!-- Big Search Bar & Controls -->
     <div class="bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-6 shadow-xs space-y-4">
-      <form @submit.prevent="handleSearch" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-        <div class="relative flex-1">
+      <form @submit.prevent="onFormSubmit" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <div class="relative flex-1" ref="searchContainerRef">
           <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
           <input
             v-model="searchQuery"
@@ -54,15 +54,45 @@
             placeholder="Enter an English word or phrase (e.g. resilient, fluency, inspire...)"
             class="w-full pl-12 pr-10 py-3.5 sm:py-4 rounded-2xl border border-slate-200 bg-slate-50/70 text-base sm:text-lg text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition shadow-2xs"
             @input="onSearchInput"
+            @focus="onInputFocus"
+            @keydown.down.prevent="onKeyDown"
+            @keydown.up.prevent="onKeyUp"
+            @keydown.esc="showDropdown = false"
           />
           <button
             v-if="searchQuery"
             type="button"
-            @click="searchQuery = ''; searchResults = []"
-            class="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400 hover:text-slate-600 p-1"
+            @click="clearSearch"
+            class="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
           >
             ✕
           </button>
+
+          <!-- Floating Autocomplete Dropdown (Matching Image 3) -->
+          <div
+            v-if="showDropdown && searchResults.length > 0"
+            class="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden z-30 max-h-80 overflow-y-auto divide-y divide-slate-100 animate-in fade-in zoom-in-95 duration-100"
+          >
+            <div
+              v-for="(item, idx) in searchResults"
+              :key="item.id || idx"
+              @mousedown.prevent="selectWord(item)"
+              class="px-5 py-3 hover:bg-blue-50/70 cursor-pointer transition text-left flex flex-col justify-center group"
+              :class="{ 'bg-blue-50/50': highlightedIndex === idx }"
+            >
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-slate-800 text-base group-hover:text-blue-600 transition-colors">
+                  {{ item.word }}
+                </span>
+                <span v-if="item.ipa" class="text-xs text-slate-400 font-mono">
+                  {{ formatIpa(item.ipa) }}
+                </span>
+              </div>
+              <p class="text-xs text-slate-500 line-clamp-1 mt-0.5">
+                {{ item.meaning_vi }}
+              </p>
+            </div>
+          </div>
         </div>
 
         <button
@@ -87,23 +117,6 @@
         </button>
       </form>
 
-      <!-- Auto Suggestions Dropdown (if multiple matches found) -->
-      <div v-if="searchResults.length > 1 && !selectedWord" class="pt-2 border-t border-slate-100 space-y-2">
-        <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Suggested Results:</p>
-        <div class="flex flex-wrap gap-2">
-          <button
-            v-for="item in searchResults"
-            :key="item.id"
-            @click="selectWord(item)"
-            class="px-3.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-blue-50 hover:border-blue-300 text-sm font-semibold text-slate-800 hover:text-blue-600 transition flex items-center gap-2 cursor-pointer"
-          >
-            <span class="font-bold">{{ item.word }}</span>
-            <span v-if="item.ipa" class="text-xs text-slate-500 font-mono">/{{ item.ipa }}/</span>
-            <span class="text-xs text-slate-600 truncate max-w-[150px]">— {{ item.meaning_vi }}</span>
-          </button>
-        </div>
-      </div>
-
       <!-- Quick Word Chips for Inspiration -->
       <div class="flex items-center gap-2 pt-1 flex-wrap text-xs sm:text-sm">
         <span class="font-bold text-slate-500 flex items-center gap-1">
@@ -119,6 +132,46 @@
           {{ word }}
         </button>
       </div>
+    </div>
+
+    <!-- Google Translate-style Spell Correction Banner (Matching Image 2) -->
+    <div
+      v-if="selectedWord && selectedWord.suggested_correction"
+      class="bg-blue-50/90 border border-blue-200 rounded-2xl p-4 sm:px-6 sm:py-3.5 shadow-2xs flex items-start sm:items-center justify-between gap-4 transition-all"
+    >
+      <div class="flex items-start sm:items-center gap-3">
+        <Sparkles class="w-5 h-5 text-blue-600 shrink-0 mt-0.5 sm:mt-0" />
+        <div class="text-sm text-slate-700 leading-relaxed">
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span class="text-slate-600">✦ Showing translation for</span>
+            <button
+              type="button"
+              @click="searchDirect(selectedWord.suggested_correction)"
+              class="font-bold italic text-blue-700 hover:underline cursor-pointer"
+            >
+              {{ selectedWord.suggested_correction }}
+            </button>
+          </div>
+          <div class="flex flex-wrap items-center gap-1 text-xs text-slate-500 mt-0.5">
+            <span>Translate instead</span>
+            <button
+              type="button"
+              @click="searchRaw(selectedWord.original_query)"
+              class="text-blue-600 underline font-medium hover:text-blue-800 cursor-pointer"
+            >
+              {{ selectedWord.original_query }}
+            </button>
+          </div>
+        </div>
+      </div>
+      <button
+        type="button"
+        @click="dismissSuggestion"
+        class="text-xs text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+        title="Dismiss"
+      >
+        ✕
+      </button>
     </div>
 
     <!-- Loading State Indicator -->
@@ -323,7 +376,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, inject } from 'vue';
+import { ref, onMounted, onUnmounted, inject } from 'vue';
 import {
   ArrowLeft, Search, Sparkles, Loader2, Volume2, BookmarkPlus,
   Mic, CheckCircle2, History, BookOpen, Lightbulb
@@ -344,6 +397,10 @@ const selectedWord = ref(null);
 const searchResults = ref([]);
 const searchHistory = ref([]);
 const historyLoading = ref(false);
+
+const showDropdown = ref(false);
+const highlightedIndex = ref(-1);
+const searchContainerRef = ref(null);
 
 const popularKeywords = [
   'resilient', 'fluency', 'pronunciation', 'serendipity',
@@ -379,11 +436,55 @@ const onSearchInput = () => {
   const q = searchQuery.value.trim();
   if (!q) {
     searchResults.value = [];
+    showDropdown.value = false;
+    highlightedIndex.value = -1;
     return;
   }
+  showDropdown.value = true;
+  highlightedIndex.value = -1;
   debounceTimer = setTimeout(() => {
     quickSearch(q);
-  }, 180);
+  }, 160);
+};
+
+const onInputFocus = () => {
+  if (searchQuery.value.trim() && searchResults.value.length > 0) {
+    showDropdown.value = true;
+  }
+};
+
+const clearSearch = () => {
+  searchQuery.value = '';
+  searchResults.value = [];
+  showDropdown.value = false;
+  highlightedIndex.value = -1;
+};
+
+const onKeyDown = () => {
+  if (!showDropdown.value || searchResults.value.length === 0) {
+    showDropdown.value = true;
+    return;
+  }
+  if (highlightedIndex.value < searchResults.value.length - 1) {
+    highlightedIndex.value++;
+  } else {
+    highlightedIndex.value = 0;
+  }
+};
+
+const onKeyUp = () => {
+  if (!showDropdown.value || searchResults.value.length === 0) return;
+  if (highlightedIndex.value > 0) {
+    highlightedIndex.value--;
+  } else {
+    highlightedIndex.value = searchResults.value.length - 1;
+  }
+};
+
+const handleClickOutside = (e) => {
+  if (searchContainerRef.value && !searchContainerRef.value.contains(e.target)) {
+    showDropdown.value = false;
+  }
 };
 
 const quickSearch = async (query) => {
@@ -391,19 +492,35 @@ const quickSearch = async (query) => {
     const lower = query.toLowerCase();
     if (clientWordCache.has(lower)) {
       searchResults.value = clientWordCache.get(lower);
+      if (searchResults.value.length > 0 && searchQuery.value.trim()) {
+        showDropdown.value = true;
+      }
       return;
     }
-    const list = await dictionaryService.search(query, false, 8);
+    const list = await dictionaryService.search(query, false, 8, false);
     searchResults.value = list || [];
     if (list && list.length > 0) {
       clientWordCache.set(lower, list);
+      if (searchQuery.value.trim()) {
+        showDropdown.value = true;
+      }
     }
   } catch (err) {
     // ignore quick search errors
   }
 };
 
+const onFormSubmit = () => {
+  if (showDropdown.value && highlightedIndex.value >= 0 && searchResults.value[highlightedIndex.value]) {
+    selectWord(searchResults.value[highlightedIndex.value]);
+  } else {
+    handleSearch();
+  }
+};
+
 const handleSearch = async () => {
+  showDropdown.value = false;
+  highlightedIndex.value = -1;
   const query = searchQuery.value.trim();
   if (!query) return;
 
@@ -412,7 +529,6 @@ const handleSearch = async () => {
   if (clientWordCache.has(lower)) {
     const cached = clientWordCache.get(lower);
     if (cached && cached.length > 0) {
-      searchResults.value = cached;
       selectedWord.value = cached[0];
       loadHistory();
       return;
@@ -424,11 +540,9 @@ const handleSearch = async () => {
   selectedWord.value = null;
 
   try {
-    // Tìm kiếm trong DB trước với auto_ai = true để tự động phân tích nếu chưa có
-    const results = await dictionaryService.search(query, true, 10);
+    const results = await dictionaryService.search(query, true, 10, false);
     if (results && results.length > 0) {
       clientWordCache.set(lower, results);
-      searchResults.value = results;
       selectedWord.value = results[0];
       loadHistory();
     } else {
@@ -441,7 +555,45 @@ const handleSearch = async () => {
   }
 };
 
+const searchDirect = (word) => {
+  searchQuery.value = word;
+  handleSearch();
+};
+
+const searchRaw = async (originalQuery) => {
+  if (!originalQuery) return;
+  searchQuery.value = originalQuery;
+  showDropdown.value = false;
+  loading.value = true;
+  errorMessage.value = '';
+  selectedWord.value = null;
+
+  try {
+    const results = await dictionaryService.search(originalQuery, true, 10, true);
+    if (results && results.length > 0) {
+      selectedWord.value = results[0];
+      if (selectedWord.value) {
+        selectedWord.value.suggested_correction = null;
+      }
+      loadHistory();
+    } else {
+      errorMessage.value = `Word "${originalQuery}" not found.`;
+    }
+  } catch (err) {
+    errorMessage.value = getErrorMessage(err, 'Word not found.');
+  } finally {
+    loading.value = false;
+  }
+};
+
+const dismissSuggestion = () => {
+  if (selectedWord.value) {
+    selectedWord.value.suggested_correction = null;
+  }
+};
+
 const handleAiLookup = async () => {
+  showDropdown.value = false;
   const query = searchQuery.value.trim();
   if (!query) return;
 
@@ -450,11 +602,10 @@ const handleAiLookup = async () => {
   selectedWord.value = null;
 
   try {
-    const wordObj = await dictionaryService.aiLookup(query);
+    const wordObj = await dictionaryService.aiLookup(query, false);
     if (wordObj) {
       clientWordCache.set(query.toLowerCase(), [wordObj]);
       selectedWord.value = wordObj;
-      searchResults.value = [wordObj];
       loadHistory();
     } else {
       errorMessage.value = 'Could not find detailed information for this word. Please check the spelling.';
@@ -469,7 +620,9 @@ const handleAiLookup = async () => {
 const selectWord = (word) => {
   selectedWord.value = word;
   searchQuery.value = word.word || '';
-  searchResults.value = [];
+  showDropdown.value = false;
+  highlightedIndex.value = -1;
+  loadHistory();
 };
 
 const searchQuickWord = (word) => {
@@ -510,6 +663,11 @@ const loadHistory = async () => {
 
 onMounted(() => {
   loadHistory();
+  document.addEventListener('click', handleClickOutside);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside);
 });
 </script>
 

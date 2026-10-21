@@ -1,16 +1,16 @@
 import { apiClient } from './api';
 
 export const dictionaryService = {
-  async search(query, autoAi = false, limit = 20) {
+  async search(query, autoAi = false, limit = 20, raw = false) {
     const res = await apiClient.get('/dictionary/search', {
-      params: { q: query, auto_ai: autoAi, limit }
+      params: { q: query, auto_ai: autoAi, limit, raw }
     });
     return res.data;
   },
 
-  async aiLookup(word) {
+  async aiLookup(word, raw = false) {
     const res = await apiClient.get('/dictionary/ai-lookup', {
-      params: { word }
+      params: { word, raw }
     });
     return res.data;
   },
