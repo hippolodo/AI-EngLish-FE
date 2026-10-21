@@ -372,6 +372,8 @@ const speak = (text) => {
   }
 };
 
+const clientWordCache = new Map();
+
 const onSearchInput = () => {
   clearTimeout(debounceTimer);
   const q = searchQuery.value.trim();
@@ -381,13 +383,21 @@ const onSearchInput = () => {
   }
   debounceTimer = setTimeout(() => {
     quickSearch(q);
-  }, 350);
+  }, 180);
 };
 
 const quickSearch = async (query) => {
   try {
+    const lower = query.toLowerCase();
+    if (clientWordCache.has(lower)) {
+      searchResults.value = clientWordCache.get(lower);
+      return;
+    }
     const list = await dictionaryService.search(query, false, 8);
     searchResults.value = list || [];
+    if (list && list.length > 0) {
+      clientWordCache.set(lower, list);
+    }
   } catch (err) {
     // ignore quick search errors
   }
@@ -397,6 +407,18 @@ const handleSearch = async () => {
   const query = searchQuery.value.trim();
   if (!query) return;
 
+  const lower = query.toLowerCase();
+  // Trả về ngay lập tức nếu từ đã có trong bộ nhớ cache trình duyệt (< 1ms)
+  if (clientWordCache.has(lower)) {
+    const cached = clientWordCache.get(lower);
+    if (cached && cached.length > 0) {
+      searchResults.value = cached;
+      selectedWord.value = cached[0];
+      loadHistory();
+      return;
+    }
+  }
+
   loading.value = true;
   errorMessage.value = '';
   selectedWord.value = null;
@@ -405,9 +427,10 @@ const handleSearch = async () => {
     // Tìm kiếm trong DB trước với auto_ai = true để tự động phân tích nếu chưa có
     const results = await dictionaryService.search(query, true, 10);
     if (results && results.length > 0) {
+      clientWordCache.set(lower, results);
       searchResults.value = results;
       selectedWord.value = results[0];
-      await loadHistory();
+      loadHistory();
     } else {
       errorMessage.value = 'Word not found. You can try "Deep Search" for an extended lookup.';
     }
@@ -429,9 +452,10 @@ const handleAiLookup = async () => {
   try {
     const wordObj = await dictionaryService.aiLookup(query);
     if (wordObj) {
+      clientWordCache.set(query.toLowerCase(), [wordObj]);
       selectedWord.value = wordObj;
       searchResults.value = [wordObj];
-      await loadHistory();
+      loadHistory();
     } else {
       errorMessage.value = 'Could not find detailed information for this word. Please check the spelling.';
     }
