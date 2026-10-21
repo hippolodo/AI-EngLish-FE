@@ -278,6 +278,7 @@ const formatIpa = (ipa) => {
 };
 
 const {
+  isAuthenticated,
   studyError, isSavingCardNote, requireAuthentication, activeTab,
   currentCard, currentStudyIndex, flashcards, isFlipped,
   loadFlashcardsData, speakText, studyLoading
