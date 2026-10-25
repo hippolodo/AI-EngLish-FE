@@ -307,71 +307,46 @@
         <button
           v-if="lessonCards?.length"
           @click="lessonStep = 'vocabulary'"
-          class="flex-1 min-w-[140px] rounded-xl py-3 px-4 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer text-xs sm:text-sm"
+          class="flex-1 min-w-[130px] rounded-xl py-3 px-4 transition-all duration-200 flex items-center justify-center cursor-pointer text-xs sm:text-sm"
           :class="lessonStep === 'vocabulary'
             ? 'bg-white text-blue-600 shadow-sm font-extrabold ring-1 ring-slate-200/60'
             : 'text-slate-600 hover:text-slate-900 font-semibold hover:bg-white/50'"
         >
           <span>1. Vocabulary</span>
-          <span
-            class="px-2 py-0.5 rounded-full text-[11px] font-bold"
-            :class="lessonStep === 'vocabulary' ? 'bg-blue-50 text-blue-700' : 'bg-slate-200/80 text-slate-600'"
-          >
-            {{ lessonCards.length }}
-          </span>
         </button>
 
         <!-- 2. Practice -->
         <button
           @click="lessonStep = 'practice'"
-          class="flex-1 min-w-[130px] rounded-xl py-3 px-4 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer text-xs sm:text-sm"
+          class="flex-1 min-w-[130px] rounded-xl py-3 px-4 transition-all duration-200 flex items-center justify-center cursor-pointer text-xs sm:text-sm"
           :class="lessonStep === 'practice'
             ? 'bg-white text-blue-600 shadow-sm font-extrabold ring-1 ring-slate-200/60'
             : 'text-slate-600 hover:text-slate-900 font-semibold hover:bg-white/50'"
         >
           <span>{{ lessonCards?.length ? '2.' : '1.' }} Practice</span>
-          <span
-            v-if="lessonDetail?.contents?.length"
-            class="px-2 py-0.5 rounded-full text-[11px] font-bold"
-            :class="lessonStep === 'practice' ? 'bg-blue-50 text-blue-700' : 'bg-slate-200/80 text-slate-600'"
-          >
-            {{ lessonDetail.contents.length }}
-          </span>
         </button>
 
         <!-- 3. Quiz -->
         <button
           @click="openLessonQuiz"
           :disabled="!lessonQuizzes.length"
-          class="flex-1 min-w-[120px] rounded-xl py-3 px-4 disabled:opacity-40 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer text-xs sm:text-sm"
+          class="flex-1 min-w-[120px] rounded-xl py-3 px-4 disabled:opacity-40 transition-all duration-200 flex items-center justify-center cursor-pointer text-xs sm:text-sm"
           :class="lessonStep === 'quiz'
             ? 'bg-white text-blue-600 shadow-sm font-extrabold ring-1 ring-slate-200/60'
             : 'text-slate-600 hover:text-slate-900 font-semibold hover:bg-white/50'"
         >
           <span>{{ lessonCards?.length ? '3.' : '2.' }} Quiz</span>
-          <span
-            v-if="lessonQuizzes?.length"
-            class="px-2 py-0.5 rounded-full text-[11px] font-bold"
-            :class="lessonStep === 'quiz' ? 'bg-blue-50 text-blue-700' : 'bg-slate-200/80 text-slate-600'"
-          >
-            {{ lessonQuizzes.length }}
-          </span>
         </button>
 
         <!-- 4. Summary -->
         <button
           @click="lessonStep = 'summary'"
-          class="flex-1 min-w-[120px] rounded-xl py-3 px-4 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer text-xs sm:text-sm"
+          class="flex-1 min-w-[120px] rounded-xl py-3 px-4 transition-all duration-200 flex items-center justify-center cursor-pointer text-xs sm:text-sm"
           :class="lessonStep === 'summary'
             ? 'bg-white text-blue-600 shadow-sm font-extrabold ring-1 ring-slate-200/60'
             : 'text-slate-600 hover:text-slate-900 font-semibold hover:bg-white/50'"
         >
           <span>{{ lessonCards?.length ? '4.' : '3.' }} Summary</span>
-          <span
-            v-if="lessonProgress?.completed"
-            class="w-2 h-2 rounded-full bg-emerald-500"
-            title="Completed"
-          ></span>
         </button>
       </div>
 
