@@ -729,6 +729,19 @@ const startLesson = async (lesson, resume = null) => {
     studyLessonId.value = detail.id;
     studyTopicId.value = detail.topic_id;
 
+    // Prefetch quiz questions so tab 3 is instantaneously ready
+    if (lessonQuizzes.value.length > 0) {
+      quizzesList.value = lessonQuizzes.value;
+      selectedQuizId.value = lessonQuizzes.value[0]?.id || null;
+      if (selectedQuizId.value) {
+        studyService.getQuizDetail(selectedQuizId.value).then(quizDet => {
+          if (currentLesson.value?.id === detail.id && (!quizQuestions.value || !quizQuestions.value.length)) {
+            quizQuestions.value = [...(quizDet?.questions || [])].sort((a, b) => a.order_index - b.order_index);
+          }
+        }).catch(() => {});
+      }
+    }
+
     lessonDetail.value = detail;
     currentLesson.value = detail; // Atomically set currentLesson after all dependencies ready
 
