@@ -144,7 +144,7 @@
 
     <!-- Google Translate-style Spell Correction Banner (Matching Image 2) -->
     <div
-      v-if="selectedWord && selectedWord.suggested_correction"
+      v-if="shouldShowSpellCorrection"
       class="bg-blue-50/90 border border-blue-200 rounded-2xl p-4 sm:px-6 sm:py-3.5 shadow-2xs flex items-start sm:items-center justify-between gap-4 transition-all"
     >
       <div class="flex items-start sm:items-center gap-3">
@@ -391,7 +391,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, inject } from 'vue';
+import { ref, computed, onMounted, onUnmounted, inject } from 'vue';
 import {
   ArrowLeft, Search, Sparkles, Loader2, Volume2, BookmarkPlus,
   Mic, CheckCircle2, History, BookOpen, Lightbulb
@@ -449,11 +449,29 @@ const speak = (text) => {
 };
 
 const clientWordCache = new Map();
+let quickSearchSeq = 0;
+
+const shouldShowSpellCorrection = computed(() => {
+  if (!selectedWord.value || !selectedWord.value.suggested_correction || !selectedWord.value.original_query) {
+    return false;
+  }
+  const currentQ = searchQuery.value.trim().toLowerCase();
+  const corrected = selectedWord.value.suggested_correction.trim().toLowerCase();
+  const original = selectedWord.value.original_query.trim().toLowerCase();
+
+  // If the suggestion is identical to original query, do not show
+  if (corrected === original) return false;
+  // If user already fixed the search box or searched for the correct word, do not show
+  if (currentQ === corrected) return false;
+  // Only show if user's query actually matches the misspelled query
+  return currentQ === original;
+});
 
 const onSearchInput = () => {
   clearTimeout(debounceTimer);
   const q = searchQuery.value.trim();
   if (!q) {
+    quickSearchSeq++;
     searchResults.value = [];
     showDropdown.value = false;
     highlightedIndex.value = -1;
@@ -461,9 +479,10 @@ const onSearchInput = () => {
   }
   showDropdown.value = true;
   highlightedIndex.value = -1;
+  const seq = ++quickSearchSeq;
   debounceTimer = setTimeout(() => {
-    quickSearch(q);
-  }, 160);
+    quickSearch(q, seq);
+  }, 220);
 };
 
 const onInputFocus = () => {
@@ -473,6 +492,7 @@ const onInputFocus = () => {
 };
 
 const clearSearch = () => {
+  quickSearchSeq++;
   searchQuery.value = '';
   searchResults.value = [];
   showDropdown.value = false;
@@ -506,17 +526,22 @@ const handleClickOutside = (e) => {
   }
 };
 
-const quickSearch = async (query) => {
+const quickSearch = async (query, seq) => {
   try {
-    const lower = query.toLowerCase();
+    const trimmed = query.trim();
+    if (!trimmed) return;
+    const lower = trimmed.toLowerCase();
     if (clientWordCache.has(lower)) {
+      if (seq !== quickSearchSeq) return;
       searchResults.value = clientWordCache.get(lower);
       if (searchResults.value.length > 0 && searchQuery.value.trim()) {
         showDropdown.value = true;
       }
       return;
     }
-    const list = await dictionaryService.search(query, false, 8, false);
+    // Autocomplete: recordHistory = false (không lưu lịch sử khi người dùng đang gõ phím)
+    const list = await dictionaryService.search(trimmed, false, 8, false, false);
+    if (seq !== quickSearchSeq) return;
     searchResults.value = list || [];
     if (list && list.length > 0) {
       clientWordCache.set(lower, list);
@@ -538,31 +563,30 @@ const onFormSubmit = () => {
 };
 
 const handleSearch = async () => {
+  quickSearchSeq++;
   showDropdown.value = false;
   highlightedIndex.value = -1;
   const query = searchQuery.value.trim();
   if (!query) return;
 
   const lower = query.toLowerCase();
-  // Trả về ngay lập tức nếu từ đã có trong bộ nhớ cache trình duyệt (< 1ms)
-  if (clientWordCache.has(lower)) {
-    const cached = clientWordCache.get(lower);
-    if (cached && cached.length > 0) {
-      selectedWord.value = cached[0];
-      loadHistory();
-      return;
-    }
-  }
 
   loading.value = true;
   errorMessage.value = '';
   selectedWord.value = null;
 
   try {
-    const results = await dictionaryService.search(query, true, 10, false);
+    // Tìm kiếm chính thức: recordHistory = true (chỉ lưu lịch sử khi nhấn tìm kiếm)
+    const results = await dictionaryService.search(query, true, 10, false, true);
     if (results && results.length > 0) {
-      clientWordCache.set(lower, results);
-      selectedWord.value = results[0];
+      const resWord = { ...results[0] };
+      // Nếu từ tìm thấy trùng khớp với từ người dùng gõ, không cần hiển thị cờ gợi ý sửa lỗi
+      if (resWord.word && resWord.word.toLowerCase() === lower) {
+        resWord.suggested_correction = null;
+        resWord.original_query = null;
+      }
+      clientWordCache.set(lower, [resWord]);
+      selectedWord.value = resWord;
       loadHistory();
     } else {
       errorMessage.value = 'Word not found. You can try "Deep Search" for an extended lookup.';
@@ -576,11 +600,16 @@ const handleSearch = async () => {
 
 const searchDirect = (word) => {
   searchQuery.value = word;
+  if (selectedWord.value) {
+    selectedWord.value.suggested_correction = null;
+    selectedWord.value.original_query = null;
+  }
   handleSearch();
 };
 
 const searchRaw = async (originalQuery) => {
   if (!originalQuery) return;
+  quickSearchSeq++;
   searchQuery.value = originalQuery;
   showDropdown.value = false;
   loading.value = true;
@@ -588,12 +617,9 @@ const searchRaw = async (originalQuery) => {
   selectedWord.value = null;
 
   try {
-    const results = await dictionaryService.search(originalQuery, true, 10, true);
+    const results = await dictionaryService.search(originalQuery, true, 10, true, true);
     if (results && results.length > 0) {
-      selectedWord.value = results[0];
-      if (selectedWord.value) {
-        selectedWord.value.suggested_correction = null;
-      }
+      selectedWord.value = { ...results[0], suggested_correction: null, original_query: null };
       loadHistory();
     } else {
       errorMessage.value = `Word "${originalQuery}" not found.`;
@@ -608,10 +634,12 @@ const searchRaw = async (originalQuery) => {
 const dismissSuggestion = () => {
   if (selectedWord.value) {
     selectedWord.value.suggested_correction = null;
+    selectedWord.value.original_query = null;
   }
 };
 
 const handleAiLookup = async () => {
+  quickSearchSeq++;
   showDropdown.value = false;
   const query = searchQuery.value.trim();
   if (!query) return;
@@ -623,8 +651,13 @@ const handleAiLookup = async () => {
   try {
     const wordObj = await dictionaryService.aiLookup(query, false);
     if (wordObj) {
-      clientWordCache.set(query.toLowerCase(), [wordObj]);
-      selectedWord.value = wordObj;
+      const cleanObj = { ...wordObj };
+      if (cleanObj.word && cleanObj.word.toLowerCase() === query.toLowerCase()) {
+        cleanObj.suggested_correction = null;
+        cleanObj.original_query = null;
+      }
+      clientWordCache.set(query.toLowerCase(), [cleanObj]);
+      selectedWord.value = cleanObj;
       loadHistory();
     } else {
       errorMessage.value = 'Could not find detailed information for this word. Please check the spelling.';
@@ -637,10 +670,15 @@ const handleAiLookup = async () => {
 };
 
 const selectWord = (word) => {
-  selectedWord.value = word;
+  quickSearchSeq++;
+  selectedWord.value = { ...word, suggested_correction: null, original_query: null };
   searchQuery.value = word.word || '';
   showDropdown.value = false;
   highlightedIndex.value = -1;
+  // Ghi nhận lịch sử khi người dùng click chọn từ từ dropdown gợi ý
+  if (word.id) {
+    dictionaryService.getWordDetail(word.id).catch(() => {});
+  }
   loadHistory();
 };
 

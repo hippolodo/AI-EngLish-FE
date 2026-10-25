@@ -1,9 +1,9 @@
 import { apiClient } from './api';
 
 export const dictionaryService = {
-  async search(query, autoAi = false, limit = 20, raw = false) {
+  async search(query, autoAi = false, limit = 20, raw = false, recordHistory = false) {
     const res = await apiClient.get('/dictionary/search', {
-      params: { q: query, auto_ai: autoAi, limit, raw }
+      params: { q: query, auto_ai: autoAi, limit, raw, record_history: recordHistory }
     });
     return res.data;
   },
