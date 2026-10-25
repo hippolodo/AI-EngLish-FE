@@ -2,19 +2,23 @@
   <div v-if="activeTab === 'writing' && isAuthenticated" class="space-y-6 pb-28 w-full max-w-6xl mx-auto">
     <!-- Top Back Button (Only visible when navigated from a lesson or another screen) -->
     <div v-if="hasHistory">
-      <button
+      <AnimateButton
+        variant="outline"
+        size="sm"
         @click="goBack"
-        class="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl border border-slate-200 bg-white text-slate-700 font-bold text-sm hover:bg-slate-50 hover:text-blue-600 transition shadow-2xs cursor-pointer group"
+        class="group"
       >
-        <ArrowLeft class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+        <template #prefix>
+          <ArrowLeft class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+        </template>
         <span>{{ ctx.currentLesson.value ? 'Back to Lesson' : 'Back' }}</span>
-      </button>
+      </AnimateButton>
     </div>
 
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div>
-        <span class="text-xs uppercase tracking-wide font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md">Writing Assistant</span>
+        <span class="text-xs uppercase tracking-wide font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md inline-flex items-center gap-1.5"><Sparkles class="w-3.5 h-3.5 text-blue-500" /> Writing Assistant</span>
         <h1 class="text-gray-900 mt-1.5 text-2xl sm:text-3xl font-extrabold leading-snug">{{ ctx.currentLesson.value?.type === 'WRITING' ? 'Guided Writing' : 'Free Writing Practice' }}</h1>
       </div>
     </div>
@@ -73,7 +77,7 @@
       <button
         @click="submitWritingEvaluation"
         :disabled="isEvaluating || !essayInput.trim()"
-        class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white rounded-2xl text-base font-bold shadow-md shadow-indigo-600/20 transition flex items-center justify-center gap-2 cursor-pointer"
+        class="btn-spring w-full py-4 bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-600 hover:brightness-105 active:scale-[0.98] disabled:opacity-50 text-white rounded-2xl text-base font-bold shadow-md shadow-indigo-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer select-none"
       >
         <Sparkles v-if="!isEvaluating" class="w-5 h-5" />
         <Loader2 v-else class="w-5 h-5 animate-spin" />
@@ -95,7 +99,7 @@
         <div>
           <p class="text-xs sm:text-sm font-bold text-indigo-300 uppercase tracking-wide">Overall Score</p>
           <div class="flex items-baseline gap-2 mt-1">
-            <span class="text-4xl sm:text-5xl font-black text-white">{{ writingResult.overall_score }}</span>
+            <span class="text-4xl sm:text-5xl font-black text-white"><AnimateCountingNumber :number="writingResult.overall_score" /></span>
             <span class="text-base text-gray-400">/ 100</span>
           </div>
         </div>
@@ -207,6 +211,10 @@
 
 <script setup>
 import { ArrowLeft, ArrowRight, Check, Copy, Loader2, Sparkles, PenLine } from 'lucide-vue-next';
+import AnimateButton from '../components/ui/Button.vue';
+import AnimateCard from '../components/ui/Card.vue';
+import AnimateBadge from '../components/ui/Badge.vue';
+import AnimateCountingNumber from '../components/ui/CountingNumber.vue';
 import { inject } from 'vue';
 const ctx = inject('screenContext');
 const goBack = ctx.goBack;

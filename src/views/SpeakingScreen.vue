@@ -2,24 +2,31 @@
   <div v-if="activeTab === 'speaking' && isAuthenticated" class="space-y-6 pb-28 w-full max-w-6xl mx-auto">
     <!-- Top Back Button (Only visible when navigated from a lesson or another screen) -->
     <div v-if="hasHistory">
-      <button
+      <AnimateButton
+        variant="outline"
+        size="sm"
         @click="goBack"
-        class="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl border border-slate-200 bg-white text-slate-700 font-bold text-sm hover:bg-slate-50 hover:text-blue-600 transition shadow-2xs cursor-pointer group"
+        class="group"
       >
-        <ArrowLeft class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+        <template #prefix>
+          <ArrowLeft class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+        </template>
         <span>{{ ctx.currentLesson.value ? 'Back to Lesson' : 'Back' }}</span>
-      </button>
+      </AnimateButton>
     </div>
 
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div>
-        <span class="text-xs uppercase tracking-wide font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md">Speaking Lab</span>
+        <AnimateBadge variant="default" size="sm">Speaking Lab</AnimateBadge>
         <h1 class="text-gray-900 mt-1.5 text-2xl sm:text-3xl font-extrabold leading-snug">Pronunciation &amp; Speech Feedback</h1>
       </div>
-      <span class="text-sm font-semibold text-gray-600 bg-white border border-gray-200 px-3.5 py-1.5 rounded-full flex items-center gap-1.5 shadow-2xs">
-        <Sparkles class="w-4 h-4 text-blue-500" /> Standard IPA Practice
-      </span>
+      <AnimateBadge variant="slate" size="md" class="border border-gray-200">
+        <template #icon>
+          <Sparkles class="w-4 h-4 text-blue-500" />
+        </template>
+        Standard IPA Practice
+      </AnimateBadge>
     </div>
 
     <!-- Lesson & Target Picker -->
@@ -68,23 +75,27 @@
           ></span>
         </div>
         <div class="flex items-center justify-between gap-2">
-          <button
+          <AnimateButton
             type="button"
+            variant="outline"
+            size="sm"
             :disabled="isRecording || isAnalyzingSpeaking || currentSpeakingSentenceIndex === 0"
-            class="inline-flex items-center gap-1 rounded-xl border border-violet-100 bg-white px-3 py-2 text-xs font-semibold text-violet-700 shadow-sm transition hover:bg-violet-50 disabled:cursor-not-allowed disabled:opacity-40"
             @click="navigateSpeakingSentence(-1)"
           >
-            <ChevronLeft class="h-3.5 w-3.5" /> Prev
-          </button>
+            <template #prefix><ChevronLeft class="h-3.5 w-3.5" /></template>
+            Prev
+          </AnimateButton>
           <span class="text-xs font-semibold text-slate-500">Read current sentence then proceed</span>
-          <button
+          <AnimateButton
             type="button"
+            variant="gradient"
+            size="sm"
             :disabled="isRecording || isAnalyzingSpeaking || currentSpeakingSentenceIndex >= speakingLessonContents.length - 1"
-            class="inline-flex items-center gap-1 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-500 px-3 py-2 text-xs font-semibold text-white shadow-md shadow-violet-200 transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-40"
             @click="navigateSpeakingSentence(1)"
           >
-            Next <ChevronRight class="h-3.5 w-3.5" />
-          </button>
+            Next
+            <template #suffix><ChevronRight class="h-3.5 w-3.5" /></template>
+          </AnimateButton>
         </div>
       </div>
 
@@ -100,14 +111,16 @@
         ></textarea>
 
         <div class="flex items-center justify-between pt-1">
-          <button
+          <AnimateButton
+            variant="secondary"
+            size="md"
             @click="playNativeAudio"
             :disabled="!targetSpeakingText"
-            class="flex items-center gap-2 text-sm sm:text-base font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-xl transition cursor-pointer shadow-2xs"
+            class="text-indigo-600 bg-indigo-50 hover:bg-indigo-100"
           >
-            <Volume2 class="w-4 h-4 sm:w-5 sm:h-5" />
+            <template #prefix><Volume2 class="w-4 h-4 sm:w-5 sm:h-5" /></template>
             <span>Sample Audio</span>
-          </button>
+          </AnimateButton>
           <span v-if="targetIpa" class="text-sm sm:text-base font-sans text-gray-600 bg-gray-100 px-3 py-1 rounded-lg">
             /{{ targetIpa }}/
           </span>
@@ -128,7 +141,7 @@
             class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center font-extrabold text-xl sm:text-2xl shadow-xs shrink-0"
             :class="speakingResult.overall_score >= 80 ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : speakingResult.overall_score >= 60 ? 'bg-amber-50 text-amber-600 border border-amber-200' : 'bg-rose-50 text-rose-600 border border-rose-200'"
           >
-            {{ Math.round(speakingResult.overall_score) }}
+            <AnimateCountingNumber :number="Math.round(speakingResult.overall_score)" />
           </div>
           <div>
             <h3 class="text-base sm:text-lg font-bold text-gray-900">
@@ -142,25 +155,30 @@
 
         <!-- Audio Player Toolbar (Listen to Native vs Listen to User) -->
         <div class="flex items-center gap-2.5">
-          <button
+          <AnimateButton
+            variant="secondary"
+            size="sm"
             @click="playNativeAudio"
-            class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition shadow-2xs cursor-pointer"
+            class="bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
             title="Listen to native sample"
           >
-            <Volume2 class="w-4 h-4" />
+            <template #prefix><Volume2 class="w-4 h-4" /></template>
             <span>Sample</span>
-          </button>
+          </AnimateButton>
 
-          <button
+          <AnimateButton
             v-if="speakingResult.audio_user_url"
+            variant="emerald"
+            size="sm"
             @click="playUserAudio"
             :disabled="isPlayingUserAudio"
-            class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition shadow-2xs cursor-pointer disabled:opacity-50"
             title="Listen to your recording"
           >
-            <Headphones class="w-4 h-4" :class="{ 'animate-bounce': isPlayingUserAudio }" />
+            <template #prefix>
+              <Headphones class="w-4 h-4" :class="{ 'animate-bounce': isPlayingUserAudio }" />
+            </template>
             <span>{{ isPlayingUserAudio ? 'Playing...' : 'Your Voice' }}</span>
-          </button>
+          </AnimateButton>
         </div>
       </div>
 
@@ -242,20 +260,25 @@
                 </div>
 
                 <div class="flex items-center gap-2">
-                  <button
+                  <AnimateButton
+                    variant="outline"
+                    size="sm"
                     @click="playWordAudio(selectedWord.word)"
-                    class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-indigo-700 bg-white hover:bg-indigo-50 border border-indigo-200 px-3 py-2 rounded-xl shadow-2xs transition cursor-pointer"
+                    class="text-indigo-700 hover:bg-indigo-50 border-indigo-200"
                     title="Listen to this word"
                   >
-                    <Volume2 class="w-4 h-4" /> Listen
-                  </button>
-                  <button
+                    <template #prefix><Volume2 class="w-4 h-4" /></template>
+                    <span>Listen</span>
+                  </AnimateButton>
+                  <AnimateButton
+                    variant="outline"
+                    size="sm"
                     @click="ctx.openSaveWord(selectedWord.word, targetSpeakingText)"
-                    class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 px-3 py-2 rounded-xl shadow-2xs transition cursor-pointer"
                     title="Save to vocabulary book"
                   >
-                    <BookmarkPlus class="w-4 h-4 text-amber-600" /> Save Word
-                  </button>
+                    <template #prefix><BookmarkPlus class="w-4 h-4 text-amber-600" /></template>
+                    <span>Save Word</span>
+                  </AnimateButton>
                 </div>
               </div>
 
@@ -432,6 +455,10 @@ import {
 } from 'lucide-vue-next';
 import { computed, inject, ref, watch } from 'vue';
 import TopicLessonDropdowns from '../components/TopicLessonDropdowns.vue';
+import AnimateButton from '../components/ui/Button.vue';
+import AnimateCard from '../components/ui/Card.vue';
+import AnimateBadge from '../components/ui/Badge.vue';
+import AnimateCountingNumber from '../components/ui/CountingNumber.vue';
 import { getFullAudioUrl } from '../services/api';
 
 const ctx = inject('screenContext');

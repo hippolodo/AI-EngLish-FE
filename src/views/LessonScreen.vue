@@ -8,13 +8,17 @@
       <div class="space-y-4">
         <!-- Back to Topics Catalog (Only visible when filtering by a specific topic) -->
         <div v-if="selectedTopic">
-          <button
+          <AnimateButton
+            variant="outline"
+            size="sm"
             @click="clearTopicFilter"
-            class="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl border border-slate-200 bg-white text-slate-700 font-bold text-sm hover:bg-slate-50 hover:text-blue-600 transition shadow-2xs cursor-pointer group"
+            class="group"
           >
-            <ArrowLeft class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+            <template #prefix>
+              <ArrowLeft class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+            </template>
             <span>Back to Topics</span>
-          </button>
+          </AnimateButton>
         </div>
 
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -251,13 +255,17 @@
       
       <!-- Top Navigation Header -->
       <div class="space-y-2">
-        <button
+        <AnimateButton
+          variant="outline"
+          size="sm"
           @click="handleBackToCatalog"
-          class="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl border border-slate-200 bg-white text-slate-700 font-bold text-sm hover:bg-slate-50 hover:text-blue-600 transition shadow-2xs cursor-pointer group"
+          class="group"
         >
-          <ArrowLeft class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+          <template #prefix>
+            <ArrowLeft class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+          </template>
           <span>Back to Lessons</span>
-        </button>
+        </AnimateButton>
 
         <div class="pt-1">
           <div class="flex items-center gap-2.5 mb-1.5 flex-wrap">
@@ -360,26 +368,30 @@
         </div>
 
         <div class="pt-4 space-y-3">
-          <button
+          <AnimateButton
             v-if="!lessonProgress?.completed"
+            variant="emerald"
+            size="lg"
+            class="w-full"
             @click="finishLesson"
             :disabled="!canFinishLesson"
-            class="w-full rounded-2xl bg-emerald-600 hover:bg-emerald-700 p-4 text-base font-bold text-white shadow-md shadow-emerald-600/20 disabled:opacity-40 cursor-pointer transition"
           >
             Mark as Completed
-          </button>
+          </AnimateButton>
           
           <p v-if="!canFinishLesson" class="text-sm font-semibold text-amber-700 text-center">
             {{ currentLesson.type === 'SPEAKING' ? '💡 Complete all sentences to mark this lesson completed.' : '💡 Submit at least one draft to complete.' }}
           </p>
 
-          <button
+          <AnimateButton
             v-if="lessonProgress?.completed"
+            variant="default"
+            size="lg"
+            class="w-full"
             @click="nextLesson"
-            class="w-full rounded-2xl bg-blue-600 hover:bg-blue-700 p-4 text-base font-bold text-white shadow-md shadow-blue-600/20 cursor-pointer transition"
           >
             Next Lesson →
-          </button>
+          </AnimateButton>
 
           <button
             @click="beginLessonPractice"
@@ -779,6 +791,10 @@ import {
   Loader2, Mic, PenLine, CheckCircle2, ChevronRight, BookOpen, Search, ArrowLeft,
   Volume2, RotateCw, ChevronLeft, BookmarkPlus, Layers, Sparkles
 } from 'lucide-vue-next';
+import AnimateButton from '../components/ui/Button.vue';
+import AnimateCard from '../components/ui/Card.vue';
+import AnimateBadge from '../components/ui/Badge.vue';
+import AnimateCountingNumber from '../components/ui/CountingNumber.vue';
 import { curriculumService } from '../services/curriculumService';
 import { getFullAudioUrl, getErrorMessage } from '../services/api';
 

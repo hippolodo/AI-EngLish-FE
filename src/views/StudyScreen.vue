@@ -2,13 +2,17 @@
   <div v-if="activeTab === 'study'" class="space-y-6 pb-28 w-full max-w-6xl mx-auto">
     <!-- Top Back Button (Only visible when navigated from a lesson or another screen) -->
     <div v-if="hasHistory">
-      <button
+      <AnimateButton
+        variant="outline"
+        size="sm"
         @click="goBack"
-        class="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl border border-slate-200 bg-white text-slate-700 font-bold text-sm hover:bg-slate-50 hover:text-blue-600 transition shadow-2xs cursor-pointer group"
+        class="group"
       >
-        <ArrowLeft class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+        <template #prefix>
+          <ArrowLeft class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+        </template>
         <span>{{ ctx.currentLesson.value ? 'Quay lại bài học' : 'Quay lại' }}</span>
-      </button>
+      </AnimateButton>
     </div>
 
     <!-- Header & Flow Progress -->
@@ -180,14 +184,15 @@
               <div class="space-y-3 pt-1">
                 <div class="grid grid-cols-3 gap-3">
                   <!-- Prev Button -->
-                  <button
+                  <AnimateButton
+                    variant="outline"
+                    size="md"
                     :disabled="isSavingCardNote || currentStudyIndex <= 0"
                     @click="ctx.prevFlashcard"
-                    class="py-3.5 px-4 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-white text-gray-700 font-bold text-sm sm:text-base rounded-2xl border border-gray-200 shadow-2xs transition flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
                   >
-                    <ChevronLeft class="w-5 h-5" />
+                    <template #prefix><ChevronLeft class="w-5 h-5" /></template>
                     <span>Thẻ trước</span>
-                  </button>
+                  </AnimateButton>
 
                   <label class="flex items-center justify-center gap-2 rounded-2xl border border-indigo-200 bg-indigo-50 px-3 py-3.5 text-indigo-900 font-bold cursor-pointer has-[:disabled]:opacity-50">
                     <input type="checkbox" :checked="!!currentCard.is_noted" :disabled="isSavingCardNote" @change="ctx.toggleCardNote" class="h-5 w-5 accent-indigo-600" />
@@ -195,14 +200,15 @@
                   </label>
 
                   <!-- Next Button -->
-                  <button
+                  <AnimateButton
+                    variant="default"
+                    size="md"
                     :disabled="isSavingCardNote || currentStudyIndex >= flashcards.length - 1"
                     @click="ctx.nextFlashcard"
-                    class="py-3.5 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:hover:bg-indigo-600 text-white font-bold text-sm sm:text-base rounded-2xl shadow-md shadow-indigo-600/20 transition flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
                   >
                     <span>Thẻ sau</span>
-                    <ChevronRight class="w-5 h-5" />
-                  </button>
+                    <template #suffix><ChevronRight class="w-5 h-5" /></template>
+                  </AnimateButton>
                 </div>
 
                 <p class="text-sm text-slate-600">Tick để lưu từ vào mục Từ đã note. Bỏ tick để gỡ khỏi danh sách đó.</p>
@@ -364,6 +370,10 @@
 <script setup>
 import { AlertCircle, ArrowLeft, ArrowRight, Check, CheckCircle, ChevronLeft, ChevronRight, HelpCircle, Layers, Loader2, RotateCw, Volume2, X, XCircle } from 'lucide-vue-next';
 import { inject } from 'vue';
+import AnimateButton from '../components/ui/Button.vue';
+import AnimateCard from '../components/ui/Card.vue';
+import AnimateBadge from '../components/ui/Badge.vue';
+import AnimateCountingNumber from '../components/ui/CountingNumber.vue';
 import { getFullAudioUrl } from '../services/api';
 const ctx = inject('screenContext');
 const ALL_CARDS = 'Tất cả thẻ';

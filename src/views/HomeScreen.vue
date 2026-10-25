@@ -216,13 +216,15 @@
             </p>
           </div>
 
-          <button
+          <AnimateButton
+            variant="glass"
+            size="lg"
             @click="continueLearning"
             :disabled="journey.loading.value || homeLoading"
-            class="w-full bg-white hover:bg-slate-50 transition-colors text-[#1e2026] text-sm font-bold py-3.5 px-6 rounded-full shadow-sm cursor-pointer disabled:opacity-50"
+            class="w-full bg-white hover:bg-slate-50 text-[#1e2026] text-sm font-bold shadow-sm"
           >
             {{ journey.state.value.resume ? 'Continue Now' : 'Start Learning' }}
-          </button>
+          </AnimateButton>
         </div>
 
         <!-- 2. Level Status Card -->
@@ -253,7 +255,7 @@
           <div class="flex items-center justify-between">
             <span class="text-base sm:text-lg font-bold text-[#1e2026]">Daily Streak</span>
             <span class="bg-[#2036cc] text-white text-xs sm:text-sm font-bold px-4.5 py-2 rounded-full min-w-[80px] text-center shadow-xs">
-              {{ dashboard?.streak || 0 }} days
+              <AnimateCountingNumber :number="dashboard?.streak || 0" /> days
             </span>
           </div>
 
@@ -261,7 +263,7 @@
           <div class="flex items-center justify-between pt-2 border-t border-gray-100">
             <span class="text-base sm:text-lg font-bold text-[#1e2026]">Practice Sessions</span>
             <span class="bg-[#eef2f9] text-[#2d68ff] text-xs sm:text-sm font-bold px-4.5 py-2 rounded-full min-w-[80px] text-center border border-blue-100">
-              {{ totalPracticeCount || 0 }} sessions
+              <AnimateCountingNumber :number="totalPracticeCount || 0" /> sessions
             </span>
           </div>
         </div>
@@ -283,6 +285,10 @@
 <script setup>
 import { computed, inject } from 'vue';
 import { BookOpen } from 'lucide-vue-next';
+import AnimateButton from '../components/ui/Button.vue';
+import AnimateCard from '../components/ui/Card.vue';
+import AnimateBadge from '../components/ui/Badge.vue';
+import AnimateCountingNumber from '../components/ui/CountingNumber.vue';
 
 const ctx = inject('screenContext');
 const {

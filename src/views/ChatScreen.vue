@@ -806,6 +806,9 @@
 </template>
 
 <script setup>
+import AnimateButton from '../components/ui/Button.vue';
+import AnimateCard from '../components/ui/Card.vue';
+import AnimateBadge from '../components/ui/Badge.vue';
 import {
   AlertCircle,
   ArrowLeft,

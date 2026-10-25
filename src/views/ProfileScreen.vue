@@ -34,9 +34,9 @@
     </div>
     <template v-else>
       <div class="grid grid-cols-3 gap-3 sm:gap-4 text-center">
-        <div class="rounded-3xl border border-slate-100 bg-white p-5 shadow-2xs"><p class="text-3xl font-black text-indigo-700">{{ journey.completedCount.value }}</p><p class="mt-1.5 text-xs sm:text-sm font-semibold text-slate-500">Completed Lessons</p></div>
-        <div class="rounded-3xl border border-slate-100 bg-white p-5 shadow-2xs"><p class="text-3xl font-black text-indigo-700">{{ dashboard?.speaking?.total_sessions || 0 }}</p><p class="mt-1.5 text-xs sm:text-sm font-semibold text-slate-500">Speaking Sessions</p></div>
-        <div class="rounded-3xl border border-slate-100 bg-white p-5 shadow-2xs"><p class="text-3xl font-black text-indigo-700">{{ dashboard?.writing?.total_essays || 0 }}</p><p class="mt-1.5 text-xs sm:text-sm font-semibold text-slate-500">Writing Submissions</p></div>
+        <div class="rounded-3xl border border-slate-100 bg-white p-5 shadow-2xs"><p class="text-3xl font-black text-indigo-700"><AnimateCountingNumber :number="journey.completedCount.value" /></p><p class="mt-1.5 text-xs sm:text-sm font-semibold text-slate-500">Completed Lessons</p></div>
+        <div class="rounded-3xl border border-slate-100 bg-white p-5 shadow-2xs"><p class="text-3xl font-black text-indigo-700"><AnimateCountingNumber :number="dashboard?.speaking?.total_sessions || 0" /></p><p class="mt-1.5 text-xs sm:text-sm font-semibold text-slate-500">Speaking Sessions</p></div>
+        <div class="rounded-3xl border border-slate-100 bg-white p-5 shadow-2xs"><p class="text-3xl font-black text-indigo-700"><AnimateCountingNumber :number="dashboard?.writing?.total_essays || 0" /></p><p class="mt-1.5 text-xs sm:text-sm font-semibold text-slate-500">Writing Submissions</p></div>
       </div>
       <form @submit.prevent="save" class="space-y-5 rounded-3xl border border-slate-100 bg-white p-6 sm:p-8 shadow-xs">
         <h2 class="flex items-center gap-2.5 text-base sm:text-lg font-bold text-slate-900"><Settings2 class="h-5 w-5 text-indigo-600" /> Profile &amp; Study Settings</h2>
@@ -58,18 +58,22 @@
         <p v-if="error" role="alert" class="rounded-2xl bg-rose-50 p-4 text-sm sm:text-base text-rose-700">{{ error }}</p>
         <p v-if="message" role="status" class="rounded-2xl bg-emerald-50 p-4 text-sm sm:text-base text-emerald-700">{{ message }}</p>
         <div class="flex gap-3 pt-1">
-          <button :disabled="saving || journey.loading.value || !dirty || !valid" class="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-indigo-600 p-4 text-base font-bold text-white disabled:cursor-not-allowed disabled:bg-slate-300 shadow-md shadow-indigo-600/20 cursor-pointer"><Loader2 v-if="saving" class="h-5 w-5 animate-spin" /><Save v-else class="h-5 w-5" />{{ saving ? 'Saving…' : 'Save Changes' }}</button>
-          <button type="button" @click="reset" :disabled="saving || !dirty" class="rounded-2xl border border-slate-200 px-5 text-base font-bold text-slate-600 disabled:opacity-40 cursor-pointer">Cancel</button>
+          <AnimateButton variant="default" size="lg" class="flex-1" :disabled="saving || journey.loading.value || !dirty || !valid" :loading="saving"><template #prefix><Save v-if="!saving" class="h-5 w-5" /></template>{{ saving ? 'Saving…' : 'Save Changes' }}</AnimateButton>
+          <AnimateButton type="button" variant="outline" size="lg" @click="reset" :disabled="saving || !dirty">Cancel</AnimateButton>
         </div>
         <p class="text-xs sm:text-sm text-slate-500">These preferences are used to tailor recommendations on your Home screen.</p>
       </form>
-      <button @click="logout" :disabled="saving" class="flex w-full items-center justify-center gap-2 rounded-2xl border border-rose-200 bg-white p-4 text-base font-bold text-rose-600 disabled:opacity-50 hover:bg-rose-50 cursor-pointer shadow-2xs"><LogOut class="h-5 w-5" />Sign Out</button>
+      <AnimateButton variant="outline" size="lg" class="w-full text-rose-600 border-rose-200 hover:bg-rose-50" @click="logout" :disabled="saving"><template #prefix><LogOut class="h-5 w-5" /></template>Sign Out</AnimateButton>
     </template>
   </section>
 </template>
 <script setup>
 import { computed, inject } from 'vue';
 import { Home, Settings2, Save, Loader2, LogOut, ArrowLeft } from 'lucide-vue-next';
+import AnimateButton from '../components/ui/Button.vue';
+import AnimateCard from '../components/ui/Card.vue';
+import AnimateBadge from '../components/ui/Badge.vue';
+import AnimateCountingNumber from '../components/ui/CountingNumber.vue';
 import { authService } from '../services/authService';
 import { useProfileSettings } from '../composables/useProfileSettings';
 const ctx = inject('screenContext');

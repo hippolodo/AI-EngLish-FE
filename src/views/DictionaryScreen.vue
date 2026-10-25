@@ -3,25 +3,30 @@
     
     <!-- Top Back Button (Only visible when navigated from another screen) -->
     <div v-if="hasHistory">
-      <button
+      <AnimateButton
+        variant="outline"
+        size="sm"
         @click="goBack"
-        class="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl border border-slate-200 bg-white text-slate-700 font-bold text-sm hover:bg-slate-50 hover:text-blue-600 transition shadow-2xs cursor-pointer group"
+        class="group"
       >
-        <ArrowLeft class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-        <span>{{ 'Back' }}</span>
-      </button>
+        <template #prefix>
+          <ArrowLeft class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+        </template>
+        <span>Back</span>
+      </AnimateButton>
     </div>
 
     <!-- Header Section -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div>
         <div class="flex items-center gap-2 mb-1.5">
-          <span class="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-wide border border-blue-100 flex items-center gap-1.5">
-            <Sparkles class="w-3.5 h-3.5 text-blue-600" /> Dictionary Lookup
-          </span>
-          <span class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold border border-emerald-200">
+          <AnimateBadge variant="default" size="sm">
+            <template #icon><Sparkles class="w-3.5 h-3.5 text-blue-600" /></template>
+            Dictionary Lookup
+          </AnimateBadge>
+          <AnimateBadge variant="emerald" size="sm">
             Native IPA Phonetics
-          </span>
+          </AnimateBadge>
         </div>
         <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
           Dictionary
@@ -95,26 +100,29 @@
           </div>
         </div>
 
-        <button
+        <AnimateButton
           type="submit"
+          variant="default"
+          size="lg"
+          :loading="loading"
           :disabled="loading || !searchQuery.trim()"
-          class="px-7 py-3.5 sm:py-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-base shadow-md shadow-blue-600/20 transition cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
         >
-          <Loader2 v-if="loading" class="w-5 h-5 animate-spin" />
-          <Search v-else class="w-5 h-5" />
+          <template #prefix><Search class="w-5 h-5" /></template>
           <span>Search</span>
-        </button>
+        </AnimateButton>
 
-        <button
+        <AnimateButton
           type="button"
-          @click="handleAiLookup"
+          variant="gradient"
+          size="lg"
+          :loading="loading"
           :disabled="loading || !searchQuery.trim()"
-          class="px-5 py-3.5 sm:py-4 rounded-2xl border border-indigo-200 bg-indigo-50/80 hover:bg-indigo-100/90 text-indigo-700 font-bold text-base transition cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 shadow-2xs"
+          @click="handleAiLookup"
           title="Deep search with contextual analysis"
         >
-          <Sparkles class="w-5 h-5 text-indigo-600" />
+          <template #prefix><Sparkles class="w-5 h-5 text-white" /></template>
           <span>Deep Search</span>
-        </button>
+        </AnimateButton>
       </form>
 
       <!-- Quick Word Chips for Inspiration -->
@@ -207,20 +215,22 @@
         <div>
           <div class="flex items-center gap-3 flex-wrap mb-2">
             <!-- Part of Speech Pill -->
-            <span
+            <AnimateBadge
               v-if="selectedWord.part_of_speech"
-              class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide bg-blue-50 text-blue-700 border border-blue-200"
+              variant="default"
+              size="sm"
             >
               {{ selectedWord.part_of_speech }}
-            </span>
+            </AnimateBadge>
 
             <!-- CEFR Level Pill -->
-            <span
+            <AnimateBadge
               v-if="selectedWord.level"
-              class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide bg-emerald-50 text-emerald-700 border border-emerald-200"
+              variant="emerald"
+              size="sm"
             >
               CEFR {{ selectedWord.level }}
-            </span>
+            </AnimateBadge>
 
             <span class="text-xs text-slate-400 font-semibold flex items-center gap-1">
               <CheckCircle2 class="w-3.5 h-3.5 text-emerald-500" /> Verified
@@ -232,13 +242,15 @@
             <span>{{ selectedWord.word }}</span>
             
             <!-- Audio Speaker Button -->
-            <button
+            <AnimateButton
+              variant="secondary"
+              size="icon"
               @click="speak(selectedWord.word)"
-              class="w-11 h-11 rounded-2xl bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 flex items-center justify-center transition cursor-pointer shadow-2xs hover:scale-105"
+              class="text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200"
               title="Listen to native pronunciation"
             >
-              <Volume2 class="w-6 h-6" />
-            </button>
+              <Volume2 class="w-5 h-5" />
+            </AnimateButton>
           </h2>
 
           <!-- Phonetic IPA -->
@@ -252,22 +264,25 @@
         <!-- Action Buttons: Save Word & Practice Speaking -->
         <div class="flex items-center gap-3 flex-wrap sm:flex-col sm:items-end">
           <!-- Save to Flashcard SRS -->
-          <button
+          <AnimateButton
+            variant="outline"
+            size="md"
             @click="saveToNotebook"
-            class="px-4.5 py-2.5 rounded-2xl border border-slate-200 bg-white hover:bg-amber-50 hover:border-amber-300 text-slate-700 hover:text-amber-800 font-bold text-sm transition shadow-2xs flex items-center gap-2 cursor-pointer"
+            class="hover:bg-amber-50 hover:border-amber-300 text-slate-700 hover:text-amber-800"
           >
-            <BookmarkPlus class="w-4.5 h-4.5 text-amber-500" />
+            <template #prefix><BookmarkPlus class="w-4.5 h-4.5 text-amber-500" /></template>
             <span>Save to Flashcards</span>
-          </button>
+          </AnimateButton>
 
           <!-- Practice Speaking in Lab -->
-          <button
+          <AnimateButton
+            variant="emerald"
+            size="md"
             @click="practiceInLab"
-            class="px-4.5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm transition shadow-md shadow-emerald-600/20 flex items-center gap-2 cursor-pointer"
           >
-            <Mic class="w-4.5 h-4.5" />
+            <template #prefix><Mic class="w-4.5 h-4.5" /></template>
             <span>Practice Speaking</span>
-          </button>
+          </AnimateButton>
         </div>
       </div>
 
@@ -381,6 +396,10 @@ import {
   ArrowLeft, Search, Sparkles, Loader2, Volume2, BookmarkPlus,
   Mic, CheckCircle2, History, BookOpen, Lightbulb
 } from 'lucide-vue-next';
+import AnimateButton from '../components/ui/Button.vue';
+import AnimateBadge from '../components/ui/Badge.vue';
+import AnimateCard from '../components/ui/Card.vue';
+import AnimateShimmerText from '../components/ui/ShimmerText.vue';
 import { dictionaryService } from '../services/dictionaryService';
 import { getErrorMessage } from '../services/api';
 
