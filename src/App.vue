@@ -37,8 +37,8 @@
         <nav aria-label="Main Navigation" class="space-y-2">
           <button
             @click="navigateSidebar('home')"
-            :class="activeTab === 'home' ? 'bg-[#f1f5fd] text-[#2b59ff] font-bold shadow-2xs' : 'text-[#4a5568] hover:bg-gray-50 hover:text-black font-semibold'"
-            class="w-full flex items-center gap-4 px-4.5 py-3 rounded-full text-[16px] transition-colors cursor-pointer text-left"
+            :class="activeTab === 'home' ? 'bg-gradient-to-r from-blue-50 to-indigo-50/80 text-blue-600 font-bold border border-blue-200/80 shadow-xs' : 'text-slate-600 hover:bg-slate-100/70 hover:text-slate-900 font-semibold'"
+            class="btn-spring relative w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-[15px] font-semibold transition-all duration-200 cursor-pointer text-left overflow-hidden"
           >
             <LayoutGrid class="w-5.5 h-5.5 shrink-0" :class="activeTab === 'home' ? 'text-[#2b59ff]' : 'text-gray-500'" />
             <span>Home</span>
@@ -47,8 +47,8 @@
 
           <button
             @click="navigateSidebar('lesson')"
-            :class="activeTab === 'lesson' ? 'bg-[#f1f5fd] text-[#2b59ff] font-bold shadow-2xs' : 'text-[#4a5568] hover:bg-gray-50 hover:text-black font-semibold'"
-            class="w-full flex items-center gap-4 px-4.5 py-3 rounded-full text-[16px] transition-colors cursor-pointer text-left"
+            :class="activeTab === 'lesson' ? 'bg-gradient-to-r from-blue-50 to-indigo-50/80 text-blue-600 font-bold border border-blue-200/80 shadow-xs' : 'text-slate-600 hover:bg-slate-100/70 hover:text-slate-900 font-semibold'"
+            class="btn-spring relative w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-[15px] font-semibold transition-all duration-200 cursor-pointer text-left overflow-hidden"
           >
             <GraduationCap class="w-5.5 h-5.5 shrink-0" :class="activeTab === 'lesson' ? 'text-[#2b59ff]' : 'text-gray-500'" />
             <span>Lessons</span>
@@ -56,8 +56,8 @@
 
           <button
             @click="navigateSidebar('dictionary')"
-            :class="activeTab === 'dictionary' ? 'bg-[#f1f5fd] text-[#2b59ff] font-bold shadow-2xs' : 'text-[#4a5568] hover:bg-gray-50 hover:text-black font-semibold'"
-            class="w-full flex items-center gap-4 px-4.5 py-3 rounded-full text-[16px] transition-colors cursor-pointer text-left"
+            :class="activeTab === 'dictionary' ? 'bg-gradient-to-r from-blue-50 to-indigo-50/80 text-blue-600 font-bold border border-blue-200/80 shadow-xs' : 'text-slate-600 hover:bg-slate-100/70 hover:text-slate-900 font-semibold'"
+            class="btn-spring relative w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-[15px] font-semibold transition-all duration-200 cursor-pointer text-left overflow-hidden"
           >
             <BookA class="w-5.5 h-5.5 shrink-0" :class="activeTab === 'dictionary' ? 'text-[#2b59ff]' : 'text-gray-500'" />
             <span>Dictionary</span>
@@ -65,8 +65,8 @@
 
           <button
             @click="navigateSidebar('profile')"
-            :class="activeTab === 'profile' ? 'bg-[#f1f5fd] text-[#2b59ff] font-bold shadow-2xs' : 'text-[#4a5568] hover:bg-gray-50 hover:text-black font-semibold'"
-            class="w-full flex items-center gap-4 px-4.5 py-3 rounded-full text-[16px] transition-colors cursor-pointer text-left"
+            :class="activeTab === 'profile' ? 'bg-gradient-to-r from-blue-50 to-indigo-50/80 text-blue-600 font-bold border border-blue-200/80 shadow-xs' : 'text-slate-600 hover:bg-slate-100/70 hover:text-slate-900 font-semibold'"
+            class="btn-spring relative w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-[15px] font-semibold transition-all duration-200 cursor-pointer text-left overflow-hidden"
           >
             <TrendingUp class="w-5.5 h-5.5 shrink-0" :class="activeTab === 'profile' ? 'text-[#2b59ff]' : 'text-gray-500'" />
             <span>Progress</span>

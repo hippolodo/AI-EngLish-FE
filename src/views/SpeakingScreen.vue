@@ -27,7 +27,7 @@
       Practiced {{ ctx.lessonProgress.value.completed_content_ids.length }}/{{ speakingLessonContents.length }} sentences in this lesson.
       <button @click="ctx.finishLesson" :disabled="!ctx.canFinishLesson.value" class="block font-semibold underline disabled:opacity-40">Complete &amp; view summary</button>
     </div>
-    <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-xs space-y-3">
+    <div class="glass-panel rounded-3xl p-5 border border-slate-200/80 shadow-xs space-y-4 transition-all duration-300">
       <div class="flex items-center justify-between">
         <span class="text-sm font-semibold text-gray-700">Practice Sentence:</span>
         <button
@@ -190,7 +190,7 @@
                   :key="idx"
                   @click="selectedWordIndex = idx"
                   type="button"
-                  class="group relative flex flex-col items-center justify-between px-4 py-2.5 rounded-xl border transition-all cursor-pointer text-left"
+                  class="card-spring group relative flex flex-col items-center justify-between px-4.5 py-3 rounded-2xl border cursor-pointer text-left"
                   :class="[
                     selectedWordIndex === idx ? 'ring-2 ring-indigo-500 ring-offset-2 scale-105 shadow-md z-10' : 'hover:scale-102 hover:shadow-xs',
                     w.status === 'CORRECT' ? 'bg-emerald-50/90 border-emerald-300 text-emerald-900' :
@@ -363,29 +363,47 @@
             ⚠️ {{ speakingError }}
           </div>
 
-          <!-- Interaction Area (Centered Mic button with pulsating rings) -->
+          <!-- Interaction Area (Animate UI Spring Mic with Soundwave Equalizer) -->
           <div class="pt-6 flex flex-col items-center justify-center space-y-4">
+            <!-- Floating Animated Soundwave Pill when recording -->
+            <transition
+              enter-active-class="transition duration-300 ease-spring"
+              enter-from-class="opacity-0 -translate-y-2 scale-90"
+              enter-to-class="opacity-100 translate-y-0 scale-100"
+              leave-active-class="transition duration-200 ease-spring"
+              leave-from-class="opacity-100 translate-y-0 scale-100"
+              leave-to-class="opacity-0 -translate-y-2 scale-90"
+            >
+              <div v-if="isRecording" class="flex items-center gap-1.5 px-4.5 py-2 rounded-full bg-slate-900/90 text-white shadow-xl backdrop-blur-md border border-slate-700/60 mb-1">
+                <span class="sound-bar" v-for="n in 7" :key="n"></span>
+                <span class="text-xs font-mono font-bold tracking-widest ml-2 text-rose-400">RECORDING</span>
+              </div>
+            </transition>
+
             <div class="relative flex items-center justify-center">
-              <span v-if="isRecording" class="absolute w-32 h-32 sm:w-36 sm:h-36 rounded-full bg-rose-500/25 animate-ping"></span>
-              <span v-if="isRecording" class="absolute w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-rose-500/35 animate-pulse"></span>
+              <!-- Multi-layered expanding radar rings -->
+              <div v-if="isRecording" class="radar-ring"></div>
+              <div v-if="isRecording" class="radar-ring-2"></div>
+              <span v-if="isRecording" class="absolute w-36 h-36 sm:w-40 sm:h-40 rounded-full bg-rose-500/20 animate-ping"></span>
+              
               <button
                 @click="toggleRecording"
                 :disabled="isAnalyzingSpeaking"
                 :aria-label="isAnalyzingSpeaking ? 'Analyzing speech' : isRecording ? 'Stop recording & evaluate' : 'Start recording'"
                 :title="isRecording ? 'Stop recording & evaluate' : 'Start recording'"
-                :class="isRecording ? 'bg-rose-500 hover:bg-rose-600 text-white shadow-rose-500/40' : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-600/30'"
-                class="relative z-10 w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center shadow-xl transition-all transform active:scale-95 cursor-pointer disabled:opacity-50"
+                :class="isRecording ? 'bg-gradient-to-tr from-rose-600 to-red-500 text-white shadow-rose-500/40 ring-4 ring-rose-200' : 'bg-gradient-to-tr from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-blue-600/30 ring-4 ring-blue-100'"
+                class="btn-spring relative z-10 w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center shadow-xl cursor-pointer disabled:opacity-50"
               >
-                <Square v-if="isRecording" class="w-10 h-10" />
-                <Mic v-else-if="!isAnalyzingSpeaking" class="w-10 h-10" />
-                <Loader2 v-else class="w-10 h-10 animate-spin" />
+                <Square v-if="isRecording" class="w-9 h-9 fill-current" />
+                <Mic v-else-if="!isAnalyzingSpeaking" class="w-10 h-10 transition-transform duration-200 group-hover:scale-110" />
+                <Loader2 v-else class="w-10 h-10 animate-spin text-white" />
               </button>
             </div>
             <div class="text-center">
-              <p class="text-base sm:text-lg font-bold text-gray-800">
+              <p class="text-base sm:text-lg font-bold text-gray-800 transition-colors">
                 {{ isAnalyzingSpeaking ? 'Analyzing pronunciation...' : (isRecording ? 'Listening... Tap to submit' : 'Tap microphone to start speaking') }}
               </p>
-              <p class="text-xs sm:text-sm text-gray-500 mt-1">
+              <p class="text-xs sm:text-sm text-gray-500 mt-0.5">
                 {{ isRecording ? 'Speak clearly into the microphone' : 'Record via microphone for instant feedback' }}
               </p>
             </div>

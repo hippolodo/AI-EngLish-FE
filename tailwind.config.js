@@ -7,16 +7,45 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+        sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
       },
       colors: {
         brand: {
           blue: '#2d68ff',
           lightBlue: '#f0f5ff',
-          dark: '#1e2026',
+          dark: '#0f172a',
           cardBg: '#f8f9fc',
           subtext: '#64748b'
         }
+      },
+      transitionTimingFunction: {
+        'spring': 'cubic-bezier(0.16, 1, 0.3, 1)',
+        'spring-bounce': 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+      },
+      keyframes: {
+        shimmer: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(100%)' }
+        },
+        pulseRing: {
+          '0%': { transform: 'scale(0.95)', opacity: '0.75' },
+          '50%': { transform: 'scale(1.28)', opacity: '0.25' },
+          '100%': { transform: 'scale(1.55)', opacity: '0' }
+        },
+        wave: {
+          '0%, 100%': { height: '8px' },
+          '50%': { height: '32px' }
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-6px)' }
+        }
+      },
+      animation: {
+        'shimmer': 'shimmer 2.2s infinite',
+        'pulse-ring': 'pulseRing 2s cubic-bezier(0.16, 1, 0.3, 1) infinite',
+        'wave': 'wave 1.2s ease-in-out infinite',
+        'float': 'float 4s ease-in-out infinite',
       },
       fontSize: {
         xs: ['0.875rem', { lineHeight: '1.5' }], // 14px

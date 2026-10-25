@@ -17,7 +17,7 @@
           <!-- Card 1: Chat -->
           <div
             @click="ctx.navigateTab ? ctx.navigateTab('chat') : (activeTab = 'chat')"
-            class="group cursor-pointer flex flex-col select-none"
+            class="card-spring group cursor-pointer flex flex-col select-none p-2 rounded-3xl"
           >
             <div class="relative w-full h-56 sm:h-64 rounded-3xl bg-[#ffdc69] flex items-center justify-center overflow-hidden transition-all duration-200 group-hover:shadow-lg">
               <!-- Floating Message Bubbles -->
@@ -50,7 +50,7 @@
           <div
             v-if="isAuthenticated"
             @click="ctx.navigateTab('speaking')"
-            class="group cursor-pointer flex flex-col select-none"
+            class="card-spring group cursor-pointer flex flex-col select-none p-2 rounded-3xl"
           >
             <div class="relative w-full h-56 sm:h-64 rounded-3xl bg-[#f2f4f7] flex items-center justify-center overflow-hidden transition-all duration-200 group-hover:shadow-lg">
               <!-- Character Illustration -->
@@ -73,7 +73,7 @@
           <!-- Card 3: Word Mode (Flashcard từ vựng) -->
           <div
             @click="openReview"
-            class="group cursor-pointer flex flex-col select-none"
+            class="card-spring group cursor-pointer flex flex-col select-none p-2 rounded-3xl"
           >
             <div class="relative w-full h-56 sm:h-64 rounded-3xl bg-[#f2f4f7] flex items-center justify-center overflow-hidden transition-all duration-200 group-hover:shadow-lg">
               <!-- Cards Illustration (Apple & Book) -->
@@ -102,7 +102,7 @@
           <div
             v-if="isAuthenticated"
             @click="ctx.navigateTab('writing')"
-            class="group cursor-pointer flex flex-col select-none"
+            class="card-spring group cursor-pointer flex flex-col select-none p-2 rounded-3xl"
           >
             <div class="relative w-full h-56 sm:h-64 rounded-3xl bg-[#f2f4f7] flex items-center justify-center overflow-hidden transition-all duration-200 group-hover:shadow-lg">
               <!-- Speech Bubble & Sound Wave Graphic -->
@@ -135,7 +135,7 @@
           <!-- Card 5: Flashcards / Quiz (Kiểm tra nhanh) -->
           <div
             @click="openQuizMode"
-            class="group cursor-pointer flex flex-col select-none"
+            class="card-spring group cursor-pointer flex flex-col select-none p-2 rounded-3xl"
           >
             <div class="relative w-full h-56 sm:h-64 rounded-3xl bg-[#f2f4f7] flex items-center justify-center overflow-hidden transition-all duration-200 group-hover:shadow-lg">
               <!-- Tablet/Flashcard Illustration with hand -->
@@ -168,7 +168,7 @@
           <!-- Card 6: Dictionary Mode (Tra cứu từ điển) -->
           <div
             @click="ctx.navigateTab ? ctx.navigateTab('dictionary') : (activeTab = 'dictionary')"
-            class="group cursor-pointer flex flex-col select-none"
+            class="card-spring group cursor-pointer flex flex-col select-none p-2 rounded-3xl"
           >
             <div class="relative w-full h-56 sm:h-64 rounded-3xl bg-[#f2f4f7] flex items-center justify-center overflow-hidden transition-all duration-200 group-hover:shadow-lg">
               <!-- Dictionary Graphic -->
