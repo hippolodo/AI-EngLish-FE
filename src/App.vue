@@ -798,7 +798,7 @@ const openLessonQuiz = async () => {
   studyTopicId.value = currentLesson.value.topic_id;
   lessonStep.value = 'quiz';
   journey.remember(currentLesson.value.topic_id, currentLesson.value.id, 'quiz', currentLesson.value.type === 'SPEAKING' ? selectedSpeakingContentId.value : null);
-  activeTab.value = 'quiz';
+  activeTab.value = 'lesson';
   await loadQuizzesData();
 };
 

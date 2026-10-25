@@ -328,8 +328,8 @@
 
         <!-- 3. Quiz -->
         <button
-          @click="openLessonQuiz"
-          :disabled="!lessonQuizzes.length"
+          @click="handleSelectQuizStep"
+          :disabled="!lessonQuizzes?.length"
           class="flex-1 min-w-[120px] rounded-xl py-3 px-4 disabled:opacity-40 transition-all duration-200 flex items-center justify-center cursor-pointer text-xs sm:text-sm"
           :class="lessonStep === 'quiz'
             ? 'bg-white text-blue-600 shadow-sm font-extrabold ring-1 ring-slate-200/60'
@@ -632,6 +632,327 @@
         </div>
       </div>
 
+      <!-- STEP 3: QUIZ VIEW (Directly embedded in Tab 3!) -->
+      <div v-else-if="lessonStep === 'quiz'" class="space-y-6">
+
+        <!-- Quiz Completion Hero Card (Shown when quiz attempt is submitted) -->
+        <div
+          v-if="quizResult"
+          role="status"
+          class="bento-card bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/40 rounded-3xl border border-blue-200/90 p-7 sm:p-9 shadow-lg space-y-6"
+        >
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-5 pb-6 border-b border-blue-100">
+            <div class="flex items-center gap-4">
+              <div
+                class="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl flex items-center justify-center text-4xl shadow-md shrink-0"
+                :class="quizResult.is_passed ? 'bg-emerald-50 border border-emerald-200 text-emerald-600' : 'bg-amber-50 border border-amber-200 text-amber-600'"
+              >
+                {{ quizResult.is_passed ? '🎉' : '📊' }}
+              </div>
+              <div>
+                <div class="flex items-center gap-2 mb-1">
+                  <span
+                    class="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider"
+                    :class="quizResult.is_passed ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'"
+                  >
+                    {{ quizResult.is_passed ? 'PASSED' : 'PRACTICE NEEDED' }}
+                  </span>
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                  {{ quizResult.is_passed ? 'Congratulations! Quiz Completed' : 'Good Attempt! Review & Retake' }}
+                </h2>
+                <p class="text-slate-600 text-sm sm:text-base mt-0.5">
+                  You got {{ quizResult.correct_answers }} of {{ quizResult.total_questions }} questions correct.
+                </p>
+              </div>
+            </div>
+
+            <!-- Big Score Badge -->
+            <div class="flex items-center gap-3 bg-white px-6 py-4 rounded-3xl border border-slate-200/90 shadow-sm shrink-0">
+              <div class="text-right">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Lesson Quiz Score</p>
+                <p class="text-3xl sm:text-4xl font-black text-indigo-600">
+                  <AnimateCountingNumber :number="quizResult.score" />
+                  <span class="text-lg text-slate-400 font-bold">/100</span>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Stats Grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="p-4.5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs">
+              <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Accuracy Rate</span>
+              <p class="text-2xl font-black text-slate-900 mt-1">
+                {{ quizResult.total_questions ? Math.round((quizResult.correct_answers / quizResult.total_questions) * 100) : 0 }}%
+              </p>
+            </div>
+
+            <div class="p-4.5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs">
+              <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Correct Answers</span>
+              <p class="text-2xl font-black text-emerald-600 mt-1">
+                {{ quizResult.correct_answers }} / {{ quizResult.total_questions }}
+              </p>
+            </div>
+
+            <div class="p-4.5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs">
+              <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Result Status</span>
+              <p class="text-2xl font-black mt-1" :class="quizResult.is_passed ? 'text-emerald-600' : 'text-amber-600'">
+                {{ quizResult.is_passed ? 'Qualified 🌟' : 'Review needed ⚠️' }}
+              </p>
+            </div>
+          </div>
+
+          <!-- CTAs -->
+          <div class="flex flex-col sm:flex-row items-center gap-3 pt-2">
+            <button
+              @click="lessonStep = 'summary'"
+              class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:brightness-105 text-white font-extrabold text-base rounded-2xl shadow-lg shadow-blue-600/25 transition cursor-pointer flex items-center justify-center gap-2 transform active:scale-98"
+            >
+              <span>Step 4: View Lesson Summary →</span>
+            </button>
+
+            <button
+              @click="restartQuiz"
+              class="w-full sm:w-auto px-6 py-4 bg-white hover:bg-slate-50 text-slate-700 font-bold text-base rounded-2xl border border-slate-200 shadow-2xs transition cursor-pointer flex items-center justify-center gap-2"
+            >
+              <RotateCcw class="w-4 h-4" />
+              <span>Retake Quiz</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Active Question Flow (When quiz is in progress) -->
+        <div v-else class="space-y-6">
+
+          <!-- Objective Banner & Smooth Progress Rail -->
+          <div class="space-y-3 rounded-3xl bg-blue-50/80 p-6 sm:p-7 border border-blue-100 shadow-2xs">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <h2 class="text-lg sm:text-xl font-bold text-blue-950 flex items-center gap-2">
+                <span>📝</span>
+                <span>Step 3: Reinforcement Quiz</span>
+              </h2>
+              <span v-if="quizQuestions?.length" class="px-3.5 py-1 rounded-full bg-white text-blue-700 text-xs sm:text-sm font-bold border border-blue-200 shadow-2xs">
+                Question {{ currentStudyIndex + 1 }} / {{ quizQuestions.length }}
+              </span>
+            </div>
+            <p class="text-base sm:text-lg text-blue-900/90 leading-relaxed">
+              Test your retention and apply grammar, vocabulary, and sentence structures from this lesson.
+            </p>
+
+            <div v-if="quizQuestions?.length" class="w-full h-2 bg-blue-100 rounded-full overflow-hidden mt-2">
+              <div
+                :style="{ width: `${((currentStudyIndex + 1) / quizQuestions.length) * 100}%` }"
+                class="h-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-full transition-all duration-300"
+              ></div>
+            </div>
+          </div>
+
+          <!-- Loading state -->
+          <div v-if="ctx.studyLoading?.value" class="py-16 text-center space-y-3 bg-white rounded-3xl border border-slate-100 shadow-2xs">
+            <Loader2 class="w-8 h-8 animate-spin text-blue-600 mx-auto" />
+            <p class="text-base font-bold text-slate-800">Loading quiz questions…</p>
+          </div>
+
+          <!-- Empty fallback -->
+          <div v-else-if="!quizQuestions?.length" class="p-10 bg-white rounded-3xl border border-slate-200 text-center space-y-3">
+            <p class="text-base font-bold text-slate-700">No questions found for this lesson quiz.</p>
+            <button @click="handleSelectQuizStep" class="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm cursor-pointer">
+              Load Quiz Questions
+            </button>
+          </div>
+
+          <!-- Active Question Card Arena -->
+          <div v-else class="space-y-5">
+            <div class="bento-card bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-sm space-y-4">
+              <div class="flex items-center justify-between gap-3">
+                <span class="px-3.5 py-1.5 rounded-xl bg-blue-50 text-blue-700 font-extrabold text-xs sm:text-sm border border-blue-100 shadow-2xs">
+                  Question #{{ currentStudyIndex + 1 }}
+                </span>
+                <span class="text-xs font-bold text-slate-400">
+                  {{ currentQuestion?.question_type === 'FILL_BLANK' ? 'Fill in the Blank' : 'Multiple Choice' }}
+                </span>
+              </div>
+
+              <!-- Question Prompt Text -->
+              <h3 class="reading-text text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-snug">
+                {{ currentQuestion?.question_text }}
+              </h3>
+
+              <!-- Custom Audio Player if present -->
+              <div v-if="currentQuestion?.audio_url" :key="currentQuestion.id" class="pt-1">
+                <AudioPlayer
+                  :src="getFullAudioUrl(currentQuestion.audio_url)"
+                  label="Question Audio"
+                  :fallback-text="currentQuestion.question_text"
+                />
+              </div>
+
+              <!-- Illustration Image if present -->
+              <div v-if="currentQuestion?.image_url" class="pt-2">
+                <img
+                  :src="getFullAudioUrl(currentQuestion.image_url)"
+                  alt="Question illustration"
+                  class="max-h-56 rounded-2xl object-contain mx-auto shadow-sm border border-slate-100"
+                />
+              </div>
+
+              <!-- Fill in Blank Input -->
+              <div v-if="currentQuestion?.question_type === 'FILL_BLANK'" class="pt-2 space-y-2">
+                <label class="block text-sm font-extrabold text-slate-700">Type your answer:</label>
+                <div class="relative">
+                  <input
+                    v-model="quizInputText"
+                    :disabled="quizChecked || isSubmittingQuiz || ctx.quizFeedbackLoading?.value"
+                    @keyup.enter="checkQuizAnswer"
+                    type="text"
+                    class="w-full rounded-2xl border-2 border-slate-200 bg-white p-4 sm:p-5 text-base sm:text-lg font-bold text-slate-900 shadow-2xs focus:border-blue-600 focus:ring-4 focus:ring-blue-100 focus:outline-none transition-all placeholder-slate-400"
+                    placeholder="Type answer here…"
+                  />
+                  <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hidden sm:inline">
+                    Press Enter ↵
+                  </span>
+                </div>
+              </div>
+
+              <!-- Multiple Choice 3D Tactile Buttons -->
+              <div v-if="currentQuestion?.question_type !== 'FILL_BLANK'" class="space-y-3.5 pt-2">
+                <button
+                  v-for="(ans, aIdx) in (currentQuestion?.answers || [])"
+                  :key="ans.id || aIdx"
+                  @click="selectQuizAnswer(ans)"
+                  :disabled="quizChecked || isSubmittingQuiz || ctx.quizFeedbackLoading?.value"
+                  :class="[
+                    'group w-full text-left p-4.5 sm:p-5 rounded-2xl border-2 transition-all duration-200 flex items-center justify-between gap-4 cursor-pointer select-none card-spring',
+                    getOptionCardClass(ans)
+                  ]"
+                >
+                  <div class="flex items-center gap-3.5 min-w-0">
+                    <span
+                      class="w-9 h-9 rounded-xl flex items-center justify-center font-extrabold text-sm shrink-0 transition-colors shadow-2xs"
+                      :class="getLetterBadgeClass(ans, aIdx)"
+                    >
+                      {{ ['A', 'B', 'C', 'D'][aIdx] || (aIdx + 1) }}
+                    </span>
+                    <span class="text-base sm:text-lg font-bold leading-snug">
+                      {{ ans.answer_text }}
+                    </span>
+                  </div>
+
+                  <div class="shrink-0 flex items-center justify-center">
+                    <CheckCircle2
+                      v-if="quizChecked && submittedQuizDetail?.is_correct && selectedQuizAnswer?.id === ans.id"
+                      class="w-6 h-6 text-emerald-600"
+                    />
+                    <XCircle
+                      v-else-if="quizChecked && !submittedQuizDetail?.is_correct && selectedQuizAnswer?.id === ans.id"
+                      class="w-6 h-6 text-rose-500"
+                    />
+                    <CheckCircle2
+                      v-else-if="quizChecked && submittedQuizDetail?.correct_answer_id === ans.id"
+                      class="w-6 h-6 text-emerald-600"
+                    />
+                    <span
+                      v-else-if="!quizChecked && selectedQuizAnswer?.id === ans.id"
+                      class="w-5 h-5 rounded-full border-2 border-blue-600 bg-blue-600 flex items-center justify-center"
+                    >
+                      <span class="w-2 h-2 rounded-full bg-white"></span>
+                    </span>
+                    <span
+                      v-else
+                      class="w-5 h-5 rounded-full border-2 border-slate-300 group-hover:border-blue-400 transition-colors"
+                    ></span>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <!-- Explanation & Feedback Alert (Slides up on check) -->
+            <div
+              v-if="quizChecked && submittedQuizDetail"
+              role="status"
+              aria-live="polite"
+              class="p-5 sm:p-6 rounded-3xl border text-sm sm:text-base space-y-2 shadow-xs transition-all"
+              :class="submittedQuizDetail?.is_correct
+                ? 'bg-emerald-50/80 border-emerald-200 text-emerald-950'
+                : 'bg-rose-50/80 border-rose-200 text-rose-950'"
+            >
+              <div class="flex items-center gap-2.5 font-extrabold text-base sm:text-lg">
+                <CheckCircle2 v-if="submittedQuizDetail?.is_correct" class="w-5 h-5 text-emerald-600 shrink-0" />
+                <AlertCircle v-else class="w-5 h-5 text-rose-600 shrink-0" />
+                <span>{{ submittedQuizDetail?.is_correct ? 'Spot on! Correct answer.' : 'Not quite right!' }}</span>
+              </div>
+
+              <p v-if="submittedQuizDetail?.correct_answer_text && !submittedQuizDetail?.is_correct" class="text-sm font-bold flex items-center gap-2 pt-0.5 flex-wrap">
+                <span class="text-slate-600">Correct Answer:</span>
+                <span class="px-3 py-1 rounded-xl bg-emerald-100 text-emerald-800 border border-emerald-200 font-extrabold">
+                  {{ submittedQuizDetail.correct_answer_text }}
+                </span>
+              </p>
+
+              <p class="text-sm sm:text-base leading-relaxed opacity-95 pt-1">
+                {{ submittedQuizDetail?.explanation || 'Review the explanation and vocabulary grammar above.' }}
+              </p>
+            </div>
+
+            <!-- Action Navigation Buttons -->
+            <div class="pt-2 space-y-3">
+              <button
+                v-if="currentStudyIndex > 0"
+                type="button"
+                @click="previousQuizQuestion"
+                :disabled="isSubmittingQuiz || ctx.quizFeedbackLoading?.value"
+                class="w-full py-2.5 text-sm sm:text-base font-bold text-slate-600 hover:text-blue-600 cursor-pointer transition text-center"
+              >
+                ← Previous Question
+              </button>
+
+              <button
+                v-if="!quizChecked"
+                type="button"
+                @click="checkQuizAnswer"
+                :disabled="!canAnswerQuiz || isSubmittingQuiz || ctx.quizFeedbackLoading?.value"
+                class="btn-spring w-full py-4.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:brightness-105 active:scale-[0.99] disabled:opacity-50 text-white font-extrabold text-base sm:text-lg rounded-2xl shadow-lg shadow-blue-600/25 transition cursor-pointer flex items-center justify-center gap-2 select-none"
+              >
+                <Loader2 v-if="isSubmittingQuiz || ctx.quizFeedbackLoading?.value" class="w-5 h-5 animate-spin" />
+                <span>
+                  {{ ctx.quizFeedbackLoading?.value
+                    ? 'Checking answer…'
+                    : isSubmittingQuiz
+                      ? 'Submitting quiz...'
+                      : ctx.quizFeedbackMode?.value === 'immediate'
+                        ? 'Check Answer'
+                        : currentStudyIndex < quizQuestions.length - 1
+                          ? 'Save & Next Question →'
+                          : 'Submit Quiz 🎯' }}
+                </span>
+              </button>
+
+              <button
+                v-else
+                type="button"
+                @click="nextQuizQuestion"
+                :disabled="isSubmittingQuiz || ctx.quizFeedbackLoading?.value"
+                class="btn-spring w-full py-4.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:brightness-105 active:scale-[0.99] disabled:opacity-50 text-white font-extrabold text-base sm:text-lg rounded-2xl shadow-lg shadow-emerald-600/25 transition cursor-pointer flex items-center justify-center gap-2 select-none"
+              >
+                <Loader2 v-if="isSubmittingQuiz" class="h-5 w-5 animate-spin" />
+                <span>
+                  {{ isSubmittingQuiz
+                    ? 'Saving results…'
+                    : currentStudyIndex < quizQuestions.length - 1
+                      ? 'Next Question →'
+                      : 'Finish & View Results 🏆' }}
+                </span>
+                <ArrowRight v-if="!isSubmittingQuiz" class="w-5 h-5" />
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
       <!-- STEP 2: PRACTICE VIEW -->
       <template v-else>
         
@@ -779,7 +1100,7 @@
 
           <button
             v-if="lessonQuizzes.length"
-            @click="openLessonQuiz"
+            @click="handleSelectQuizStep"
             class="w-full sm:w-auto px-7 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base sm:text-lg rounded-2xl shadow-lg shadow-emerald-600/25 transition cursor-pointer flex items-center justify-center gap-2 shrink-0 transform active:scale-98"
           >
             <span>Step 3: Take Quiz →</span>
@@ -841,7 +1162,8 @@
 import { ref, computed, onMounted, watch, inject } from 'vue';
 import {
   Loader2, Mic, PenLine, CheckCircle2, ChevronRight, BookOpen, Search, ArrowLeft,
-  Volume2, RotateCw, ChevronLeft, BookmarkPlus, Layers, Sparkles, User, Check
+  Volume2, RotateCw, ChevronLeft, BookmarkPlus, Layers, Sparkles, User, Check,
+  XCircle, AlertCircle, RotateCcw, ArrowRight
 } from 'lucide-vue-next';
 import AnimateButton from '../components/ui/Button.vue';
 import AudioPlayer from '../components/ui/AudioPlayer.vue';
@@ -858,7 +1180,12 @@ const {
   lessonProgress, canFinishLesson, journey, startLesson, startTopic,
   beginLessonPractice, openLessonQuiz, openLessonDeck, finishLesson,
   nextLesson, leaveLesson, openLessonChat, topics, navigateTab, goBack,
-  hasHistory, speakText, openSaveWord
+  hasHistory, speakText, openSaveWord,
+  quizzesList, selectedQuizId, quizQuestions, currentQuestion, currentStudyIndex,
+  canAnswerQuiz, quizChecked, submittedQuizDetail, selectedQuizAnswer,
+  quizInputText, quizResult, onQuizChange, selectQuizAnswer, checkQuizAnswer,
+  nextQuizQuestion, previousQuizQuestion, restartQuiz, isSubmittingQuiz,
+  quizFeedbackLoading, loadQuizzesData, studyLessonId
 } = ctx;
 
 // Lesson Flashcard State & Methods (Học từ vựng trước khi luyện phát âm)
@@ -914,6 +1241,47 @@ const parseSpeakerLine = (text = '') => {
 const parseHintLine = (hint = '') => {
   if (!hint) return '';
   return hint.replace(/^[A-Za-z]+\s*:\s*/, '').trim();
+};
+
+const handleSelectQuizStep = async () => {
+  lessonStep.value = 'quiz';
+  if (!quizQuestions?.value?.length || studyLessonId?.value !== currentLesson.value?.id) {
+    await openLessonQuiz();
+  }
+};
+
+const getOptionCardClass = (ans) => {
+  if (!quizChecked?.value) {
+    return selectedQuizAnswer?.value?.id === ans.id
+      ? 'border-blue-600 bg-blue-50/70 text-blue-950 ring-2 ring-blue-500/20 shadow-sm'
+      : 'border-slate-200/90 bg-white hover:border-blue-300 hover:bg-slate-50/60 text-slate-800 hover:shadow-2xs';
+  }
+  if (submittedQuizDetail?.value?.correct_answer_id === ans.id) {
+    return 'border-emerald-500 bg-emerald-50/80 text-emerald-950 ring-2 ring-emerald-500/20 shadow-sm';
+  }
+  if (selectedQuizAnswer?.value?.id === ans.id) {
+    return submittedQuizDetail?.value?.is_correct
+      ? 'border-emerald-500 bg-emerald-50/80 text-emerald-950 font-bold ring-2 ring-emerald-500/20 shadow-sm'
+      : 'border-rose-400 bg-rose-50/80 text-rose-950 ring-2 ring-rose-400/20 shadow-sm';
+  }
+  return 'border-slate-200/60 bg-slate-50/40 text-slate-400 opacity-60';
+};
+
+const getLetterBadgeClass = (ans, aIdx) => {
+  if (!quizChecked?.value) {
+    return selectedQuizAnswer?.value?.id === ans.id
+      ? 'bg-blue-600 text-white shadow-sm'
+      : 'bg-slate-100 text-slate-700 group-hover:bg-blue-50 group-hover:text-blue-700';
+  }
+  if (submittedQuizDetail?.value?.correct_answer_id === ans.id) {
+    return 'bg-emerald-600 text-white shadow-sm';
+  }
+  if (selectedQuizAnswer?.value?.id === ans.id) {
+    return submittedQuizDetail?.value?.is_correct
+      ? 'bg-emerald-600 text-white shadow-sm'
+      : 'bg-rose-500 text-white shadow-sm';
+  }
+  return 'bg-slate-100 text-slate-400';
 };
 
 watch(
