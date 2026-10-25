@@ -1,195 +1,228 @@
 <template>
   <section v-if="activeTab === 'home'" class="home-screen pb-20">
-    <div class="w-full flex flex-col xl:flex-row gap-9 items-start">
+    <div class="w-full flex flex-col xl:flex-row gap-8 items-start">
       
-      <!-- LEFT / CENTER COLUMN: LEARNING MODES & COURSES GRID -->
-      <div class="flex-1 min-w-0 space-y-10">
+      <!-- LEFT / CENTER COLUMN: BENTO GRID PRACTICE MODES -->
+      <div class="flex-1 min-w-0 space-y-8">
         
-        <!-- Header Tiêu đề chính -->
+        <!-- Header Section -->
         <div>
-          <h1 class="text-3xl sm:text-4xl font-extrabold text-[#1f242e] tracking-tight">Practice Modes</h1>
-          <p class="text-base sm:text-lg text-[#6b7280] mt-1.5">Choose a skill to sharpen and elevate your English proficiency</p>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-bold uppercase tracking-wider mb-2">
+            <Sparkles class="w-3.5 h-3.5 text-indigo-600" />
+            <span>AI Language Studio</span>
+          </div>
+          <h1 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">Practice Modes</h1>
+          <p class="text-base text-slate-500 mt-1">Choose an intelligent module to accelerate your English speaking fluency</p>
         </div>
 
-        <!-- Modes Grid (Ô to, cao, hình to, chữ to rõ) -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-7">
+        <!-- Bento Grid Layout -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           
-          <!-- Card 1: Chat -->
-          <div
-            @click="ctx.navigateTab ? ctx.navigateTab('chat') : (activeTab = 'chat')"
-            class="card-spring group cursor-pointer flex flex-col select-none p-2 rounded-3xl"
-          >
-            <div class="relative w-full h-56 sm:h-64 rounded-3xl bg-[#ffdc69] flex items-center justify-center overflow-hidden transition-all duration-200 group-hover:shadow-lg">
-              <!-- Floating Message Bubbles -->
-              <div class="absolute top-4 left-8 sm:left-12 bg-white/95 backdrop-blur rounded-xl px-3.5 py-1.5 text-xs font-bold text-gray-700 shadow-xs flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-blue-500"></span> Hi there!
-              </div>
-              <div class="absolute top-12 right-8 sm:right-12 bg-blue-600 text-white rounded-xl px-3.5 py-1.5 text-xs font-bold shadow-xs">
-                Let's practice!
-              </div>
-
-              <!-- 3D Smartphone & Hand Graphic -->
-              <div class="relative flex flex-col items-center scale-110 sm:scale-125">
-                <div class="w-18 h-32 bg-[#f8fafc] border-4 border-slate-700 rounded-2xl shadow-xl flex flex-col items-center p-1 relative z-10 rotate-[-8deg]">
-                  <div class="w-5 h-1.5 bg-gray-400 rounded-full mb-1"></div>
-                  <div class="w-full h-3.5 bg-blue-100 rounded my-0.5"></div>
-                  <div class="w-3/4 h-3.5 bg-pink-100 rounded my-0.5 self-start"></div>
-                  <div class="w-full h-3.5 bg-blue-100 rounded my-0.5"></div>
-                  <div class="mt-auto w-5 h-5 rounded-full bg-slate-200"></div>
-                </div>
-                <div class="w-24 h-12 bg-[#e2936a] rounded-t-xl -mt-6 border-2 border-[#b56740] shadow-md z-0 rotate-[-4deg]"></div>
-              </div>
-            </div>
-            <div class="mt-4">
-              <h2 class="text-xl sm:text-2xl font-bold text-[#1e2229] mb-1.5 group-hover:text-[#2b59ff] transition-colors">Chat</h2>
-              <p class="text-sm sm:text-base text-[#64748b] leading-relaxed">Interactive speaking and messaging practice with real-life scenarios or custom topics.</p>
-            </div>
-          </div>
-
-          <!-- Card 2: Sentence Mode (Luyện phát âm) -->
+          <!-- FEATURED HERO BENTO: SPEAKING STUDIO (Spans 2 columns) -->
           <div
             v-if="isAuthenticated"
             @click="ctx.navigateTab('speaking')"
-            class="card-spring group cursor-pointer flex flex-col select-none p-2 rounded-3xl"
+            class="md:col-span-2 relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-indigo-900 text-white p-7 sm:p-8 shadow-xl border border-indigo-500/20 card-spring cursor-pointer group flex flex-col justify-between min-h-[220px]"
           >
-            <div class="relative w-full h-56 sm:h-64 rounded-3xl bg-[#f2f4f7] flex items-center justify-center overflow-hidden transition-all duration-200 group-hover:shadow-lg">
-              <!-- Character Illustration -->
-              <div class="w-48 h-48 flex items-center justify-center text-slate-400 scale-110 sm:scale-120">
-                <svg class="w-full h-full text-slate-400" fill="none" viewBox="0 0 120 120">
-                  <path d="M25 45c-2 2-2 6 0 8M20 40c-4 5-4 13 0 18M15 35c-7 8-7 21 0 28" stroke="#94a3b8" stroke-linecap="round" stroke-width="2.5"></path>
-                  <circle cx="70" cy="38" fill="#94a3b8" r="16"></circle>
-                  <rect fill="none" height="6" rx="2" stroke="#334155" stroke-width="2" width="12" x="66" y="36"></rect>
-                  <path d="M50 85c0-16 10-24 24-24s24 8 24 24v8H50v-8z" fill="#94a3b8"></path>
-                  <rect fill="#475569" height="20" rx="3" transform="rotate(-25 42 44)" width="10" x="42" y="44"></rect>
-                </svg>
+            <!-- Glowing background ambient orb -->
+            <div class="absolute -right-10 -bottom-10 w-72 h-72 rounded-full bg-indigo-500/20 blur-3xl pointer-events-none"></div>
+
+            <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div class="space-y-2 max-w-xl">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-indigo-200 text-xs font-bold uppercase tracking-wider backdrop-blur-md">
+                  <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                  <span>Featured · Speaking Lab</span>
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-black tracking-tight text-white group-hover:text-indigo-200 transition-colors">
+                  Pronunciation &amp; Speech Studio
+                </h2>
+                <p class="text-sm sm:text-base text-indigo-100/90 leading-relaxed font-normal">
+                  Phoneme-level IPA scoring with Goodness of Pronunciation (GOP) acoustic evaluation and real-time mouth-position coaching.
+                </p>
+                <div class="pt-2">
+                  <span class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white text-slate-900 font-bold text-sm shadow-md group-hover:scale-105 transition-transform">
+                    <span>Launch Speaking Studio</span>
+                    <ArrowRight class="w-4 h-4 text-indigo-600 group-hover:translate-x-1 transition-transform" />
+                  </span>
+                </div>
               </div>
-            </div>
-            <div class="mt-4">
-              <h2 class="text-xl sm:text-2xl font-bold text-[#1e2229] mb-1.5 group-hover:text-[#2b59ff] transition-colors">Speaking</h2>
-              <p class="text-sm sm:text-base text-[#64748b] leading-relaxed">Phoneme-level IPA scoring, detailed accuracy feedback, and native audio comparison.</p>
+
+              <!-- Live Soundwave Animation & Score Preview Capsule -->
+              <div class="shrink-0 flex flex-col items-center sm:items-end justify-center gap-3">
+                <div class="flex items-center gap-1.5 px-4.5 py-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 shadow-inner">
+                  <span class="sound-bar" v-for="n in 9" :key="n"></span>
+                </div>
+                <div class="flex items-center gap-2 text-xs font-mono font-bold text-indigo-200 bg-white/5 border border-white/10 px-3 py-1 rounded-xl">
+                  <span>/prəˌnʌnsiˈeɪʃn/</span>
+                  <span class="text-emerald-400 font-sans font-bold">98% IPA</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- Card 3: Word Mode (Flashcard từ vựng) -->
+          <!-- BENTO CARD 2: INTERACTIVE AI CHAT TUTOR -->
+          <div
+            @click="ctx.navigateTab ? ctx.navigateTab('chat') : (activeTab = 'chat')"
+            class="bento-card group cursor-pointer flex flex-col justify-between"
+          >
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <span class="px-3 py-1 rounded-full text-xs font-bold bg-violet-50 text-violet-700 border border-violet-100 flex items-center gap-1.5">
+                  <MessageSquare class="w-3.5 h-3.5 text-violet-600" /> AI Conversation
+                </span>
+                <span class="w-7 h-7 rounded-xl bg-violet-100/60 flex items-center justify-center text-violet-700 group-hover:scale-110 transition-transform">
+                  <ArrowRight class="w-4 h-4" />
+                </span>
+              </div>
+              <h2 class="text-xl font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                Interactive Chat Tutor
+              </h2>
+              <p class="text-sm text-slate-500 mt-1 leading-relaxed">
+                Real-time voice and text conversation with contextual phrasing tips and natural speech feedback.
+              </p>
+            </div>
+
+            <!-- Preview illustration bubble -->
+            <div class="mt-5 p-3.5 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-violet-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-xs">
+                AI
+              </div>
+              <p class="text-xs text-slate-700 italic truncate font-medium">
+                "Tell me about your plans for this weekend!"
+              </p>
+            </div>
+          </div>
+
+          <!-- BENTO CARD 3: 3D FLASHCARDS -->
           <div
             @click="openReview"
-            class="card-spring group cursor-pointer flex flex-col select-none p-2 rounded-3xl"
+            class="bento-card group cursor-pointer flex flex-col justify-between"
           >
-            <div class="relative w-full h-56 sm:h-64 rounded-3xl bg-[#f2f4f7] flex items-center justify-center overflow-hidden transition-all duration-200 group-hover:shadow-lg">
-              <!-- Cards Illustration (Apple & Book) -->
-              <div class="flex items-center justify-center gap-3 scale-110 sm:scale-120">
-                <div class="w-20 h-28 bg-white rounded-2xl shadow-md border border-gray-200 transform -rotate-12 flex flex-col items-center justify-center p-2">
-                  <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center mb-1.5">
-                    <span class="text-base">🍎</span>
-                  </div>
-                  <span class="text-xs font-bold text-gray-700">Apple</span>
-                </div>
-                <div class="w-20 h-28 bg-white rounded-2xl shadow-md border border-gray-200 transform rotate-6 flex flex-col items-center justify-center p-2">
-                  <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mb-1.5">
-                    <span class="text-base">📖</span>
-                  </div>
-                  <span class="text-xs font-bold text-gray-700">Book</span>
-                </div>
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200/80 flex items-center gap-1.5">
+                  <Layers class="w-3.5 h-3.5 text-amber-600" /> Spaced Repetition
+                </span>
+                <span class="w-7 h-7 rounded-xl bg-amber-100/60 flex items-center justify-center text-amber-700 group-hover:scale-110 transition-transform">
+                  <ArrowRight class="w-4 h-4" />
+                </span>
               </div>
+              <h2 class="text-xl font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                Vocabulary Flashcards
+              </h2>
+              <p class="text-sm text-slate-500 mt-1 leading-relaxed">
+                3D tactile flip cards with accurate IPA phonetics, contextual examples, and personal notebook bookmarks.
+              </p>
             </div>
-            <div class="mt-4">
-              <h2 class="text-xl sm:text-2xl font-bold text-[#1e2229] mb-1.5 group-hover:text-[#2b59ff] transition-colors">Flashcards</h2>
-              <p class="text-sm sm:text-base text-[#64748b] leading-relaxed">Memorize words with 3D flashcards, accurate IPA phonetics, and contextual examples.</p>
+
+            <!-- Preview cards -->
+            <div class="mt-5 p-3.5 rounded-2xl bg-amber-50/50 border border-amber-100 flex items-center justify-between">
+              <span class="text-xs font-bold text-amber-900 flex items-center gap-1.5">
+                <span>🎴</span> 3D Flip Card System
+              </span>
+              <span class="text-xs font-mono font-semibold text-amber-700 bg-white px-2 py-0.5 rounded-md border border-amber-200/60">
+                /vəˈkæbjələri/
+              </span>
             </div>
           </div>
 
-          <!-- Card 4: Writing Mode (Luyện viết) -->
+          <!-- BENTO CARD 4: WRITING ASSISTANT -->
           <div
             v-if="isAuthenticated"
             @click="ctx.navigateTab('writing')"
-            class="card-spring group cursor-pointer flex flex-col select-none p-2 rounded-3xl"
+            class="bento-card group cursor-pointer flex flex-col justify-between"
           >
-            <div class="relative w-full h-56 sm:h-64 rounded-3xl bg-[#f2f4f7] flex items-center justify-center overflow-hidden transition-all duration-200 group-hover:shadow-lg">
-              <!-- Speech Bubble & Sound Wave Graphic -->
-              <div class="relative w-44 h-32 flex items-center justify-center scale-110 sm:scale-120">
-                <div class="w-24 h-20 bg-slate-300 rounded-2xl p-3 flex flex-col justify-around absolute left-3">
-                  <div class="w-full h-2 bg-slate-400 rounded-full"></div>
-                  <div class="w-3/4 h-2 bg-slate-400 rounded-full"></div>
-                </div>
-                <div class="w-26 h-22 bg-slate-600 rounded-2xl p-3.5 shadow-lg flex items-center gap-2.5 z-10 absolute right-3">
-                  <div class="w-8 h-8 rounded-full bg-slate-300 flex items-center justify-center">
-                    <svg class="w-5 h-5 text-slate-600" fill="currentColor" viewBox="0 0 24 24">
-                      <circle cx="12" cy="8" r="4"></circle>
-                      <path d="M12 14c-4 0-7 2-7 4v1h14v-1c0-2-3-4-7-4z"></path>
-                    </svg>
-                  </div>
-                  <div class="flex flex-col gap-1.5">
-                    <div class="w-2 h-3.5 bg-white/70 rounded-full"></div>
-                    <div class="w-2 h-6 bg-white rounded-full"></div>
-                    <div class="w-2 h-2.5 bg-white/70 rounded-full"></div>
-                  </div>
-                </div>
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <span class="px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100 flex items-center gap-1.5">
+                  <PenLine class="w-3.5 h-3.5 text-indigo-600" /> Guided Writing
+                </span>
+                <span class="w-7 h-7 rounded-xl bg-indigo-100/60 flex items-center justify-center text-indigo-700 group-hover:scale-110 transition-transform">
+                  <ArrowRight class="w-4 h-4" />
+                </span>
               </div>
+              <h2 class="text-xl font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                Writing Studio
+              </h2>
+              <p class="text-sm text-slate-500 mt-1 leading-relaxed">
+                Draft essays, emails, or paragraphs. Receive instant grammar checks, CEFR rubric scoring, and rewrite suggestions.
+              </p>
             </div>
-            <div class="mt-4">
-              <h2 class="text-xl sm:text-2xl font-bold text-[#1e2229] mb-1.5 group-hover:text-[#2b59ff] transition-colors">Writing</h2>
-              <p class="text-sm sm:text-base text-[#64748b] leading-relaxed">Write essays or free-form text with detailed grammar feedback and suggestions.</p>
+
+            <!-- Preview snippet -->
+            <div class="mt-5 p-3.5 rounded-2xl bg-indigo-50/50 border border-indigo-100 flex items-center justify-between">
+              <span class="text-xs font-bold text-indigo-900 flex items-center gap-1.5">
+                <CheckCircle2 class="w-3.5 h-3.5 text-emerald-600" /> Grammar &amp; Rubric
+              </span>
+              <span class="text-xs font-bold text-indigo-700 bg-white px-2 py-0.5 rounded-md border border-indigo-200/60">
+                CEFR Scoring
+              </span>
             </div>
           </div>
 
-          <!-- Card 5: Flashcards / Quiz (Kiểm tra nhanh) -->
+          <!-- BENTO CARD 5: RETENTION QUIZ -->
           <div
             @click="openQuizMode"
-            class="card-spring group cursor-pointer flex flex-col select-none p-2 rounded-3xl"
+            class="bento-card group cursor-pointer flex flex-col justify-between"
           >
-            <div class="relative w-full h-56 sm:h-64 rounded-3xl bg-[#f2f4f7] flex items-center justify-center overflow-hidden transition-all duration-200 group-hover:shadow-lg">
-              <!-- Tablet/Flashcard Illustration with hand -->
-              <div class="relative flex items-center justify-center scale-110 sm:scale-120">
-                <div class="w-28 h-36 bg-white rounded-2xl shadow-md border border-gray-200 p-2.5 flex flex-col items-center">
-                  <div class="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center text-gray-500 mb-2.5">
-                    <svg class="w-9 h-9 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 2C8 2 6 6 6 9c0 2 1 4 2 5v4h8v-4c1-1 2-3 2-5 0-3-2-7-6-7z"></path>
-                      <rect fill="currentColor" height="4" width="2" x="11" y="18"></rect>
-                    </svg>
-                  </div>
-                  <div class="flex items-center gap-4">
-                    <div class="w-5 h-5 rounded-full border border-green-500 flex items-center justify-center text-xs text-green-500 font-bold">✓</div>
-                    <div class="w-5 h-5 rounded-full border border-red-400 flex items-center justify-center text-xs text-red-400 font-bold">✕</div>
-                  </div>
-                </div>
-                <div class="absolute bottom-[-10px] right-2 w-14 h-16 text-slate-400">
-                  <svg class="w-full h-full" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M9 11.24V7.5a2.5 2.5 0 0 1 5 0v3.74c1.21-.81 2-2.18 2-3.74a4.5 4.5 0 0 0-9 0c0 1.56.79 2.93 2 3.74zM16 13h-1v-2a1 1 0 0 0-2 0v2h-2v-4a1 1 0 0 0-2 0v5.5L7.4 13.1a1 1 0 0 0-1.4.1l-.7.7 4.2 4.2c.4.4.9.6 1.4.6h6.1c1.1 0 2-.9 2-2V15c0-1.1-.9-2-2-2z"></path>
-                  </svg>
-                </div>
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-100 flex items-center gap-1.5">
+                  <CheckCircle2 class="w-3.5 h-3.5 text-emerald-600" /> Retention Check
+                </span>
+                <span class="w-7 h-7 rounded-xl bg-emerald-100/60 flex items-center justify-center text-emerald-700 group-hover:scale-110 transition-transform">
+                  <ArrowRight class="w-4 h-4" />
+                </span>
               </div>
+              <h2 class="text-xl font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                Knowledge Quiz
+              </h2>
+              <p class="text-sm text-slate-500 mt-1 leading-relaxed">
+                Test vocabulary and grammar comprehension with immediate or end-of-test answer explanations.
+              </p>
             </div>
-            <div class="mt-4">
-              <h2 class="text-xl sm:text-2xl font-bold text-[#1e2229] mb-1.5 group-hover:text-[#2b59ff] transition-colors">Quiz</h2>
-              <p class="text-sm sm:text-base text-[#64748b] leading-relaxed">Assess lesson retention, test grammar comprehension, or create custom topic quizzes.</p>
+
+            <!-- Preview item -->
+            <div class="mt-5 p-3.5 rounded-2xl bg-emerald-50/50 border border-emerald-100 flex items-center justify-between">
+              <span class="text-xs font-bold text-emerald-900 flex items-center gap-1.5">
+                <span>🎯</span> Multiple Choice &amp; Fill
+              </span>
+              <span class="text-xs font-bold text-emerald-700 bg-white px-2 py-0.5 rounded-md border border-emerald-200/60">
+                100% Retain
+              </span>
             </div>
           </div>
 
-          <!-- Card 6: Dictionary Mode (Tra cứu từ điển) -->
+          <!-- BENTO CARD 6: SMART DICTIONARY -->
           <div
             @click="ctx.navigateTab ? ctx.navigateTab('dictionary') : (activeTab = 'dictionary')"
-            class="card-spring group cursor-pointer flex flex-col select-none p-2 rounded-3xl"
+            class="bento-card group cursor-pointer flex flex-col justify-between"
           >
-            <div class="relative w-full h-56 sm:h-64 rounded-3xl bg-[#f2f4f7] flex items-center justify-center overflow-hidden transition-all duration-200 group-hover:shadow-lg">
-              <!-- Dictionary Graphic -->
-              <div class="relative flex flex-col items-center scale-110 sm:scale-120">
-                <div class="w-28 h-36 bg-white rounded-2xl shadow-md border border-gray-200 p-3 flex flex-col justify-between">
-                  <div class="flex items-center justify-between">
-                    <span class="text-xl">📖</span>
-                    <span class="text-[10px] font-bold bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">IPA</span>
-                  </div>
-                  <div class="space-y-1.5">
-                    <div class="w-full h-2.5 bg-slate-200 rounded"></div>
-                    <div class="w-3/4 h-2 bg-slate-100 rounded"></div>
-                    <div class="w-5/6 h-2 bg-blue-100 rounded"></div>
-                  </div>
-                  <div class="text-[11px] font-bold text-slate-700 border-t border-slate-100 pt-1">A-Z Vocab</div>
-                </div>
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <span class="px-3 py-1 rounded-full text-xs font-bold bg-sky-50 text-sky-700 border border-sky-100 flex items-center gap-1.5">
+                  <BookA class="w-3.5 h-3.5 text-sky-600" /> Instant Lookup
+                </span>
+                <span class="w-7 h-7 rounded-xl bg-sky-100/60 flex items-center justify-center text-sky-700 group-hover:scale-110 transition-transform">
+                  <ArrowRight class="w-4 h-4" />
+                </span>
               </div>
+              <h2 class="text-xl font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                Smart IPA Dictionary
+              </h2>
+              <p class="text-sm text-slate-500 mt-1 leading-relaxed">
+                Instant vocabulary search with native audio pronunciation, contextual definitions, and one-tap flashcard saving.
+              </p>
             </div>
-            <div class="mt-4">
-              <h2 class="text-xl sm:text-2xl font-bold text-[#1e2229] mb-1.5 group-hover:text-[#2b59ff] transition-colors">Dictionary</h2>
-              <p class="text-sm sm:text-base text-[#64748b] leading-relaxed">Instant word lookup, IPA pronunciation, contextual definitions, and practical examples.</p>
+
+            <!-- Preview item -->
+            <div class="mt-5 p-3.5 rounded-2xl bg-sky-50/50 border border-sky-100 flex items-center justify-between">
+              <span class="text-xs font-bold text-sky-900 flex items-center gap-1.5">
+                <Volume2 class="w-3.5 h-3.5 text-sky-600" /> Native Audio IPA
+              </span>
+              <span class="text-xs font-bold text-sky-700 bg-white px-2 py-0.5 rounded-md border border-sky-200/60">
+                3,000+ Words
+              </span>
             </div>
           </div>
 
@@ -198,80 +231,95 @@
       </div>
 
       <!-- RIGHT COLUMN: STATS & PROGRESS RAIL (xl:w-[380px] shrink-0) -->
-      <div class="w-full xl:w-[380px] shrink-0 space-y-5 xl:sticky xl:top-6">
+      <div class="w-full xl:w-[380px] shrink-0 space-y-6 xl:sticky xl:top-6">
         
-        <!-- 1. Next Lesson Goal Card (Dùng banner gradient nhẹ) -->
-        <div class="bg-gradient-to-br from-[#2b59ff] to-[#1d4ed8] rounded-3xl p-7 text-white shadow-md shadow-blue-500/20 space-y-4">
-          <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-bold text-white">
-            <BookOpen class="w-4 h-4" />
-            <span>Next Goal</span>
+        <!-- 1. Next Lesson Goal Card (Sleek Gradient Banner) -->
+        <div class="bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 rounded-3xl p-7 text-white shadow-xl shadow-indigo-600/20 space-y-4 relative overflow-hidden">
+          <div class="absolute -right-8 -top-8 w-40 h-40 rounded-full bg-white/10 blur-2xl pointer-events-none"></div>
+
+          <div class="inline-flex items-center gap-2 bg-white/15 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-bold text-white border border-white/20">
+            <BookOpen class="w-3.5 h-3.5" />
+            <span>Next Milestone</span>
           </div>
 
           <div>
-            <h2 class="text-xl sm:text-2xl font-bold leading-tight">
+            <h2 class="text-xl sm:text-2xl font-black leading-tight text-white">
               {{ journey.state.value.resume ? 'Continue Lesson' : "Start Today's Lesson" }}
             </h2>
-            <p class="text-sm text-white/90 leading-relaxed mt-1.5 font-medium">
+            <p class="text-sm text-indigo-100 leading-relaxed mt-1.5 font-medium">
               {{ nextTopicTitle }}
             </p>
           </div>
 
-          <AnimateButton
-            variant="glass"
-            size="lg"
+          <button
             @click="continueLearning"
             :disabled="journey.loading.value || homeLoading"
-            class="w-full bg-white hover:bg-slate-50 text-[#1e2026] text-sm font-bold shadow-sm"
+            class="btn-spring w-full bg-white hover:bg-slate-50 transition-colors text-slate-900 text-sm font-extrabold py-3.5 px-6 rounded-2xl shadow-md cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
           >
-            {{ journey.state.value.resume ? 'Continue Now' : 'Start Learning' }}
-          </AnimateButton>
+            <span>{{ journey.state.value.resume ? 'Continue Lesson' : 'Start Learning' }}</span>
+            <ArrowRight class="w-4 h-4 text-indigo-600" />
+          </button>
         </div>
 
         <!-- 2. Level Status Card -->
-        <div class="bg-white rounded-3xl p-7 border border-gray-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-3.5">
-          <h3 class="text-xl font-bold text-[#1e2026]">
-            Level: {{ levelLabels[userProfile?.target_level] || userProfile?.target_level || 'Beginner' }}
-          </h3>
-          <p class="text-xs sm:text-sm text-gray-500 font-medium">
-            Target level: {{ userProfile?.target_level || 'Beginner' }}
+        <div class="bg-white/90 backdrop-blur-xl rounded-3xl p-6 sm:p-7 border border-slate-200/80 shadow-xs space-y-3.5">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-bold text-slate-900">
+              Proficiency Level
+            </h3>
+            <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">
+              {{ levelLabels[userProfile?.target_level] || userProfile?.target_level || 'Beginner' }}
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 font-medium">
+            Target CEFR: {{ userProfile?.target_level || 'Beginner' }}
           </p>
 
           <!-- Progress Track -->
-          <div class="bg-[#f0f4ff] rounded-2xl py-4 px-6 flex items-center gap-4">
-            <span class="text-base font-bold text-[#2d68ff]">Lv.1</span>
-            <div class="flex-1 bg-blue-100/70 h-3 rounded-full overflow-hidden relative">
+          <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-2">
+            <div class="flex justify-between text-xs font-bold text-slate-600">
+              <span>Progress to next level</span>
+              <span class="text-indigo-600">{{ userLevelPercent }}%</span>
+            </div>
+            <div class="w-full bg-slate-200/70 h-2.5 rounded-full overflow-hidden">
               <div
-                class="bg-[#2d68ff] h-full rounded-full transition-all duration-300"
+                class="bg-gradient-to-r from-indigo-600 to-violet-600 h-full rounded-full transition-all duration-500"
                 :style="{ width: userLevelPercent + '%' }"
               ></div>
             </div>
-            <span class="text-base font-bold text-blue-300">Lv.3</span>
           </div>
         </div>
 
-        <!-- 3. Streak Tracker Cards -->
-        <div class="bg-white rounded-3xl p-7 border border-gray-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-6">
-          <!-- Ongoing streak -->
-          <div class="flex items-center justify-between">
-            <span class="text-base sm:text-lg font-bold text-[#1e2026]">Daily Streak</span>
-            <span class="bg-[#2036cc] text-white text-xs sm:text-sm font-bold px-4.5 py-2 rounded-full min-w-[80px] text-center shadow-xs">
-              <AnimateCountingNumber :number="dashboard?.streak || 0" /> days
-            </span>
+        <!-- 3. Streak & Practice Counters -->
+        <div class="grid grid-cols-2 gap-4">
+          <!-- Daily Streak -->
+          <div class="bg-white/90 backdrop-blur-xl rounded-3xl p-5 border border-slate-200/80 shadow-xs space-y-1">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Streak</span>
+            <p class="text-2xl font-black text-slate-900 flex items-center gap-1.5">
+              <span>🔥</span>
+              <AnimateCountingNumber :number="dashboard?.streak || 0" />
+            </p>
+            <p class="text-xs text-slate-500 font-medium">Days active</p>
           </div>
 
           <!-- Total Practice Count -->
-          <div class="flex items-center justify-between pt-2 border-t border-gray-100">
-            <span class="text-base sm:text-lg font-bold text-[#1e2026]">Practice Sessions</span>
-            <span class="bg-[#eef2f9] text-[#2d68ff] text-xs sm:text-sm font-bold px-4.5 py-2 rounded-full min-w-[80px] text-center border border-blue-100">
-              <AnimateCountingNumber :number="totalPracticeCount || 0" /> sessions
-            </span>
+          <div class="bg-white/90 backdrop-blur-xl rounded-3xl p-5 border border-slate-200/80 shadow-xs space-y-1">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Sessions</span>
+            <p class="text-2xl font-black text-indigo-600 flex items-center gap-1.5">
+              <span>⚡</span>
+              <AnimateCountingNumber :number="totalPracticeCount || 0" />
+            </p>
+            <p class="text-xs text-slate-500 font-medium">Completed</p>
           </div>
         </div>
 
-        <!-- 4. Daily Feedback Card -->
-        <div class="bg-white rounded-3xl p-7 border border-gray-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-2">
-          <h3 class="text-lg font-bold text-[#1e2026]">Daily Practice Tip</h3>
-          <p class="text-sm text-gray-600 font-medium leading-relaxed">
+        <!-- 4. Daily Practice Tip -->
+        <div class="bg-white/90 backdrop-blur-xl rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-2">
+          <div class="flex items-center gap-2 text-indigo-900 font-bold text-sm">
+            <span class="w-7 h-7 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-amber-500 text-sm">💡</span>
+            <span>Daily Practice Tip</span>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">
             Practicing pronunciation for 10–15 minutes daily with IPA feedback helps your brain build natural speaking reflexes 3x faster.
           </p>
         </div>
@@ -284,7 +332,10 @@
 
 <script setup>
 import { computed, inject } from 'vue';
-import { BookOpen } from 'lucide-vue-next';
+import {
+  BookOpen, Sparkles, ArrowRight, MessageSquare, Layers,
+  PenLine, CheckCircle2, BookA, Volume2
+} from 'lucide-vue-next';
 import AnimateButton from '../components/ui/Button.vue';
 import AnimateCard from '../components/ui/Card.vue';
 import AnimateBadge from '../components/ui/Badge.vue';

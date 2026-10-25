@@ -42,7 +42,7 @@
 
           <!-- Quick Progress Widget -->
           <div class="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-2xs flex items-center gap-5 shrink-0 min-w-[280px]">
-            <div class="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 text-2xl font-black shrink-0">
+            <div class="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-indigo-600 text-2xl font-black shrink-0">
               {{ overallStats.percent }}%
             </div>
             <div class="flex-1 min-w-0">
@@ -69,7 +69,7 @@
               v-for="lvl in levelTabs"
               :key="lvl.id"
               @click="selectedLevel = lvl.id"
-              :class="selectedLevel === lvl.id ? 'bg-white text-blue-600 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900 font-semibold'"
+              :class="selectedLevel === lvl.id ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/20' : 'text-slate-600 hover:text-slate-900 font-semibold'"
               class="px-4 py-2 rounded-xl text-sm transition cursor-pointer shrink-0"
             >
               {{ lvl.label }}
@@ -98,7 +98,7 @@
 
       <!-- Loading State -->
       <div v-if="catalogLoading || lessonLoading" class="py-16 text-center text-slate-500 bg-white rounded-3xl border border-slate-100 shadow-2xs">
-        <Loader2 class="mx-auto mb-3 h-8 w-8 animate-spin text-blue-600" />
+        <Loader2 class="mx-auto mb-3 h-8 w-8 animate-spin text-indigo-600" />
         <span class="text-base font-semibold">Loading lessons and curriculum…</span>
       </div>
 
@@ -191,7 +191,7 @@
                   <!-- Lesson Number Badge -->
                   <div
                     class="w-11 h-11 rounded-2xl flex items-center justify-center font-extrabold text-sm shrink-0 transition-colors shadow-2xs"
-                    :class="journey.lesson(lesson.id).completed ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-white text-slate-700 border border-slate-200 group-hover/item:border-blue-300 group-hover/item:text-blue-600'"
+                    :class="journey.lesson(lesson.id).completed ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-white text-slate-700 border border-slate-200 group-hover/item:border-blue-300 group-hover/item:text-indigo-600'"
                   >
                     <CheckCircle2 v-if="journey.lesson(lesson.id).completed" class="w-5 h-5 text-emerald-600" />
                     <span v-else>L{{ idx + 1 }}</span>
@@ -205,7 +205,7 @@
                       </span>
                     </div>
 
-                    <h4 class="text-base sm:text-lg font-bold text-slate-900 group-hover/item:text-blue-600 transition truncate">
+                    <h4 class="text-base sm:text-lg font-bold text-slate-900 group-hover/item:text-indigo-600 transition truncate">
                       Lesson {{ idx + 1 }}: {{ lesson.title }}
                     </h4>
                   </div>
@@ -297,7 +297,7 @@
           v-if="lessonCards?.length"
           @click="lessonStep = 'vocabulary'"
           class="flex-1 min-w-[140px] rounded-2xl py-3.5 px-4 cursor-pointer transition shadow-2xs flex items-center justify-center text-center"
-          :class="lessonStep === 'vocabulary' ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'"
+          :class="lessonStep === 'vocabulary' ? 'bg-blue-600 text-white shadow-md shadow-indigo-600/20' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'"
         >
           <span>1. Vocabulary</span>
         </button>
@@ -305,7 +305,7 @@
         <button
           @click="lessonStep = 'practice'"
           class="flex-1 min-w-[130px] rounded-2xl py-3.5 px-4 cursor-pointer transition shadow-2xs flex items-center justify-center text-center"
-          :class="lessonStep === 'practice' ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'"
+          :class="lessonStep === 'practice' ? 'bg-blue-600 text-white shadow-md shadow-indigo-600/20' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'"
         >
           <span>{{ lessonCards?.length ? '2.' : '1.' }} Practice</span>
         </button>
@@ -314,7 +314,7 @@
           @click="openLessonQuiz"
           :disabled="!lessonQuizzes.length"
           class="flex-1 min-w-[120px] rounded-2xl py-3.5 px-4 disabled:opacity-40 cursor-pointer transition shadow-2xs flex items-center justify-center text-center"
-          :class="lessonStep === 'quiz' ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'"
+          :class="lessonStep === 'quiz' ? 'bg-blue-600 text-white shadow-md shadow-indigo-600/20' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'"
         >
           <span>{{ lessonCards?.length ? '3.' : '2.' }} Quiz</span>
         </button>
@@ -322,7 +322,7 @@
         <button
           @click="lessonStep = 'summary'"
           class="flex-1 min-w-[120px] rounded-2xl py-3.5 px-4 cursor-pointer transition shadow-2xs flex items-center justify-center text-center"
-          :class="lessonStep === 'summary' ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'"
+          :class="lessonStep === 'summary' ? 'bg-blue-600 text-white shadow-md shadow-indigo-600/20' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'"
         >
           <span>{{ lessonCards?.length ? '4.' : '3.' }} Summary</span>
         </button>
@@ -354,7 +354,7 @@
 
           <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200">
             <span class="text-xs font-bold text-slate-500 uppercase tracking-wide">Practice Score</span>
-            <p class="text-2xl font-black text-blue-600 mt-1">
+            <p class="text-2xl font-black text-indigo-600 mt-1">
               {{ lessonProgress?.writing_score !== null && lessonProgress?.writing_score !== undefined ? `${lessonProgress.writing_score}/100` : '—' }}
             </p>
           </div>
@@ -395,7 +395,7 @@
 
           <button
             @click="beginLessonPractice"
-            class="w-full py-3 text-base font-bold text-blue-600 hover:underline cursor-pointer"
+            class="w-full py-3 text-base font-bold text-indigo-600 hover:underline cursor-pointer"
           >
             Review this lesson
           </button>
@@ -455,7 +455,7 @@
                     </button>
                     <button
                       @click.stop="speakText(currentCard.word)"
-                      class="w-10 h-10 rounded-full bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white border border-blue-200 flex items-center justify-center cursor-pointer transition shadow-2xs group/btn"
+                      class="w-10 h-10 rounded-full bg-blue-50 hover:bg-blue-600 text-indigo-600 hover:text-white border border-blue-200 flex items-center justify-center cursor-pointer transition shadow-2xs group/btn"
                       title="Listen to pronunciation"
                     >
                       <Volume2 class="w-5 h-5 group-hover/btn:scale-110 transition-transform" />
@@ -490,7 +490,7 @@
                   </span>
                   <button
                     @click.stop="speakText(currentCard.word)"
-                    class="w-10 h-10 rounded-full bg-white hover:bg-blue-50 text-slate-700 hover:text-blue-600 border border-slate-200 flex items-center justify-center cursor-pointer transition shadow-2xs"
+                    class="w-10 h-10 rounded-full bg-white hover:bg-blue-50 text-slate-700 hover:text-indigo-600 border border-slate-200 flex items-center justify-center cursor-pointer transition shadow-2xs"
                     title="Listen again"
                   >
                     <Volume2 class="w-5 h-5" />
@@ -570,12 +570,12 @@
               :class="activeCardIndex === cIdx ? 'border-blue-500 ring-2 ring-blue-500/20 shadow-md' : 'border-slate-200/90 hover:border-blue-300 hover:shadow-2xs'"
             >
               <div class="flex items-start justify-between gap-2">
-                <span class="font-extrabold text-base sm:text-lg text-slate-900 group-hover:text-blue-600 transition-colors">
+                <span class="font-extrabold text-base sm:text-lg text-slate-900 group-hover:text-indigo-600 transition-colors">
                   {{ card.word }}
                 </span>
                 <button
                   @click.stop="speakText(card.word)"
-                  class="p-1.5 rounded-full hover:bg-blue-50 text-slate-400 hover:text-blue-600 transition shrink-0 cursor-pointer"
+                  class="p-1.5 rounded-full hover:bg-blue-50 text-slate-400 hover:text-indigo-600 transition shrink-0 cursor-pointer"
                   title="Listen to pronunciation"
                 >
                   <Volume2 class="w-4 h-4" />
@@ -603,7 +603,7 @@
           </div>
           <button
             @click="lessonStep = 'practice'"
-            class="w-full sm:w-auto px-7 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-base sm:text-lg rounded-2xl shadow-lg shadow-blue-600/25 transition cursor-pointer flex items-center justify-center gap-2 shrink-0 transform active:scale-98"
+            class="w-full sm:w-auto px-7 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-base sm:text-lg rounded-2xl shadow-lg shadow-blue-600/25 transition cursor-pointer flex items-center justify-center gap-2 shrink-0 transform active:scale-98"
           >
             <span>Step 2: Practice →</span>
           </button>
@@ -626,7 +626,7 @@
           </p>
           <div class="flex flex-wrap items-center justify-between gap-2 pt-1 text-sm font-bold text-blue-700">
             <span>{{ currentLesson.type === 'SPEAKING' ? `${lessonDetail?.contents?.length || 0} practice sentences` : 'Practice writing and get instant feedback' }}</span>
-            <span v-if="currentLesson.type === 'SPEAKING'" class="text-xs sm:text-sm font-semibold text-blue-600 bg-white/90 px-3 py-1 rounded-full border border-blue-200 shadow-2xs">
+            <span v-if="currentLesson.type === 'SPEAKING'" class="text-xs sm:text-sm font-semibold text-indigo-600 bg-white/90 px-3 py-1 rounded-full border border-blue-200 shadow-2xs">
               👉 Tip: Click on any sentence to practice it directly
             </span>
           </div>
@@ -702,7 +702,7 @@
         <button
           @click="beginLessonPractice"
           :disabled="currentLesson.type === 'SPEAKING' && !lessonDetail?.contents?.length"
-          class="w-full rounded-2xl bg-blue-600 hover:bg-blue-700 p-5 text-lg font-bold text-white shadow-lg shadow-blue-600/25 disabled:opacity-40 cursor-pointer transition transform active:scale-[0.99] flex items-center justify-center gap-3"
+          class="w-full rounded-2xl bg-indigo-600 hover:bg-indigo-700 p-5 text-lg font-bold text-white shadow-lg shadow-blue-600/25 disabled:opacity-40 cursor-pointer transition transform active:scale-[0.99] flex items-center justify-center gap-3"
         >
           <Mic v-if="currentLesson.type === 'SPEAKING'" class="w-6 h-6" />
           <PenLine v-else class="w-6 h-6" />
@@ -754,8 +754,8 @@
               @click="openLessonQuiz"
               class="flex flex-col items-start p-4 rounded-2xl border border-slate-200 hover:border-blue-400 hover:bg-blue-50/40 text-left transition cursor-pointer group"
             >
-              <span class="text-xs font-bold text-blue-600">Quiz</span>
-              <span class="font-bold text-slate-800 group-hover:text-blue-600 mt-1">Reinforcement Quiz ({{ lessonQuizzes.length }})</span>
+              <span class="text-xs font-bold text-indigo-600">Quiz</span>
+              <span class="font-bold text-slate-800 group-hover:text-indigo-600 mt-1">Reinforcement Quiz ({{ lessonQuizzes.length }})</span>
             </button>
 
             <button
@@ -765,7 +765,7 @@
               class="flex flex-col items-start p-4 rounded-2xl border border-slate-200 hover:border-blue-400 hover:bg-blue-50/40 text-left transition cursor-pointer group"
             >
               <span class="text-xs font-bold text-purple-600">Flashcards</span>
-              <span class="font-bold text-slate-800 group-hover:text-blue-600 mt-1">{{ deck.title }}</span>
+              <span class="font-bold text-slate-800 group-hover:text-indigo-600 mt-1">{{ deck.title }}</span>
             </button>
 
             <button
@@ -773,7 +773,7 @@
               class="flex flex-col items-start p-4 rounded-2xl border border-slate-200 hover:border-blue-400 hover:bg-blue-50/40 text-left transition cursor-pointer group"
             >
               <span class="text-xs font-bold text-emerald-600">Roleplay</span>
-              <span class="font-bold text-slate-800 group-hover:text-blue-600 mt-1">Topic-based Conversation</span>
+              <span class="font-bold text-slate-800 group-hover:text-indigo-600 mt-1">Topic-based Conversation</span>
             </button>
           </div>
         </div>

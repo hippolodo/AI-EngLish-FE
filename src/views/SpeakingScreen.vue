@@ -414,7 +414,7 @@
                 :disabled="isAnalyzingSpeaking"
                 :aria-label="isAnalyzingSpeaking ? 'Analyzing speech' : isRecording ? 'Stop recording & evaluate' : 'Start recording'"
                 :title="isRecording ? 'Stop recording & evaluate' : 'Start recording'"
-                :class="isRecording ? 'bg-gradient-to-tr from-rose-600 to-red-500 text-white shadow-rose-500/40 ring-4 ring-rose-200' : 'bg-gradient-to-tr from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-blue-600/30 ring-4 ring-blue-100'"
+                :class="isRecording ? 'bg-gradient-to-tr from-rose-600 to-red-500 text-white shadow-rose-500/40 ring-4 ring-rose-200' : 'bg-gradient-to-tr from-indigo-600 via-indigo-700 to-violet-700 hover:from-indigo-700 hover:to-violet-800 text-white shadow-xl shadow-indigo-600/35 ring-4 ring-indigo-100'"
                 class="btn-spring relative z-10 w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center shadow-xl cursor-pointer disabled:opacity-50"
               >
                 <Square v-if="isRecording" class="w-9 h-9 fill-current" />

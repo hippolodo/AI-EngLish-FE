@@ -49,7 +49,7 @@
     </div>
 
     <!-- Big Search Bar & Controls -->
-    <div class="bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-6 shadow-xs space-y-4">
+    <div class="glass-panel rounded-3xl p-6 sm:p-7 shadow-[0_12px_40px_rgba(0,0,0,0.04)] space-y-4">
       <form @submit.prevent="onFormSubmit" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
         <div class="relative flex-1" ref="searchContainerRef">
           <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -57,7 +57,7 @@
             v-model="searchQuery"
             type="text"
             placeholder="Enter an English word or phrase (e.g. resilient, fluency, inspire...)"
-            class="w-full pl-12 pr-10 py-3.5 sm:py-4 rounded-2xl border border-slate-200 bg-slate-50/70 text-base sm:text-lg text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition shadow-2xs"
+            class="w-full pl-12 pr-10 py-3.5 sm:py-4 rounded-2xl border border-slate-200 bg-slate-50/70 text-base sm:text-lg text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition shadow-2xs"
             @input="onSearchInput"
             @focus="onInputFocus"
             @keydown.down.prevent="onKeyDown"

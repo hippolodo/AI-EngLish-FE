@@ -2,20 +2,24 @@
   <div v-if="activeTab === 'flashcard'" class="space-y-6 pb-28 w-full max-w-6xl mx-auto">
     <!-- Top Back Button (Only visible when navigated from a lesson or another screen) -->
     <div v-if="hasHistory">
-      <button
+      <AnimateButton
+        variant="outline"
+        size="sm"
         @click="goBack"
-        class="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl border border-slate-200 bg-white text-slate-700 font-bold text-sm hover:bg-slate-50 hover:text-blue-600 transition shadow-2xs cursor-pointer group"
+        class="group"
       >
-        <ArrowLeft class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+        <template #prefix>
+          <ArrowLeft class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+        </template>
         <span>{{ ctx.currentLesson?.value ? 'Back to Lesson' : 'Back' }}</span>
-      </button>
+      </AnimateButton>
     </div>
 
     <!-- Header & Flow Progress -->
     <div class="space-y-3">
       <div class="flex items-center justify-between">
         <div>
-          <span class="text-xs uppercase tracking-wide font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md">Vocabulary Deck</span>
+          <span class="text-xs uppercase tracking-wide font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-3 py-1 rounded-full">Vocabulary Deck</span>
           <h1 class="text-gray-900 mt-1.5 text-2xl sm:text-3xl font-extrabold leading-snug">Vocabulary Flashcards</h1>
         </div>
         <span v-if="flashcards?.length > 0" class="text-sm sm:text-base font-bold text-gray-700 bg-white border border-gray-200 px-4 py-1.5 rounded-full shadow-2xs">
@@ -77,7 +81,7 @@
           :disabled="studyLoading || isSavingCardNote"
           :aria-pressed="ctx.flashcardMode?.value === mode.id"
           class="rounded-2xl border px-4 py-3 font-bold transition disabled:opacity-50 cursor-pointer text-sm sm:text-base"
-          :class="ctx.flashcardMode?.value === mode.id ? 'border-blue-600 bg-blue-600 text-white shadow-xs' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'"
+          :class="ctx.flashcardMode?.value === mode.id ? 'border-indigo-600 bg-indigo-600 text-white shadow-md shadow-indigo-600/20' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'"
         >
           {{ mode.title }}
         </button>
@@ -114,7 +118,7 @@
       <Layers class="w-12 h-12 text-blue-300 mx-auto" />
       <h3 class="text-lg font-bold text-gray-800">{{ ctx.flashcardMode?.value === 'noted' ? NO_NOTES : NO_CARDS }}</h3>
       <p class="text-sm sm:text-base text-gray-500 max-w-sm mx-auto leading-relaxed">{{ ctx.flashcardMode?.value === 'noted' ? EMPTY_NOTES_HELP : EMPTY_CARDS_HELP }}</p>
-      <button v-if="ctx.flashcardMode?.value === 'noted'" @click="ctx.setFlashcardMode('all')" class="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-bold">View all cards</button>
+      <button v-if="ctx.flashcardMode?.value === 'noted'" @click="ctx.setFlashcardMode('all')" class="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-bold">View all cards</button>
       <button @click="loadFlashcardsData" class="px-5 py-2.5 bg-blue-50 text-blue-600 rounded-xl text-sm sm:text-base font-bold hover:bg-blue-100 cursor-pointer">
         Reload Deck
       </button>
@@ -144,9 +148,15 @@
                   <span>Bookmarked</span>
                 </span>
               </div>
-              <button @click.stop="speakText(currentCard?.word)" aria-label="Listen to pronunciation" class="w-10 h-10 rounded-full bg-gray-100 hover:bg-blue-50 text-gray-600 hover:text-blue-600 flex items-center justify-center cursor-pointer transition">
+              <AnimateButton
+                variant="secondary"
+                size="icon"
+                @click.stop="speakText(currentCard?.word)"
+                aria-label="Listen to pronunciation"
+                class="rounded-full bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 border border-slate-200/60"
+              >
                 <Volume2 class="w-5 h-5" />
-              </button>
+              </AnimateButton>
             </div>
             <div class="space-y-3">
               <h2 class="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">{{ currentCard?.word }}</h2>
@@ -190,37 +200,43 @@
       <div class="space-y-3 pt-1">
         <div class="grid grid-cols-3 gap-3">
           <!-- Prev Button -->
-          <button
+          <AnimateButton
+            variant="outline"
+            size="lg"
             :disabled="isSavingCardNote || currentStudyIndex <= 0"
             @click="ctx.prevFlashcard"
-            class="py-3.5 px-4 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-white text-gray-700 font-bold text-sm sm:text-base rounded-2xl border border-gray-200 shadow-2xs transition flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
           >
-            <ChevronLeft class="w-5 h-5" />
+            <template #prefix><ChevronLeft class="w-5 h-5" /></template>
             <span>Previous</span>
-          </button>
+          </AnimateButton>
 
           <!-- Note/Tick Button -->
-          <button
+          <AnimateButton
             v-if="currentCard"
+            :variant="currentCard.is_noted ? 'secondary' : 'outline'"
+            size="lg"
             :disabled="isSavingCardNote"
             @click="ctx.toggleCardNote(currentCard)"
-            class="py-3.5 px-4 rounded-2xl border font-bold text-sm sm:text-base shadow-2xs transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-            :class="currentCard.is_noted ? 'bg-amber-50 border-amber-300 text-amber-900 hover:bg-amber-100' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'"
+            :class="currentCard.is_noted ? 'bg-amber-50 border-amber-300 text-amber-900 hover:bg-amber-100 shadow-amber-500/10' : ''"
           >
-            <Check v-if="currentCard.is_noted" class="w-5 h-5 text-amber-600" />
+            <template #prefix>
+              <Check v-if="currentCard.is_noted" class="w-5 h-5 text-amber-600" />
+              <Bookmark v-else class="w-4.5 h-4.5 text-slate-400" />
+            </template>
             <span>{{ isSavingCardNote ? SAVING_NOTE : currentCard.is_noted ? 'Bookmarked' : 'Bookmark Card' }}</span>
-          </button>
+          </AnimateButton>
           <div v-else></div>
 
           <!-- Next Button -->
-          <button
+          <AnimateButton
+            variant="gradient"
+            size="lg"
             :disabled="isSavingCardNote || currentStudyIndex >= (flashcards?.length || 0) - 1"
             @click="ctx.nextFlashcard"
-            class="py-3.5 px-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:hover:bg-blue-600 text-white font-bold text-sm sm:text-base rounded-2xl shadow-md shadow-blue-600/20 transition flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
           >
             <span>Next</span>
-            <ChevronRight class="w-5 h-5" />
-          </button>
+            <template #suffix><ChevronRight class="w-5 h-5" /></template>
+          </AnimateButton>
         </div>
 
         <p class="text-sm text-slate-600">Bookmark cards to review them anytime in Bookmarked Cards. Unbookmark to remove.</p>
@@ -254,7 +270,11 @@
 </template>
 
 <script setup>
-import { ArrowLeft, Check, ChevronLeft, ChevronRight, Layers, Loader2, RotateCw, Volume2, X } from 'lucide-vue-next';
+import { ArrowLeft, Check, ChevronLeft, ChevronRight, Layers, Loader2, RotateCw, Volume2, X, Bookmark, Sparkles } from 'lucide-vue-next';
+import AnimateButton from '../components/ui/Button.vue';
+import AnimateCard from '../components/ui/Card.vue';
+import AnimateBadge from '../components/ui/Badge.vue';
+import AnimateCountingNumber from '../components/ui/CountingNumber.vue';
 import { inject } from 'vue';
 
 const ctx = inject('screenContext');

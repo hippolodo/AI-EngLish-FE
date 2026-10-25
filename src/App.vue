@@ -17,72 +17,80 @@
     <aside class="hidden lg:flex w-72 xl:w-80 border-r border-gray-100 flex-col justify-between py-7 px-5 bg-white select-none shrink-0 min-h-screen sticky top-0 h-screen z-30">
       <div class="flex flex-col">
         <!-- Logo -->
-        <div class="px-3 mb-8 flex items-center justify-between cursor-pointer" @click="navigateSidebar('home')">
-          <div class="flex items-center gap-3.5">
-            <svg class="w-9 h-9 text-[#2e5bff] shrink-0" fill="none" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 6L20 18L12 30" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="4.5"></path>
-              <path d="M20 10L26 18L20 26" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="4.5"></path>
-            </svg>
-            <span class="text-2xl font-bold tracking-tight text-[#1f242e]">LingoUp</span>
+        <div class="px-2 mb-8 flex items-center justify-between cursor-pointer" @click="navigateSidebar('home')">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-700 to-violet-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/25">
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 6L20 18L12 30" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"></path>
+                <path d="M20 10L26 18L20 26" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"></path>
+              </svg>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="text-xl font-black tracking-tight text-slate-900">LingoUp</span>
+              <span class="px-1.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider rounded-md bg-indigo-50 text-indigo-600 border border-indigo-100">AI</span>
+            </div>
           </div>
 
           <!-- Streak Badge in Desktop Sidebar -->
-          <div v-if="dashboard?.streak !== undefined" class="flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-200/80 rounded-full text-xs font-bold text-amber-800 shadow-2xs" title="Daily Study Streak">
+          <div v-if="dashboard?.streak !== undefined" class="flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/80 rounded-full text-xs font-bold text-amber-800 shadow-2xs" title="Daily Study Streak">
             <span>🔥</span>
-            <span>{{ dashboard?.streak || 0 }}</span>
+            <span><AnimateCountingNumber :number="dashboard?.streak || 0" /></span>
           </div>
         </div>
 
         <!-- Main Navigation Menu -->
-        <nav aria-label="Main Navigation" class="space-y-2">
+        <nav aria-label="Main Navigation" class="space-y-1.5">
           <button
             @click="navigateSidebar('home')"
-            :class="activeTab === 'home' ? 'bg-gradient-to-r from-blue-50 to-indigo-50/80 text-blue-600 font-bold border border-blue-200/80 shadow-xs' : 'text-slate-600 hover:bg-slate-100/70 hover:text-slate-900 font-semibold'"
-            class="btn-spring relative w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-[15px] font-semibold transition-all duration-200 cursor-pointer text-left overflow-hidden"
+            :class="activeTab === 'home' ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/25' : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900 font-semibold'"
+            class="btn-spring relative w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-[15px] transition-all duration-200 cursor-pointer text-left overflow-hidden"
           >
-            <LayoutGrid class="w-5.5 h-5.5 shrink-0" :class="activeTab === 'home' ? 'text-[#2b59ff]' : 'text-gray-500'" />
+            <LayoutGrid class="w-5 h-5 shrink-0" :class="activeTab === 'home' ? 'text-white' : 'text-slate-500'" />
             <span>Home</span>
           </button>
 
-
           <button
             @click="navigateSidebar('lesson')"
-            :class="activeTab === 'lesson' ? 'bg-gradient-to-r from-blue-50 to-indigo-50/80 text-blue-600 font-bold border border-blue-200/80 shadow-xs' : 'text-slate-600 hover:bg-slate-100/70 hover:text-slate-900 font-semibold'"
-            class="btn-spring relative w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-[15px] font-semibold transition-all duration-200 cursor-pointer text-left overflow-hidden"
+            :class="activeTab === 'lesson' ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/25' : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900 font-semibold'"
+            class="btn-spring relative w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-[15px] transition-all duration-200 cursor-pointer text-left overflow-hidden"
           >
-            <GraduationCap class="w-5.5 h-5.5 shrink-0" :class="activeTab === 'lesson' ? 'text-[#2b59ff]' : 'text-gray-500'" />
+            <GraduationCap class="w-5 h-5 shrink-0" :class="activeTab === 'lesson' ? 'text-white' : 'text-slate-500'" />
             <span>Lessons</span>
           </button>
 
           <button
             @click="navigateSidebar('dictionary')"
-            :class="activeTab === 'dictionary' ? 'bg-gradient-to-r from-blue-50 to-indigo-50/80 text-blue-600 font-bold border border-blue-200/80 shadow-xs' : 'text-slate-600 hover:bg-slate-100/70 hover:text-slate-900 font-semibold'"
-            class="btn-spring relative w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-[15px] font-semibold transition-all duration-200 cursor-pointer text-left overflow-hidden"
+            :class="activeTab === 'dictionary' ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/25' : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900 font-semibold'"
+            class="btn-spring relative w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-[15px] transition-all duration-200 cursor-pointer text-left overflow-hidden"
           >
-            <BookA class="w-5.5 h-5.5 shrink-0" :class="activeTab === 'dictionary' ? 'text-[#2b59ff]' : 'text-gray-500'" />
+            <BookA class="w-5 h-5 shrink-0" :class="activeTab === 'dictionary' ? 'text-white' : 'text-slate-500'" />
             <span>Dictionary</span>
           </button>
 
           <button
             @click="navigateSidebar('profile')"
-            :class="activeTab === 'profile' ? 'bg-gradient-to-r from-blue-50 to-indigo-50/80 text-blue-600 font-bold border border-blue-200/80 shadow-xs' : 'text-slate-600 hover:bg-slate-100/70 hover:text-slate-900 font-semibold'"
-            class="btn-spring relative w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-[15px] font-semibold transition-all duration-200 cursor-pointer text-left overflow-hidden"
+            :class="activeTab === 'profile' ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/25' : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900 font-semibold'"
+            class="btn-spring relative w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-[15px] transition-all duration-200 cursor-pointer text-left overflow-hidden"
           >
-            <TrendingUp class="w-5.5 h-5.5 shrink-0" :class="activeTab === 'profile' ? 'text-[#2b59ff]' : 'text-gray-500'" />
+            <TrendingUp class="w-5 h-5 shrink-0" :class="activeTab === 'profile' ? 'text-white' : 'text-slate-500'" />
             <span>Progress</span>
           </button>
         </nav>
       </div>
 
       <!-- Sidebar Footer (Account) -->
-      <div class="space-y-1.5 pb-2">
+      <div class="pt-4 border-t border-slate-100 space-y-2">
         <button
           @click="openAuthOrProfile"
-          class="w-full flex items-center gap-4 px-4.5 py-3 rounded-full text-[#4a5568] hover:bg-gray-50 hover:text-black font-semibold text-[16px] transition-colors cursor-pointer text-left"
-          :class="activeTab === (isAuthenticated ? 'profile' : 'auth') ? 'bg-[#f1f5fd] text-[#2b59ff] font-bold shadow-2xs' : ''"
+          class="btn-spring w-full flex items-center gap-3.5 p-3 rounded-2xl hover:bg-slate-100/80 transition-all cursor-pointer text-left border border-slate-200/60 bg-slate-50/70"
+          :class="activeTab === (isAuthenticated ? 'profile' : 'auth') ? 'ring-2 ring-indigo-500/30 border-indigo-300 bg-indigo-50/50' : ''"
         >
-          <UserRound class="w-5.5 h-5.5 shrink-0 text-gray-500" />
-          <span class="truncate">{{ isAuthenticated ? (userProfile?.full_name || 'Account') : 'Sign In / Register' }}</span>
+          <img :src="userAvatarUrl" alt="" class="w-10 h-10 rounded-xl object-cover ring-2 ring-white shadow-2xs shrink-0" />
+          <div class="min-w-0 flex-1">
+            <p class="text-sm font-bold text-slate-900 truncate">{{ isAuthenticated ? (userProfile?.full_name || 'Account') : 'Sign In / Register' }}</p>
+            <p class="text-xs text-slate-500 truncate">{{ isAuthenticated ? (userProfile?.email || 'Learner') : 'Tap to start learning' }}</p>
+          </div>
+          <ChevronRight class="w-4 h-4 text-slate-400 shrink-0" />
         </button>
       </div>
     </aside>
@@ -144,7 +152,7 @@
         <div class="flex items-center justify-around">
           <button
             @click="navigateSidebar('home')"
-            :class="activeTab === 'home' ? 'text-[#2b59ff] font-bold' : 'text-slate-400 font-medium'"
+            :class="activeTab === 'home' ? 'text-indigo-600 font-bold' : 'text-slate-400 font-medium'"
             class="flex flex-col items-center py-1 px-2 text-xs transition cursor-pointer"
           >
             <Home :class="activeTab === 'home' ? 'scale-110 stroke-[2.5]' : ''" class="w-5 h-5 transition-transform" />
@@ -153,7 +161,7 @@
 
           <button
             @click="navigateSidebar('lesson')"
-            :class="activeTab === 'lesson' ? 'text-[#2b59ff] font-bold' : 'text-slate-400 font-medium'"
+            :class="activeTab === 'lesson' ? 'text-indigo-600 font-bold' : 'text-slate-400 font-medium'"
             class="flex flex-col items-center py-1 px-2 text-xs transition cursor-pointer"
           >
             <GraduationCap :class="activeTab === 'lesson' ? 'scale-110 stroke-[2.5]' : ''" class="w-5 h-5 transition-transform" />
@@ -162,7 +170,7 @@
 
           <button
             @click="navigateSidebar('dictionary')"
-            :class="activeTab === 'dictionary' ? 'text-[#2b59ff] font-bold' : 'text-slate-400 font-medium'"
+            :class="activeTab === 'dictionary' ? 'text-indigo-600 font-bold' : 'text-slate-400 font-medium'"
             class="flex flex-col items-center py-1 px-2 text-xs transition cursor-pointer"
           >
             <BookA :class="activeTab === 'dictionary' ? 'scale-110 stroke-[2.5]' : ''" class="w-5 h-5 transition-transform" />
@@ -171,7 +179,7 @@
 
           <button
             @click="navigateSidebar('profile')"
-            :class="activeTab === 'profile' ? 'text-[#2b59ff] font-bold' : 'text-slate-400 font-medium'"
+            :class="activeTab === 'profile' ? 'text-indigo-600 font-bold' : 'text-slate-400 font-medium'"
             class="flex flex-col items-center py-1 px-2 text-xs transition cursor-pointer"
           >
             <TrendingUp :class="activeTab === 'profile' ? 'scale-110 stroke-[2.5]' : ''" class="w-5 h-5 transition-transform" />
@@ -199,6 +207,8 @@
 
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted, provide } from 'vue';
+import AnimateCountingNumber from './components/ui/CountingNumber.vue';
+import AnimateBadge from './components/ui/Badge.vue';
 import LessonScreen from './views/LessonScreen.vue';
 import SaveWordModal from './components/SaveWordModal.vue';
 import { learningService } from './services/learningService';
