@@ -306,23 +306,53 @@
                 <input v-model="quizInputText" :disabled="quizChecked || isSubmittingQuiz || ctx.quizFeedbackLoading.value" @keyup.enter="checkQuizAnswer" class="w-full rounded-2xl border border-gray-200 bg-white p-4 text-base sm:text-lg text-gray-900 shadow-2xs" placeholder="Nhập từ hoặc cụm từ…" />
               </label>
               <!-- Answer options -->
-              <div v-if="currentQuestion.question_type !== 'FILL_BLANK'" class="space-y-3">
+              <div v-if="currentQuestion.question_type !== 'FILL_BLANK'" class="space-y-3.5">
                 <button
                   v-for="(ans, aIdx) in (currentQuestion.answers || [])"
                   :key="ans.id || aIdx"
                   @click="selectQuizAnswer(ans)"
                   :disabled="quizChecked || isSubmittingQuiz || ctx.quizFeedbackLoading.value"
-                  :class="getQuizAnswerClass(ans)"
-                  class="w-full text-left p-4 sm:p-5 rounded-2xl border-2 transition-all flex items-center justify-between text-base sm:text-lg font-bold cursor-pointer shadow-2xs"
+                  :class="[
+                    'group w-full text-left p-4.5 sm:p-5 rounded-2xl border-2 transition-all duration-200 flex items-center justify-between gap-4 cursor-pointer select-none card-spring',
+                    getOptionCardClass(ans)
+                  ]"
                 >
-                  <span class="flex items-center gap-3">
-                    <span class="w-8 h-8 rounded-xl bg-gray-100 text-gray-700 flex items-center justify-center font-bold text-sm shrink-0">
+                  <div class="flex items-center gap-3.5 min-w-0">
+                    <span
+                      class="w-9 h-9 rounded-xl flex items-center justify-center font-extrabold text-sm shrink-0 transition-colors shadow-2xs"
+                      :class="getLetterBadgeClass(ans, aIdx)"
+                    >
                       {{ ['A','B','C','D'][aIdx] || (aIdx + 1) }}
                     </span>
-                    <span>{{ ans.answer_text }}</span>
-                  </span>
-                  <CheckCircle v-if="quizChecked && submittedQuizDetail?.is_correct && selectedQuizAnswer?.id === ans.id" class="w-5 h-5 text-emerald-600 shrink-0" />
-                  <XCircle v-else-if="quizChecked && !submittedQuizDetail?.is_correct && selectedQuizAnswer?.id === ans.id" class="w-5 h-5 text-rose-500 shrink-0" />
+                    <span class="text-base sm:text-lg font-bold leading-snug">
+                      {{ ans.answer_text }}
+                    </span>
+                  </div>
+
+                  <div class="shrink-0 flex items-center justify-center">
+                    <CheckCircle2
+                      v-if="quizChecked && submittedQuizDetail?.is_correct && selectedQuizAnswer?.id === ans.id"
+                      class="w-6 h-6 text-emerald-600"
+                    />
+                    <XCircle
+                      v-else-if="quizChecked && !submittedQuizDetail?.is_correct && selectedQuizAnswer?.id === ans.id"
+                      class="w-6 h-6 text-rose-500"
+                    />
+                    <CheckCircle2
+                      v-else-if="quizChecked && submittedQuizDetail?.correct_answer_id === ans.id"
+                      class="w-6 h-6 text-emerald-600"
+                    />
+                    <span
+                      v-else-if="!quizChecked && selectedQuizAnswer?.id === ans.id"
+                      class="w-5 h-5 rounded-full border-2 border-indigo-600 bg-indigo-600 flex items-center justify-center"
+                    >
+                      <span class="w-2 h-2 rounded-full bg-white"></span>
+                    </span>
+                    <span
+                      v-else
+                      class="w-5 h-5 rounded-full border-2 border-slate-300 group-hover:border-indigo-400 transition-colors"
+                    ></span>
+                  </div>
                 </button>
               </div>
 
@@ -374,7 +404,7 @@
 </template>
 
 <script setup>
-import { AlertCircle, ArrowLeft, ArrowRight, Check, CheckCircle, ChevronLeft, ChevronRight, HelpCircle, Layers, Loader2, RotateCw, Volume2, X, XCircle } from 'lucide-vue-next';
+import { AlertCircle, ArrowLeft, ArrowRight, Check, CheckCircle, CheckCircle2, ChevronLeft, ChevronRight, HelpCircle, Layers, Loader2, RotateCw, Volume2, X, XCircle, Zap } from 'lucide-vue-next';
 import { inject } from 'vue';
 import AnimateButton from '../components/ui/Button.vue';
 import AnimateCard from '../components/ui/Card.vue';
@@ -383,6 +413,40 @@ import AnimateCountingNumber from '../components/ui/CountingNumber.vue';
 import AudioPlayer from '../components/ui/AudioPlayer.vue';
 import { getFullAudioUrl } from '../services/api';
 const ctx = inject('screenContext');
+
+const getOptionCardClass = (ans) => {
+  if (!quizChecked?.value) {
+    return selectedQuizAnswer?.value?.id === ans.id
+      ? 'border-indigo-600 bg-indigo-50/70 text-indigo-950 ring-2 ring-indigo-500/20 shadow-sm'
+      : 'border-slate-200/90 bg-white hover:border-indigo-300 hover:bg-slate-50/60 text-slate-800 hover:shadow-2xs';
+  }
+  if (submittedQuizDetail?.value?.correct_answer_id === ans.id) {
+    return 'border-emerald-500 bg-emerald-50/80 text-emerald-950 ring-2 ring-emerald-500/20 shadow-sm';
+  }
+  if (selectedQuizAnswer?.value?.id === ans.id) {
+    return submittedQuizDetail?.value?.is_correct
+      ? 'border-emerald-500 bg-emerald-50/80 text-emerald-950 font-bold ring-2 ring-emerald-500/20 shadow-sm'
+      : 'border-rose-400 bg-rose-50/80 text-rose-950 ring-2 ring-rose-400/20 shadow-sm';
+  }
+  return 'border-slate-200/60 bg-slate-50/40 text-slate-400 opacity-60';
+};
+
+const getLetterBadgeClass = (ans, aIdx) => {
+  if (!quizChecked?.value) {
+    return selectedQuizAnswer?.value?.id === ans.id
+      ? 'bg-indigo-600 text-white shadow-sm'
+      : 'bg-slate-100 text-slate-700 group-hover:bg-indigo-50 group-hover:text-indigo-700';
+  }
+  if (submittedQuizDetail?.value?.correct_answer_id === ans.id) {
+    return 'bg-emerald-600 text-white shadow-sm';
+  }
+  if (selectedQuizAnswer?.value?.id === ans.id) {
+    return submittedQuizDetail?.value?.is_correct
+      ? 'bg-emerald-600 text-white shadow-sm'
+      : 'bg-rose-500 text-white shadow-sm';
+  }
+  return 'bg-slate-100 text-slate-400';
+};
 const ALL_CARDS = 'Tất cả thẻ';
 const NOTED_WORDS = 'Từ đã note';
 const NOTED_HELP = 'Các từ bạn đã tick từ mọi bộ thẻ. Bỏ tick để gỡ một từ khỏi mục này.';
