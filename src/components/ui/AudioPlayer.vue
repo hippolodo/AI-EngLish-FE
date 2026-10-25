@@ -216,3 +216,4 @@ onBeforeUnmount(() => {
   animation: soundwave-pulse 0.7s ease-in-out infinite;
 }
 </style>
+
