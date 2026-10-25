@@ -671,20 +671,24 @@ const startLesson = async (lesson, resume = null) => {
   lessonError.value = '';
   activeTab.value = 'lesson';
   currentLesson.value = null;
+
+  // Resolve topic early to avoid layout flicker or "ALL LEVELS" fallback
+  if (lesson.topic_id && (!selectedTopic.value || selectedTopic.value.id !== lesson.topic_id)) {
+    selectedTopic.value = topics.value?.find(t => t.id === lesson.topic_id) || selectedTopic.value;
+  }
+
   try {
     const detail = await curriculumService.getLessonDetail(lesson.id);
     const [quizzes, decks] = await Promise.allSettled([
-      Promise.all([studyService.getQuizzes(detail.id), studyService.getQuizzes(null, detail.topic_id)]).then(lists => [...new Map(lists.flat().map(item => [item.id, item])).values()]), studyService.getFlashcardDecks(detail.id)
+      Promise.all([studyService.getQuizzes(detail.id), studyService.getQuizzes(null, detail.topic_id)]).then(lists => [...new Map(lists.flat().map(item => [item.id, item])).values()]),
+      studyService.getFlashcardDecks(detail.id)
     ]);
     if (version !== sessionVersion || requestId !== lessonRequestId) return;
-    currentLesson.value = detail;
-    lessonDetail.value = detail;
-    lessonQuizzes.value = quizzes.status === 'fulfilled' ? (quizzes.value || [])
-      .filter(q => q.lesson_id === detail.id || (!q.lesson_id && q.topic_id === detail.topic_id))
-      .sort((a, b) => Number(b.lesson_id === detail.id) - Number(a.lesson_id === detail.id) || b.id - a.id) : [];
+
     const loadedDecks = decks.status === 'fulfilled' ? decks.value || [] : [];
-    lessonDecks.value = loadedDecks;
-    if (quizzes.status === 'rejected' || decks.status === 'rejected') lessonError.value = 'Đã tải bài học; chưa tải được đầy đủ quiz/bộ từ. Bạn có thể thử lại.';
+    if (quizzes.status === 'rejected' || decks.status === 'rejected') {
+      lessonError.value = 'Đã tải bài học; chưa tải được đầy đủ quiz/bộ từ. Bạn có thể thử lại.';
+    }
 
     // Tải trước danh sách từ vựng flashcard của bài để người học học từ trước
     let cards = [];
@@ -695,29 +699,44 @@ const startLesson = async (lesson, resume = null) => {
         console.warn('Could not prefetch lesson flashcards:', err);
       }
     }
-    lessonCards.value = cards || [];
 
-    // Mặc định: Ưu tiên bước 1 học từ vựng Flashcard trước nếu bài có bộ từ, sau đó mới đến luyện phát âm
-    if (cards && cards.length > 0) {
-      lessonStep.value = resume?.step || 'vocabulary';
-    } else {
-      lessonStep.value = resume?.step || 'practice';
-    }
-    studyLessonId.value = detail.id;
-    studyTopicId.value = detail.topic_id;
+    if (version !== sessionVersion || requestId !== lessonRequestId) return;
+
+    // Resolve topic detail & topic lessons if needed
     if (!selectedTopic.value || selectedTopic.value.id !== detail.topic_id) {
-      selectedTopic.value = topics.value.find(t => t.id === detail.topic_id) || null;
+      selectedTopic.value = topics.value?.find(t => t.id === detail.topic_id) || null;
       try {
         topicLessons.value = await curriculumService.getLessonsByTopic(detail.topic_id) || [];
       } catch (e) {
         // ignore
       }
     }
+
+    // Populate all prerequisite data BEFORE publishing currentLesson to prevent tab jumping
+    lessonCards.value = cards || [];
+    lessonQuizzes.value = quizzes.status === 'fulfilled' ? (quizzes.value || [])
+      .filter(q => q.lesson_id === detail.id || (!q.lesson_id && q.topic_id === detail.topic_id))
+      .sort((a, b) => Number(b.lesson_id === detail.id) - Number(a.lesson_id === detail.id) || b.id - a.id) : [];
+    lessonDecks.value = loadedDecks;
+
+    // Determine initial step: vocabulary first if lesson has cards, otherwise practice
+    if (cards && cards.length > 0) {
+      lessonStep.value = resume?.step || 'vocabulary';
+    } else {
+      lessonStep.value = resume?.step || 'practice';
+    }
+
+    studyLessonId.value = detail.id;
+    studyTopicId.value = detail.topic_id;
+
+    lessonDetail.value = detail;
+    currentLesson.value = detail; // Atomically set currentLesson after all dependencies ready
+
     if (detail.type === 'SPEAKING') {
       isCustomSpeakingMode.value = false;
       speakingTopicId.value = detail.topic_id;
       speakingLessonId.value = detail.id;
-      speakingLessons.value = topicLessons.value.filter(item => item.type === 'SPEAKING');
+      speakingLessons.value = topicLessons.value?.filter(item => item.type === 'SPEAKING') || [];
       speakingLessonContents.value = detail.contents || [];
       targetSpeakingText.value = '';
       const content = detail.contents?.find(item => item.id === resume?.content_id) || detail.contents?.[0];
@@ -726,6 +745,7 @@ const startLesson = async (lesson, resume = null) => {
       essayInput.value = journey.state.value.writing_drafts[String(detail.id)] || '';
       writingResult.value = null;
     }
+
     journey.remember(detail.topic_id, detail.id, lessonStep.value, resume?.content_id || null);
   } catch (err) {
     if (version === sessionVersion && requestId === lessonRequestId) lessonError.value = getErrorMessage(err, 'Không mở được bài học.');

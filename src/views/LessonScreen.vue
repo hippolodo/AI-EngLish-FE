@@ -254,77 +254,124 @@
     <template v-else>
       
       <!-- Top Navigation Header -->
-      <div class="space-y-2">
-        <AnimateButton
-          variant="outline"
-          size="sm"
-          @click="handleBackToCatalog"
-          class="group"
-        >
-          <template #prefix>
-            <ArrowLeft class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-          </template>
-          <span>Back to Lessons</span>
-        </AnimateButton>
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <AnimateButton
+            variant="outline"
+            size="sm"
+            @click="handleBackToCatalog"
+            class="group"
+          >
+            <template #prefix>
+              <ArrowLeft class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+            </template>
+            <span>Back to Lessons</span>
+          </AnimateButton>
+
+          <span
+            v-if="journey.lesson(currentLesson.id).completed"
+            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200 shadow-2xs"
+          >
+            <Check class="w-3.5 h-3.5 text-emerald-600" />
+            Lesson Completed
+          </span>
+        </div>
 
         <div class="pt-1">
-          <div class="flex items-center gap-2.5 mb-1.5 flex-wrap">
+          <div class="flex items-center gap-2 mb-2 flex-wrap">
             <span
               class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide"
-              :class="getLevelBadgeClass(selectedTopic?.level)"
+              :class="getLevelBadgeClass(selectedTopic?.level || currentLesson.level)"
             >
-              {{ getLevelLabel(selectedTopic?.level) }}
+              {{ getLevelLabel(selectedTopic?.level || currentLesson.level || 'Beginner') }}
             </span>
-            <span class="text-xs sm:text-sm font-bold text-slate-500">
-              Topic: {{ selectedTopic?.title }}
+            <span v-if="selectedTopic?.title" class="text-xs sm:text-sm font-bold text-slate-500">
+              Topic: {{ selectedTopic.title }}
             </span>
             <span
-              class="px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200"
+              class="px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/80"
             >
-              Practice
+              {{ currentLesson.type === 'SPEAKING' ? 'Speaking Practice' : 'Writing Practice' }}
             </span>
           </div>
 
-          <h1 class="text-slate-900 text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-snug">
+          <h1 class="text-slate-900 text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight leading-snug">
             {{ currentLesson.title }}
           </h1>
         </div>
       </div>
 
-      <!-- Step Navigation Tabs (1. Vocabulary, 2. Practice, 3. Quiz, 4. Summary) -->
-      <div class="flex gap-2.5 sm:gap-3 text-xs sm:text-base font-bold overflow-x-auto pb-1">
+      <!-- Modern Segmented Control Step Tabs -->
+      <div class="p-1.5 bg-slate-100/90 backdrop-blur-md rounded-2xl border border-slate-200/80 flex gap-1.5 overflow-x-auto shadow-2xs">
+        <!-- 1. Vocabulary -->
         <button
           v-if="lessonCards?.length"
           @click="lessonStep = 'vocabulary'"
-          class="flex-1 min-w-[140px] rounded-2xl py-3.5 px-4 cursor-pointer transition shadow-2xs flex items-center justify-center text-center"
-          :class="lessonStep === 'vocabulary' ? 'bg-blue-600 text-white shadow-md shadow-indigo-600/20' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'"
+          class="flex-1 min-w-[140px] rounded-xl py-3 px-4 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer text-xs sm:text-sm"
+          :class="lessonStep === 'vocabulary'
+            ? 'bg-white text-blue-600 shadow-sm font-extrabold ring-1 ring-slate-200/60'
+            : 'text-slate-600 hover:text-slate-900 font-semibold hover:bg-white/50'"
         >
           <span>1. Vocabulary</span>
+          <span
+            class="px-2 py-0.5 rounded-full text-[11px] font-bold"
+            :class="lessonStep === 'vocabulary' ? 'bg-blue-50 text-blue-700' : 'bg-slate-200/80 text-slate-600'"
+          >
+            {{ lessonCards.length }}
+          </span>
         </button>
 
+        <!-- 2. Practice -->
         <button
           @click="lessonStep = 'practice'"
-          class="flex-1 min-w-[130px] rounded-2xl py-3.5 px-4 cursor-pointer transition shadow-2xs flex items-center justify-center text-center"
-          :class="lessonStep === 'practice' ? 'bg-blue-600 text-white shadow-md shadow-indigo-600/20' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'"
+          class="flex-1 min-w-[130px] rounded-xl py-3 px-4 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer text-xs sm:text-sm"
+          :class="lessonStep === 'practice'
+            ? 'bg-white text-blue-600 shadow-sm font-extrabold ring-1 ring-slate-200/60'
+            : 'text-slate-600 hover:text-slate-900 font-semibold hover:bg-white/50'"
         >
           <span>{{ lessonCards?.length ? '2.' : '1.' }} Practice</span>
+          <span
+            v-if="lessonDetail?.contents?.length"
+            class="px-2 py-0.5 rounded-full text-[11px] font-bold"
+            :class="lessonStep === 'practice' ? 'bg-blue-50 text-blue-700' : 'bg-slate-200/80 text-slate-600'"
+          >
+            {{ lessonDetail.contents.length }}
+          </span>
         </button>
 
+        <!-- 3. Quiz -->
         <button
           @click="openLessonQuiz"
           :disabled="!lessonQuizzes.length"
-          class="flex-1 min-w-[120px] rounded-2xl py-3.5 px-4 disabled:opacity-40 cursor-pointer transition shadow-2xs flex items-center justify-center text-center"
-          :class="lessonStep === 'quiz' ? 'bg-blue-600 text-white shadow-md shadow-indigo-600/20' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'"
+          class="flex-1 min-w-[120px] rounded-xl py-3 px-4 disabled:opacity-40 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer text-xs sm:text-sm"
+          :class="lessonStep === 'quiz'
+            ? 'bg-white text-blue-600 shadow-sm font-extrabold ring-1 ring-slate-200/60'
+            : 'text-slate-600 hover:text-slate-900 font-semibold hover:bg-white/50'"
         >
           <span>{{ lessonCards?.length ? '3.' : '2.' }} Quiz</span>
+          <span
+            v-if="lessonQuizzes?.length"
+            class="px-2 py-0.5 rounded-full text-[11px] font-bold"
+            :class="lessonStep === 'quiz' ? 'bg-blue-50 text-blue-700' : 'bg-slate-200/80 text-slate-600'"
+          >
+            {{ lessonQuizzes.length }}
+          </span>
         </button>
 
+        <!-- 4. Summary -->
         <button
           @click="lessonStep = 'summary'"
-          class="flex-1 min-w-[120px] rounded-2xl py-3.5 px-4 cursor-pointer transition shadow-2xs flex items-center justify-center text-center"
-          :class="lessonStep === 'summary' ? 'bg-blue-600 text-white shadow-md shadow-indigo-600/20' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'"
+          class="flex-1 min-w-[120px] rounded-xl py-3 px-4 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer text-xs sm:text-sm"
+          :class="lessonStep === 'summary'
+            ? 'bg-white text-blue-600 shadow-sm font-extrabold ring-1 ring-slate-200/60'
+            : 'text-slate-600 hover:text-slate-900 font-semibold hover:bg-white/50'"
         >
           <span>{{ lessonCards?.length ? '4.' : '3.' }} Summary</span>
+          <span
+            v-if="lessonProgress?.completed"
+            class="w-2 h-2 rounded-full bg-emerald-500"
+            title="Completed"
+          ></span>
         </button>
       </div>
 
@@ -638,16 +685,35 @@
             v-for="(content, idx) in lessonDetail?.contents || []"
             :key="content.id"
             @click="currentLesson.type === 'SPEAKING' && beginLessonPractice(content)"
-            class="space-y-3.5 rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-7 shadow-2xs transition-all duration-200"
-            :class="currentLesson.type === 'SPEAKING' ? 'hover:border-blue-400 hover:shadow-md hover:bg-blue-50/15 cursor-pointer group' : ''"
+            class="bento-card space-y-4 rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-7 shadow-2xs transition-all duration-300"
+            :class="currentLesson.type === 'SPEAKING' ? 'hover:border-blue-400 hover:shadow-lg hover:shadow-blue-500/5 cursor-pointer group' : ''"
           >
+            <!-- Card Header: Sentence Number & Action Button -->
             <div class="flex items-center justify-between gap-3">
-              <div class="flex items-center gap-2.5">
-                <span class="px-3 py-1 rounded-full bg-slate-100 text-xs font-bold text-slate-600">
+              <div class="flex items-center gap-2.5 flex-wrap">
+                <span class="px-3 py-1 rounded-full bg-slate-100 text-xs font-bold text-slate-700">
                   Sentence #{{ idx + 1 }}
                 </span>
-                <span v-if="content.ipa" class="text-sm font-mono font-medium text-slate-500 hidden sm:inline">
-                  /{{ content.ipa }}/
+                
+                <!-- Dialogue Speaker Pill (e.g. Tom, Alice) -->
+                <span
+                  v-if="parseSpeakerLine(content.target_text).speaker"
+                  class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-xs font-extrabold text-indigo-700"
+                >
+                  <User class="w-3 h-3 text-indigo-500" />
+                  {{ parseSpeakerLine(content.target_text).speaker }}
+                </span>
+
+                <!-- Practiced Indicator -->
+                <span
+                  v-if="lessonProgress?.completed_content_ids?.includes(content.id)"
+                  class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold"
+                >
+                  <Check class="w-3 h-3 text-emerald-600" />
+                  Practiced
+                  <span v-if="lessonProgress?.speaking_scores?.[String(content.id)]" class="font-extrabold">
+                    · {{ Math.round(lessonProgress.speaking_scores[String(content.id)]) }}%
+                  </span>
                 </span>
               </div>
 
@@ -655,41 +721,52 @@
                 v-if="currentLesson.type === 'SPEAKING'"
                 type="button"
                 @click.stop="beginLessonPractice(content)"
-                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-blue-50 group-hover:bg-blue-600 text-blue-700 group-hover:text-white text-xs sm:text-sm font-bold transition-all shadow-2xs cursor-pointer"
-                title="Practice this sentence"
+                class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-50 group-hover:bg-blue-600 text-blue-700 group-hover:text-white text-xs sm:text-sm font-bold transition-all shadow-2xs cursor-pointer group-hover:scale-102"
+                title="Practice speaking this sentence"
               >
                 <Mic class="w-3.5 h-3.5" />
                 <span>Practice sentence</span>
-                <ChevronRight class="w-3.5 h-3.5" />
+                <ChevronRight class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
               </button>
             </div>
 
-            <p class="reading-text whitespace-pre-line text-lg sm:text-xl font-extrabold text-slate-900 leading-relaxed group-hover:text-blue-900 transition-colors">
-              {{ content.target_text }}
+            <!-- Target English Text -->
+            <p class="reading-text whitespace-pre-line text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-relaxed group-hover:text-blue-900 transition-colors">
+              {{ parseSpeakerLine(content.target_text).speaker ? parseSpeakerLine(content.target_text).text : content.target_text }}
             </p>
 
-            <p v-if="content.hint_translation" class="text-base sm:text-lg text-slate-600">
-              💡 Hint: <span class="font-medium text-slate-800">{{ content.hint_translation }}</span>
-            </p>
+            <!-- Hint Translation -->
+            <div v-if="content.hint_translation" class="flex items-start gap-2 p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200/80 text-sm sm:text-base text-amber-950">
+              <span class="text-base shrink-0">💡</span>
+              <p class="leading-relaxed">
+                <span class="font-bold text-amber-900">Meaning: </span>
+                <span class="font-medium text-slate-800">{{ parseHintLine(content.hint_translation) }}</span>
+              </p>
+            </div>
 
-            <p v-if="content.task_guidance" class="whitespace-pre-line text-sm sm:text-base text-blue-700 leading-relaxed bg-blue-50/60 p-4 rounded-2xl border border-blue-100">
+            <!-- Task Guidance if any -->
+            <p v-if="content.task_guidance" class="whitespace-pre-line text-sm sm:text-base text-blue-800 leading-relaxed bg-blue-50/60 p-4 rounded-2xl border border-blue-100">
               {{ content.task_guidance }}
             </p>
 
-            <!-- Sample text if any -->
+            <!-- Sample Reference if any -->
             <details v-if="content.sample_text" class="rounded-2xl bg-slate-50 p-4 border border-slate-200/70" @click.stop>
-              <summary class="cursor-pointer text-sm sm:text-base font-bold text-blue-700">
+              <summary class="cursor-pointer text-sm sm:text-base font-bold text-blue-700 hover:underline">
                 View sample answer
               </summary>
-              <p class="mt-2 text-xs sm:text-sm text-slate-500">Sample reference:</p>
+              <p class="mt-2 text-xs sm:text-sm text-slate-500 font-semibold">Sample reference:</p>
               <p class="reading-text mt-2 whitespace-pre-line text-slate-800 text-base leading-relaxed">
                 {{ content.sample_text }}
               </p>
             </details>
 
-            <!-- Native Audio Player -->
-            <div v-if="content.audio_url && currentLesson.type === 'SPEAKING'" class="pt-2" @click.stop>
-              <audio :src="getFullAudioUrl(content.audio_url)" controls preload="none" class="w-full rounded-xl" />
+            <!-- Custom Audio Player (Replaced ugly browser HTML5 audio) -->
+            <div v-if="content.audio_url && currentLesson.type === 'SPEAKING'" class="pt-1" @click.stop>
+              <AudioPlayer
+                :src="getFullAudioUrl(content.audio_url)"
+                :label="'Native Pronunciation · Sentence #' + (idx + 1)"
+                :fallback-text="parseSpeakerLine(content.target_text).text"
+              />
             </div>
           </div>
         </div>
@@ -789,9 +866,10 @@
 import { ref, computed, onMounted, watch, inject } from 'vue';
 import {
   Loader2, Mic, PenLine, CheckCircle2, ChevronRight, BookOpen, Search, ArrowLeft,
-  Volume2, RotateCw, ChevronLeft, BookmarkPlus, Layers, Sparkles
+  Volume2, RotateCw, ChevronLeft, BookmarkPlus, Layers, Sparkles, User, Check
 } from 'lucide-vue-next';
 import AnimateButton from '../components/ui/Button.vue';
+import AudioPlayer from '../components/ui/AudioPlayer.vue';
 import AnimateCard from '../components/ui/Card.vue';
 import AnimateBadge from '../components/ui/Badge.vue';
 import AnimateCountingNumber from '../components/ui/CountingNumber.vue';
@@ -847,6 +925,20 @@ const formatIpa = (ipa) => {
   if (!ipa) return '';
   const clean = String(ipa).replace(/^\/+|\/+$/g, '').trim();
   return clean ? `/${clean}/` : '';
+};
+
+const parseSpeakerLine = (text = '') => {
+  if (!text) return { speaker: null, text: '' };
+  const match = text.match(/^([A-Za-z]+)\s*:\s*([\s\S]+)$/);
+  if (match) {
+    return { speaker: match[1], text: match[2].trim() };
+  }
+  return { speaker: null, text: text.trim() };
+};
+
+const parseHintLine = (hint = '') => {
+  if (!hint) return '';
+  return hint.replace(/^[A-Za-z]+\s*:\s*/, '').trim();
 };
 
 watch(

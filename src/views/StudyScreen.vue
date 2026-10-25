@@ -293,7 +293,13 @@
                 </p>
               </div>
 
-              <audio v-if="currentQuestion.audio_url" :key="currentQuestion.id" :src="getFullAudioUrl(currentQuestion.audio_url)" controls class="w-full" />
+              <div v-if="currentQuestion.audio_url" :key="currentQuestion.id" class="pt-1">
+                <AudioPlayer
+                  :src="getFullAudioUrl(currentQuestion.audio_url)"
+                  label="Audio câu hỏi"
+                  :fallback-text="currentQuestion.question_text"
+                />
+              </div>
               <img v-if="currentQuestion.image_url" :src="getFullAudioUrl(currentQuestion.image_url)" alt="Minh họa câu hỏi" class="max-h-56 rounded-2xl object-contain mx-auto shadow-xs" />
               <label v-if="currentQuestion.question_type === 'FILL_BLANK'" class="block space-y-2 text-sm sm:text-base font-bold text-gray-700">
                 Điền đáp án
@@ -374,6 +380,7 @@ import AnimateButton from '../components/ui/Button.vue';
 import AnimateCard from '../components/ui/Card.vue';
 import AnimateBadge from '../components/ui/Badge.vue';
 import AnimateCountingNumber from '../components/ui/CountingNumber.vue';
+import AudioPlayer from '../components/ui/AudioPlayer.vue';
 import { getFullAudioUrl } from '../services/api';
 const ctx = inject('screenContext');
 const ALL_CARDS = 'Tất cả thẻ';

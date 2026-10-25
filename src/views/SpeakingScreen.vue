@@ -30,9 +30,30 @@
     </div>
 
     <!-- Lesson & Target Picker -->
-    <div v-if="ctx.currentLesson.value?.type === 'SPEAKING'" class="space-y-2 rounded-xl bg-indigo-50 p-3 text-sm text-indigo-800">
-      Practiced {{ ctx.lessonProgress.value.completed_content_ids.length }}/{{ speakingLessonContents.length }} sentences in this lesson.
-      <button @click="ctx.finishLesson" :disabled="!ctx.canFinishLesson.value" class="block font-semibold underline disabled:opacity-40">Complete &amp; view summary</button>
+    <div v-if="ctx.currentLesson.value?.type === 'SPEAKING'" class="glass-panel p-4 sm:p-5 rounded-3xl border border-indigo-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-2xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-700 font-extrabold text-sm shrink-0">
+          {{ ctx.lessonProgress.value.completed_content_ids.length }}/{{ speakingLessonContents.length }}
+        </div>
+        <div>
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Lesson Speaking Session</p>
+          <p class="text-sm sm:text-base font-extrabold text-slate-900">
+            {{ ctx.currentLesson.value.title }}
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <AnimateButton
+          variant="emerald"
+          size="sm"
+          @click="ctx.finishLesson"
+          :disabled="!ctx.canFinishLesson.value"
+        >
+          <template #prefix><CheckCircle2 class="w-4 h-4" /></template>
+          <span>Complete &amp; View Summary</span>
+        </AnimateButton>
+      </div>
     </div>
     <div class="glass-panel rounded-3xl p-5 border border-slate-200/80 shadow-xs space-y-4 transition-all duration-300">
       <div class="flex items-center justify-between">
