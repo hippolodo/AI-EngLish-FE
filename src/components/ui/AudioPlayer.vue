@@ -1,5 +1,5 @@
 <template>
-  <div class="audio-player-capsule flex items-center gap-3 p-2.5 sm:p-3 rounded-2xl bg-slate-50/90 border border-slate-200/90 hover:border-blue-300 transition-all duration-200 shadow-2xs group">
+  <div class="audio-player-capsule flex items-center gap-3 p-2.5 sm:p-3 rounded-2xl bg-slate-100/70 hover:bg-slate-100 transition-colors group">
     <!-- Hidden native audio element -->
     <audio
       ref="audioRef"

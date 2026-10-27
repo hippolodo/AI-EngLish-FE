@@ -42,11 +42,11 @@
 
           <!-- Quick Progress Widget -->
           <div class="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-2xs flex items-center gap-5 shrink-0 min-w-[280px]">
-            <div class="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-indigo-600 text-2xl font-black shrink-0">
+            <div class="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 text-2xl font-black shrink-0">
               {{ overallStats.percent }}%
             </div>
             <div class="flex-1 min-w-0">
-              <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Overall Progress</p>
+              <p class="text-xs font-extrabold text-slate-600 uppercase tracking-wider">Overall Progress</p>
               <p class="text-base font-extrabold text-slate-900 mt-0.5">
                 {{ overallStats.completed }}/{{ overallStats.total }} completed
               </p>
@@ -170,7 +170,7 @@
 
           <!-- Inside Topic: Lessons Grid (Lesson 1, Lesson 2, Lesson 3...) -->
           <div class="p-6 sm:p-7 bg-white">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4">
+            <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-4">
               Lessons:
             </h3>
 
@@ -183,29 +183,32 @@
                 v-for="(lesson, idx) in getTopicLessons(topic.id)"
                 :key="lesson.id"
                 @click="handleSelectLesson(lesson)"
-                class="group/item flex items-center justify-between p-4.5 sm:p-5 rounded-2xl border border-slate-200/90 bg-slate-50/50 hover:bg-white hover:border-blue-400 hover:shadow-md transition-all duration-200 cursor-pointer"
+                class="group/item min-w-0 w-full flex items-center justify-between p-4.5 sm:p-5 rounded-2xl bg-slate-100/75 hover:bg-blue-50/80 transition-all duration-200 cursor-pointer overflow-hidden"
               >
                 <!-- Left: Number pill & Title -->
-                <div class="flex items-center gap-3.5 min-w-0">
+                <div class="flex items-center gap-3.5 flex-1 min-w-0 overflow-hidden">
                   
                   <!-- Lesson Number Badge -->
                   <div
-                    class="w-11 h-11 rounded-2xl flex items-center justify-center font-extrabold text-sm shrink-0 transition-colors shadow-2xs"
-                    :class="journey.lesson(lesson.id).completed ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-white text-slate-700 border border-slate-200 group-hover/item:border-blue-300 group-hover/item:text-indigo-600'"
+                    class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center font-extrabold text-xs sm:text-sm shrink-0 transition-colors shadow-2xs"
+                    :class="journey.lesson(lesson.id).completed ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-white text-slate-700 border border-slate-200 group-hover/item:border-blue-300 group-hover/item:text-blue-600'"
                   >
                     <CheckCircle2 v-if="journey.lesson(lesson.id).completed" class="w-5 h-5 text-emerald-600" />
                     <span v-else>L{{ idx + 1 }}</span>
                   </div>
 
-                  <!-- Details -->
-                  <div class="min-w-0">
-                    <div v-if="journey.lesson(lesson.id).completed" class="flex items-center gap-2 mb-1 flex-wrap">
-                      <span class="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-0.5 rounded-full">
+                  <!-- Details with strict width bounding -->
+                  <div class="flex-1 min-w-0 overflow-hidden">
+                    <div v-if="journey.lesson(lesson.id).completed" class="flex items-center gap-2 mb-0.5 flex-wrap">
+                      <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.2 rounded-full">
                         Completed
                       </span>
                     </div>
 
-                    <h4 class="text-base sm:text-lg font-bold text-slate-900 group-hover/item:text-indigo-600 transition truncate">
+                    <h4
+                      class="text-sm sm:text-base font-bold text-slate-900 group-hover/item:text-blue-600 transition leading-snug line-clamp-2 break-words"
+                      :title="'Lesson ' + (idx + 1) + ': ' + lesson.title"
+                    >
                       Lesson {{ idx + 1 }}: {{ lesson.title }}
                     </h4>
                   </div>
@@ -417,7 +420,7 @@
 
           <button
             @click="beginLessonPractice"
-            class="w-full py-3 text-base font-bold text-indigo-600 hover:underline cursor-pointer"
+            class="w-full py-3 text-base font-bold text-blue-600 hover:underline cursor-pointer"
           >
             Review this lesson
           </button>
@@ -427,17 +430,17 @@
       <!-- STEP 1: VOCABULARY FLASHCARD VIEW -->
       <div v-else-if="lessonStep === 'vocabulary'" class="space-y-6">
         <!-- Vocabulary Objective Banner -->
-        <div class="space-y-2.5 rounded-3xl bg-indigo-50/80 p-6 sm:p-7 border border-indigo-100 shadow-2xs">
+        <div class="space-y-2.5 rounded-3xl bg-blue-50/80 p-6 sm:p-7 border border-blue-100 shadow-2xs">
           <div class="flex items-center justify-between flex-wrap gap-2">
-            <h2 class="text-lg sm:text-xl font-bold text-indigo-950 flex items-center gap-2">
+            <h2 class="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
               <span class="text-2xl">🎴</span>
               <span>Step 1: Vocabulary Flashcards</span>
             </h2>
-            <span class="px-3.5 py-1 rounded-full bg-white text-indigo-700 text-xs sm:text-sm font-bold border border-indigo-200 shadow-2xs">
+            <span class="px-3.5 py-1 rounded-full bg-white text-blue-700 text-xs sm:text-sm font-bold border border-blue-200 shadow-2xs">
               {{ activeCardIndex + 1 }} / {{ lessonCards.length }} words
             </span>
           </div>
-          <p class="text-base sm:text-lg text-indigo-900/90 leading-relaxed">
+          <p class="max-w-2xl text-base sm:text-lg text-slate-700 leading-relaxed">
             Master the pronunciation, IPA transcription, and meaning of the vocabulary in this lesson before practicing sentences.
           </p>
         </div>
@@ -458,26 +461,28 @@
             <div :class="{ 'is-flipped': isCardFlipped }" class="flashcard-inner relative w-full h-full">
               <!-- FRONT SIDE (Word + IPA + Audio) -->
               <div
+                v-show="!isCardFlipped"
                 :aria-hidden="isCardFlipped"
                 :inert="isCardFlipped"
-                class="flashcard-face flashcard-front absolute inset-0 bg-white rounded-3xl p-6 sm:p-8 border border-indigo-100 shadow-xl flex flex-col justify-between items-center text-center"
+                :class="isCardFlipped ? 'invisible pointer-events-none' : 'visible'"
+                class="flashcard-face flashcard-front absolute inset-0 bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-xl flex flex-col justify-between items-center text-center"
               >
                 <div class="w-full flex justify-between items-center">
-                  <span class="text-xs sm:text-sm font-bold px-3 py-1 bg-indigo-50 text-indigo-600 rounded-xl border border-indigo-100">
+                  <span class="text-xs sm:text-sm font-bold px-3 py-1 bg-slate-100 text-slate-700 rounded-xl">
                     Vocabulary Card #{{ activeCardIndex + 1 }}
                   </span>
 
                   <div class="flex items-center gap-2">
                     <button
                       @click.stop="openSaveWord(currentCard.word, currentCard.hint_example, currentCard.meaning, currentCard.ipa)"
-                      class="w-10 h-10 rounded-full bg-gray-50 hover:bg-amber-50 text-gray-500 hover:text-amber-600 border border-gray-200 flex items-center justify-center cursor-pointer transition shadow-2xs"
+                      class="w-10 h-10 rounded-full bg-slate-50 hover:bg-amber-50 text-slate-600 hover:text-amber-600 border border-slate-200 flex items-center justify-center cursor-pointer transition shadow-2xs"
                       title="Save word to personal vocabulary"
                     >
                       <BookmarkPlus class="w-4.5 h-4.5" />
                     </button>
                     <button
                       @click.stop="speakText(currentCard.word)"
-                      class="w-10 h-10 rounded-full bg-blue-50 hover:bg-blue-600 text-indigo-600 hover:text-white border border-blue-200 flex items-center justify-center cursor-pointer transition shadow-2xs group/btn"
+                      class="w-10 h-10 rounded-full bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white border border-blue-200 flex items-center justify-center cursor-pointer transition shadow-2xs group/btn"
                       title="Listen to pronunciation"
                     >
                       <Volume2 class="w-5 h-5 group-hover/btn:scale-110 transition-transform" />
@@ -489,30 +494,32 @@
                   <h3 class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight leading-tight">
                     {{ currentCard.word }}
                   </h3>
-                  <div v-if="formatIpa(currentCard.ipa)" class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-2xl bg-indigo-50 border border-indigo-200/80 font-mono font-bold text-base sm:text-xl text-indigo-700 shadow-2xs">
+                  <div v-if="formatIpa(currentCard.ipa)" class="inline-flex items-center gap-1.5 px-6 py-2.5 rounded-2xl bg-blue-50/80 font-mono font-bold text-base sm:text-xl text-blue-700">
                     <span>{{ formatIpa(currentCard.ipa) }}</span>
                   </div>
                 </div>
 
-                <div class="text-xs sm:text-sm text-slate-400 flex items-center gap-2">
-                  <RotateCw class="w-4 h-4 text-indigo-500 animate-pulse" />
+                <div class="text-xs sm:text-sm text-slate-600 font-semibold flex items-center gap-2">
+                  <RotateCw class="w-4 h-4 text-blue-600 animate-pulse" />
                   <span>Tap card or press Space to flip and view definition & example</span>
                 </div>
               </div>
 
               <!-- BACK SIDE (Meaning + Example Sentence) -->
               <div
+                v-show="isCardFlipped"
                 :aria-hidden="!isCardFlipped"
                 :inert="!isCardFlipped"
-                class="flashcard-face flashcard-back absolute inset-0 bg-gradient-to-br from-indigo-50 via-white to-amber-50/40 rounded-3xl p-6 sm:p-8 border border-indigo-200 shadow-xl flex flex-col justify-between text-left"
+                :class="!isCardFlipped ? 'invisible pointer-events-none' : 'visible'"
+                class="flashcard-face flashcard-back absolute inset-0 bg-gradient-to-br from-blue-50/30 via-white to-amber-50/30 rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-xl flex flex-col justify-between text-left"
               >
                 <div class="flex justify-between items-center">
-                  <span class="text-xs sm:text-sm font-bold px-3 py-1 bg-indigo-600 text-white rounded-xl uppercase tracking-wide">
+                  <span class="text-xs sm:text-sm font-bold px-3 py-1 bg-blue-600 text-white rounded-xl uppercase tracking-wide">
                     Definition
                   </span>
                   <button
                     @click.stop="speakText(currentCard.word)"
-                    class="w-10 h-10 rounded-full bg-white hover:bg-blue-50 text-slate-700 hover:text-indigo-600 border border-slate-200 flex items-center justify-center cursor-pointer transition shadow-2xs"
+                    class="w-10 h-10 rounded-full bg-white hover:bg-blue-50 text-slate-700 hover:text-blue-600 border border-slate-200 flex items-center justify-center cursor-pointer transition shadow-2xs"
                     title="Listen again"
                   >
                     <Volume2 class="w-5 h-5" />
@@ -520,21 +527,21 @@
                 </div>
 
                 <div class="space-y-3">
-                  <div class="flex items-center gap-2 flex-wrap pb-2 border-b border-indigo-100">
+                  <div class="flex items-center gap-2 flex-wrap pb-2 border-b border-slate-100">
                     <span class="font-extrabold text-slate-900 text-lg sm:text-2xl">{{ currentCard.word }}</span>
-                    <span v-if="formatIpa(currentCard.ipa)" class="font-mono text-sm sm:text-base font-semibold text-indigo-600 bg-white px-3 py-0.5 rounded-full border border-indigo-100">
+                    <span v-if="formatIpa(currentCard.ipa)" class="font-mono text-sm sm:text-base font-semibold text-blue-700 bg-blue-50 px-3 py-0.5 rounded-full">
                       {{ formatIpa(currentCard.ipa) }}
                     </span>
                   </div>
                   <h4 class="text-2xl sm:text-3xl font-black text-slate-900 leading-snug">
                     {{ currentCard.meaning || 'No definition available' }}
                   </h4>
-                  <p v-if="currentCard.hint_example" class="text-sm sm:text-base text-slate-700 italic border-l-4 border-indigo-500 pl-4 py-1.5 bg-white/70 rounded-r-xl leading-relaxed">
+                  <p v-if="currentCard.hint_example" class="text-sm sm:text-base text-slate-700 italic px-5 py-3.5 bg-slate-100/75 rounded-2xl leading-relaxed">
                     "{{ currentCard.hint_example }}"
                   </p>
                 </div>
 
-                <p class="text-xs sm:text-sm text-slate-400 text-center">
+                <p class="text-xs sm:text-sm text-slate-600 font-semibold text-center">
                   Tap to flip back
                 </p>
               </div>
@@ -614,18 +621,18 @@
         </div>
 
         <!-- Call to Action: Proceed to Practice -->
-        <div class="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 p-6 sm:p-7 bg-gradient-to-r from-blue-50 via-indigo-50/40 to-blue-50 border border-blue-200/80 rounded-3xl shadow-xs">
-          <div>
-            <h3 class="text-base sm:text-lg font-extrabold text-blue-950">
+        <div class="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 p-6 sm:p-7 bg-blue-50/80 border border-blue-200/80 rounded-3xl shadow-xs">
+          <div class="max-w-xl">
+            <h3 class="text-base sm:text-lg font-extrabold text-slate-900">
               Ready for practice?
             </h3>
-            <p class="text-sm sm:text-base text-blue-800 mt-0.5">
+            <p class="text-sm sm:text-base text-slate-700 mt-1 leading-relaxed">
               Proceed to Step 2 to practice sentences and exercises with the vocabulary you just learned.
             </p>
           </div>
           <button
             @click="lessonStep = 'practice'"
-            class="w-full sm:w-auto px-7 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-base sm:text-lg rounded-2xl shadow-lg shadow-blue-600/25 transition cursor-pointer flex items-center justify-center gap-2 shrink-0 transform active:scale-98"
+            class="w-full sm:w-auto px-7 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-base rounded-2xl shadow-md shadow-blue-600/20 transition cursor-pointer flex items-center justify-center gap-2 shrink-0 transform active:scale-98"
           >
             <span>Step 2: Practice →</span>
           </button>
@@ -707,7 +714,7 @@
           <div class="flex flex-col sm:flex-row items-center gap-3.5 pt-2">
             <button
               @click="lessonStep = 'summary'"
-              class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:brightness-105 text-white font-extrabold text-base rounded-2xl shadow-lg shadow-blue-600/25 transition cursor-pointer flex items-center justify-center gap-2 transform active:scale-98"
+              class="w-full sm:w-auto px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-base rounded-2xl shadow-md shadow-blue-600/20 transition cursor-pointer flex items-center justify-center gap-2 transform active:scale-98"
             >
               <span>Step 4: View Lesson Summary →</span>
             </button>
@@ -739,7 +746,7 @@
             <!-- Animated Smooth Progress Bar -->
             <div class="flex-1 max-w-xs sm:max-w-md h-3 bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-200/70">
               <div
-                class="h-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-full transition-all duration-500 ease-out shadow-xs"
+                class="h-full bg-blue-600 rounded-full transition-all duration-500 ease-out shadow-xs"
                 :style="{ width: `${((currentStudyIndex + 1) / (quizQuestions?.length || 1)) * 100}%` }"
               ></div>
             </div>
@@ -929,7 +936,7 @@
                 type="button"
                 @click="checkQuizAnswer"
                 :disabled="!canAnswerQuiz || isSubmittingQuiz || quizFeedbackLoading"
-                class="w-full sm:w-auto min-w-[220px] py-4.5 px-8 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:brightness-105 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-base rounded-2xl shadow-lg shadow-blue-600/25 transition cursor-pointer flex items-center justify-center gap-2"
+                class="w-full sm:w-auto min-w-[220px] py-4.5 px-8 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-base rounded-2xl shadow-md shadow-blue-600/20 transition cursor-pointer flex items-center justify-center gap-2"
               >
                 <Loader2 v-if="isSubmittingQuiz || quizFeedbackLoading" class="w-5 h-5 animate-spin" />
                 <span>
@@ -979,14 +986,14 @@
             <span>🎯</span>
             <span>{{ lessonCards?.length ? 'Step 2:' : '' }} Practice</span>
           </h2>
-          <p class="text-base sm:text-lg text-blue-900 leading-relaxed">
+          <p class="max-w-2xl text-base sm:text-lg text-slate-700 leading-relaxed">
             {{ currentLesson.type === 'SPEAKING'
               ? 'Listen to native pronunciation and practice speaking each sentence in the lesson.'
               : 'Read the task guidance below carefully and write your response.' }}
           </p>
-          <div class="flex flex-wrap items-center justify-between gap-2 pt-1 text-sm font-bold text-blue-700">
+          <div class="flex flex-wrap items-center justify-between gap-3 pt-1 text-sm font-bold text-blue-800">
             <span>{{ currentLesson.type === 'SPEAKING' ? `${lessonDetail?.contents?.length || 0} practice sentences` : 'Practice writing and get instant feedback' }}</span>
-            <span v-if="currentLesson.type === 'SPEAKING'" class="text-xs sm:text-sm font-semibold text-indigo-600 bg-white/90 px-3 py-1 rounded-full border border-blue-200 shadow-2xs">
+            <span v-if="currentLesson.type === 'SPEAKING'" class="text-xs sm:text-sm font-bold text-blue-700 bg-white px-5 py-2.5 rounded-full border border-blue-200 shadow-2xs">
               👉 Tip: Click on any sentence to practice it directly
             </span>
           </div>
@@ -1048,9 +1055,9 @@
               {{ parseSpeakerLine(content.target_text).speaker ? parseSpeakerLine(content.target_text).text : content.target_text }}
             </p>
 
-            <!-- Hint Translation -->
-            <div v-if="content.hint_translation" class="flex items-start gap-2 p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200/80 text-sm sm:text-base text-amber-950">
-              <span class="text-base shrink-0">💡</span>
+            <!-- Hint Translation (Clean inline callout, no borders, no side-tab accent, no nested card) -->
+            <div v-if="content.hint_translation" class="flex items-start gap-2.5 text-sm sm:text-base text-slate-700 pt-1">
+              <span class="text-amber-500 shrink-0 text-base">💡</span>
               <p class="leading-relaxed">
                 <span class="font-bold text-amber-900">Meaning: </span>
                 <span class="font-medium text-slate-800">{{ parseHintLine(content.hint_translation) }}</span>
@@ -1288,7 +1295,7 @@ const getLetterBadgeClass = (ans, aIdx) => {
   if (!quizChecked?.value) {
     return selectedQuizAnswer?.value?.id === ans.id
       ? 'bg-blue-600 text-white shadow-sm ring-2 ring-blue-200'
-      : 'bg-slate-100 text-slate-700 group-hover:bg-blue-100 group-hover:text-blue-700';
+      : 'bg-white text-slate-950 font-black border border-slate-300 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600';
   }
   if (submittedQuizDetail?.value?.correct_answer_id === ans.id) {
     return 'bg-emerald-600 text-white shadow-sm';
@@ -1474,8 +1481,25 @@ watch(activeTab, (tab) => {
   -webkit-backface-visibility: hidden;
 }
 
+.flashcard-front {
+  transform: rotateY(0deg);
+  z-index: 2;
+}
+
 .flashcard-back {
   transform: rotateY(180deg);
+  z-index: 1;
+}
+
+/* Prevent 2D DOM bounding box occlusion / collision when face is inactive */
+.flashcard-inner:not(.is-flipped) .flashcard-back {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.flashcard-inner.is-flipped .flashcard-front {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .flashcard-stage:focus-visible .flashcard-front,

@@ -36,26 +36,26 @@
           <p class="reading-text mt-2 whitespace-pre-line text-slate-800 text-sm sm:text-base leading-relaxed">{{ content.sample_text }}</p>
         </details>
       </div>
-      <p class="text-indigo-700 font-medium text-xs sm:text-sm">Draft your response, inspect feedback, then revise and resubmit. Drafts are auto-saved.</p>
+      <p class="text-blue-700 font-medium text-xs sm:text-sm">Draft your response, inspect feedback, then revise and resubmit. Drafts are auto-saved.</p>
     </div>
-    <div v-else class="rounded-2xl border border-indigo-100 bg-indigo-50/80 p-5 sm:p-6 text-sm sm:text-base text-indigo-950">
-      <p class="leading-relaxed">Write paragraphs, emails, or essays. The system analyzes grammar, vocabulary, and provides suggestions to raise your score.</p>
-      <button @click="ctx.openWritingTaskPicker" :disabled="isEvaluating" :aria-expanded="ctx.writingPickerOpen.value" aria-controls="writing-task-picker" class="mt-3.5 rounded-xl bg-indigo-700 px-5 py-2.5 font-bold text-sm sm:text-base text-white transition hover:bg-indigo-800 shadow-md shadow-indigo-700/20 disabled:opacity-50 cursor-pointer">Select Prompt from Topics →</button>
+    <div v-else class="rounded-2xl border border-blue-100 bg-blue-50/60 p-5 sm:p-6 text-sm sm:text-base text-blue-950">
+      <p class="max-w-xl text-slate-700 leading-relaxed font-normal">Write paragraphs, emails, or essays. The system analyzes grammar, vocabulary, and provides suggestions to raise your score.</p>
+      <button @click="ctx.openWritingTaskPicker" :disabled="isEvaluating" :aria-expanded="ctx.writingPickerOpen.value" aria-controls="writing-task-picker" class="mt-3.5 rounded-xl bg-blue-600 px-5 py-2.5 font-bold text-sm sm:text-base text-white transition hover:bg-blue-700 shadow-md shadow-blue-600/20 disabled:opacity-50 cursor-pointer">Select Prompt from Topics →</button>
     </div>
-    <section v-if="ctx.writingPickerOpen.value" id="writing-task-picker" aria-labelledby="writing-picker-title" class="space-y-4 rounded-3xl border border-violet-200 bg-gradient-to-br from-violet-50 to-sky-50 p-5 sm:p-6">
-      <div class="flex items-center justify-between gap-3"><h2 id="writing-picker-title" class="text-lg font-bold text-violet-950">Select Writing Prompt</h2><button @click="ctx.writingPickerOpen.value = false" class="rounded-xl bg-white px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-600 cursor-pointer shadow-2xs">Close</button></div>
-      <p v-if="ctx.writingPickerLoading.value" role="status" class="flex items-center gap-2 py-3 text-sm sm:text-base text-indigo-700"><Loader2 class="h-5 w-5 animate-spin" />Loading prompts…</p>
+    <section v-if="ctx.writingPickerOpen.value" id="writing-task-picker" aria-labelledby="writing-picker-title" class="space-y-4 rounded-3xl border border-blue-200 bg-gradient-to-br from-blue-50/60 to-sky-50/60 p-5 sm:p-6 shadow-2xs">
+      <div class="flex items-center justify-between gap-3"><h2 id="writing-picker-title" class="text-lg font-bold text-blue-950">Select Writing Prompt</h2><button @click="ctx.writingPickerOpen.value = false" class="rounded-xl bg-white px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-600 cursor-pointer shadow-2xs">Close</button></div>
+      <p v-if="ctx.writingPickerLoading.value" role="status" class="flex items-center gap-2 py-3 text-sm sm:text-base text-blue-700"><Loader2 class="h-5 w-5 animate-spin" />Loading prompts…</p>
       <div v-else-if="ctx.writingPickerError.value" role="alert" class="rounded-2xl bg-rose-50 p-4 text-sm text-rose-700">{{ ctx.writingPickerError.value }} <button @click="ctx.loadWritingTasks" class="font-semibold underline">Retry</button></div>
       <template v-else>
-        <label class="block space-y-2 text-sm sm:text-base font-semibold text-slate-800"><span>Topics with writing prompts</span><select v-model="ctx.writingPickerTopicId.value" class="w-full rounded-xl border border-violet-200 bg-white p-3.5 text-sm sm:text-base text-slate-800"><option :value="null">All topics with writing prompts</option><option v-for="topic in ctx.writingPickerTopics.value" :key="topic.id" :value="topic.id">{{ topic.title }}</option></select></label>
+        <label class="block space-y-2 text-sm sm:text-base font-semibold text-slate-800"><span>Topics with writing prompts</span><select v-model="ctx.writingPickerTopicId.value" class="w-full rounded-xl border border-blue-200 bg-white p-3.5 text-sm sm:text-base text-slate-800"><option :value="null">All topics with writing prompts</option><option v-for="topic in ctx.writingPickerTopics.value" :key="topic.id" :value="topic.id">{{ topic.title }}</option></select></label>
         <div class="space-y-2.5">
-          <button v-for="lesson in ctx.writingPickerLessons.value" :key="lesson.id" @click="ctx.openWritingLesson(lesson)" :disabled="isEvaluating" class="flex w-full items-center gap-3.5 rounded-2xl border border-violet-100 bg-white p-4 sm:p-5 text-left shadow-2xs transition hover:border-violet-300 hover:bg-violet-50 disabled:opacity-50 cursor-pointer"><span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-100 text-violet-700"><PenLine class="h-5 w-5" aria-hidden="true" /></span><span class="min-w-0 flex-1"><span class="block text-sm sm:text-base font-bold text-slate-900">{{ lesson.title }}</span><span class="mt-1 block text-xs sm:text-sm text-slate-500">{{ ctx.writingPickerTopics.value.find(topic => topic.id === lesson.topic_id)?.title }}</span></span><ArrowRight class="h-4 w-4 shrink-0 text-violet-600" aria-hidden="true" /></button>
+          <button v-for="lesson in ctx.writingPickerLessons.value" :key="lesson.id" @click="ctx.openWritingLesson(lesson)" :disabled="isEvaluating" class="flex w-full items-center gap-3.5 rounded-2xl border border-blue-100 bg-white p-4 sm:p-5 text-left shadow-2xs transition hover:border-blue-300 hover:bg-blue-50 disabled:opacity-50 cursor-pointer"><span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700"><PenLine class="h-5 w-5" aria-hidden="true" /></span><span class="min-w-0 flex-1"><span class="block text-sm sm:text-base font-bold text-slate-900">{{ lesson.title }}</span><span class="mt-1 block text-xs sm:text-sm text-slate-500">{{ ctx.writingPickerTopics.value.find(topic => topic.id === lesson.topic_id)?.title }}</span></span><ArrowRight class="h-4 w-4 shrink-0 text-blue-600" aria-hidden="true" /></button>
         </div>
         <p v-if="!ctx.writingPickerLessons.value.length" class="rounded-2xl bg-white p-5 text-sm text-slate-600">No writing prompts in this topic yet. Please choose another topic.</p>
       </template>
     </section>
     <div class="space-y-4">
-      <div class="bg-white rounded-3xl p-5 sm:p-6 border border-gray-200/90 shadow-xs relative focus-within:ring-2 focus-within:ring-indigo-600 focus-within:border-transparent">
+      <div class="bg-white rounded-3xl p-5 sm:p-6 border border-gray-200/90 shadow-xs relative focus-within:ring-2 focus-within:ring-blue-600 focus-within:border-transparent">
         <textarea
           v-model="essayInput" :readonly="isEvaluating" maxlength="10000"
           rows="8"
@@ -77,7 +77,7 @@
       <button
         @click="submitWritingEvaluation"
         :disabled="isEvaluating || !essayInput.trim()"
-        class="btn-spring w-full py-4 bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-600 hover:brightness-105 active:scale-[0.98] disabled:opacity-50 text-white rounded-2xl text-base font-bold shadow-md shadow-indigo-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer select-none"
+        class="btn-spring w-full py-4 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] disabled:opacity-50 text-white rounded-2xl text-base font-bold shadow-md shadow-blue-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer select-none"
       >
         <Sparkles v-if="!isEvaluating" class="w-5 h-5" />
         <Loader2 v-else class="w-5 h-5 animate-spin" />

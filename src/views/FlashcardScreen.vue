@@ -19,14 +19,14 @@
     <div class="space-y-3">
       <div class="flex items-center justify-between">
         <div>
-          <span class="text-xs uppercase tracking-wide font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-3 py-1 rounded-full">Vocabulary Deck</span>
+          <span class="text-xs uppercase tracking-wide font-bold text-blue-600 bg-blue-50 border border-blue-100 px-3 py-1 rounded-full">Vocabulary Deck</span>
           <h1 class="text-gray-900 mt-1.5 text-2xl sm:text-3xl font-extrabold leading-snug">Vocabulary Flashcards</h1>
         </div>
         <span v-if="flashcards?.length > 0" class="text-sm sm:text-base font-bold text-gray-700 bg-white border border-gray-200 px-4 py-1.5 rounded-full shadow-2xs">
           Card {{ currentStudyIndex + 1 }} / {{ flashcards.length }}
         </span>
       </div>
-      <p class="text-sm sm:text-base text-slate-500">
+      <p class="text-sm sm:text-base text-slate-500 max-w-xl leading-relaxed">
         {{ ctx.currentLesson?.value ? 'Review and memorize vocabulary for this lesson.' : 'Memorize vocabulary with interactive 3D flashcards, IPA phonetics, and real-world examples.' }}
       </p>
       <div v-if="flashcards?.length > 0" class="w-full h-2.5 bg-gray-200 rounded-full overflow-hidden">
@@ -38,7 +38,7 @@
     </div>
 
     <!-- Deck Picker by Lesson -->
-    <div v-if="isAuthenticated && ctx.flashcardMode?.value === 'all'" class="space-y-3 rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50/60 to-indigo-50/60 p-5 sm:p-6 shadow-2xs">
+    <div v-if="isAuthenticated && ctx.flashcardMode?.value === 'all'" class="space-y-3 rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50/60 to-sky-50/60 p-5 sm:p-6 shadow-2xs">
       <label for="flashcard-deck" class="flex items-center gap-2 text-base font-bold text-blue-950">
         <Layers class="h-5 w-5 text-blue-600" aria-hidden="true" />
         <span>Select Deck by Lesson</span>
@@ -81,28 +81,28 @@
           :disabled="studyLoading || isSavingCardNote"
           :aria-pressed="ctx.flashcardMode?.value === mode.id"
           class="rounded-2xl border px-4 py-3 font-bold transition disabled:opacity-50 cursor-pointer text-sm sm:text-base"
-          :class="ctx.flashcardMode?.value === mode.id ? 'border-indigo-600 bg-indigo-600 text-white shadow-md shadow-indigo-600/20' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'"
+          :class="ctx.flashcardMode?.value === mode.id ? 'border-blue-600 bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'"
         >
           {{ mode.title }}
         </button>
       </div>
-      <p class="text-sm text-slate-600">{{ ctx.flashcardMode?.value === 'noted' ? NOTED_HELP : ALL_HELP }}</p>
+      <p class="text-sm text-slate-600 max-w-xl leading-relaxed">{{ ctx.flashcardMode?.value === 'noted' ? NOTED_HELP : ALL_HELP }}</p>
     </div>
 
     <!-- Flashcard Toast Notification -->
     <transition enter-active-class="transition duration-200 ease-out" enter-from-class="opacity-0 translate-y-2" enter-to-class="opacity-100 translate-y-0" leave-active-class="transition duration-150 ease-in" leave-from-class="opacity-100 translate-y-0" leave-to-class="opacity-0 translate-y-2">
-      <div v-if="ctx.flashcardToast?.value" class="rounded-2xl bg-indigo-900 text-white px-4 py-3 text-sm font-semibold shadow-md flex items-center justify-between gap-3">
+      <div v-if="ctx.flashcardToast?.value" class="rounded-2xl bg-slate-900 text-white px-4 py-3 text-sm font-semibold shadow-md flex items-center justify-between gap-3">
         <div class="flex items-center gap-2">
           <Check class="w-4 h-4 text-amber-300 shrink-0" />
           <span>{{ ctx.flashcardToast.value }}</span>
         </div>
-        <button @click="ctx.flashcardToast.value = ''" class="text-indigo-300 hover:text-white cursor-pointer"><X class="w-4 h-4" /></button>
+        <button @click="ctx.flashcardToast.value = ''" class="text-slate-400 hover:text-white cursor-pointer"><X class="w-4 h-4" /></button>
       </div>
     </transition>
 
     <p v-if="studyError" role="alert" class="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm sm:text-base text-rose-700">{{ studyError }}</p>
     
-    <div v-if="!isAuthenticated" class="rounded-2xl border border-indigo-100 bg-indigo-50 p-4 text-sm sm:text-base text-indigo-700">
+    <div v-if="!isAuthenticated" class="rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm sm:text-base text-blue-700">
       Sign in to save your learning progress and review personal cards.
       <button @click="requireAuthentication" class="ml-1 font-bold underline cursor-pointer">Sign In</button>
     </div>
@@ -118,7 +118,7 @@
       <Layers class="w-12 h-12 text-blue-300 mx-auto" />
       <h3 class="text-lg font-bold text-gray-800">{{ ctx.flashcardMode?.value === 'noted' ? NO_NOTES : NO_CARDS }}</h3>
       <p class="text-sm sm:text-base text-gray-500 max-w-sm mx-auto leading-relaxed">{{ ctx.flashcardMode?.value === 'noted' ? EMPTY_NOTES_HELP : EMPTY_CARDS_HELP }}</p>
-      <button v-if="ctx.flashcardMode?.value === 'noted'" @click="ctx.setFlashcardMode('all')" class="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-bold">View all cards</button>
+      <button v-if="ctx.flashcardMode?.value === 'noted'" @click="ctx.setFlashcardMode('all')" class="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-bold">View all cards</button>
       <button @click="loadFlashcardsData" class="px-5 py-2.5 bg-blue-50 text-blue-600 rounded-xl text-sm sm:text-base font-bold hover:bg-blue-100 cursor-pointer">
         Reload Deck
       </button>
@@ -139,7 +139,7 @@
       >
         <div :class="{ 'is-flipped': isFlipped }" class="flashcard-inner relative w-full h-full">
           <!-- FRONT SIDE -->
-          <div :aria-hidden="isFlipped" :inert="isFlipped" class="flashcard-face flashcard-front absolute inset-0 bg-white rounded-3xl p-8 border border-blue-100 shadow-xl flex flex-col justify-between items-center text-center">
+          <div v-show="!isFlipped" :aria-hidden="isFlipped" :inert="isFlipped" class="flashcard-face flashcard-front absolute inset-0 bg-white rounded-3xl p-8 border border-blue-100 shadow-xl flex flex-col justify-between items-center text-center">
             <div class="w-full flex justify-between items-center">
               <div class="flex items-center gap-2">
                 <span class="text-xs sm:text-sm font-bold px-3 py-1 bg-blue-50 text-blue-600 rounded-lg">Vocabulary</span>
@@ -153,14 +153,14 @@
                 size="icon"
                 @click.stop="speakText(currentCard?.word)"
                 aria-label="Listen to pronunciation"
-                class="rounded-full bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 border border-slate-200/60"
+                class="rounded-full bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 border border-slate-200/60"
               >
                 <Volume2 class="w-5 h-5" />
               </AnimateButton>
             </div>
             <div class="space-y-3">
               <h2 class="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">{{ currentCard?.word }}</h2>
-              <div v-if="formatIpa(currentCard?.ipa)" class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-2xl bg-blue-50/90 border border-blue-100 font-mono font-bold text-base sm:text-lg text-blue-700 shadow-2xs tracking-wide">
+              <div v-if="formatIpa(currentCard?.ipa)" class="inline-flex items-center gap-1.5 px-6 py-2 rounded-2xl bg-blue-50 font-mono font-bold text-base sm:text-lg text-blue-700 tracking-wide">
                 <span>{{ formatIpa(currentCard?.ipa) }}</span>
               </div>
             </div>
@@ -171,7 +171,7 @@
           </div>
 
           <!-- BACK SIDE -->
-          <div :aria-hidden="!isFlipped" :inert="!isFlipped" class="flashcard-face flashcard-back absolute inset-0 bg-gradient-to-br from-indigo-50 via-white to-amber-50/40 rounded-3xl p-8 border border-blue-200 shadow-xl flex flex-col justify-between text-left">
+          <div v-show="isFlipped" :aria-hidden="!isFlipped" :inert="!isFlipped" class="flashcard-face flashcard-back absolute inset-0 bg-gradient-to-br from-blue-50/40 via-white to-amber-50/30 rounded-3xl p-8 border border-blue-200 shadow-xl flex flex-col justify-between text-left">
             <div class="flex justify-between items-center">
               <span class="text-xs sm:text-sm font-bold px-3 py-1 bg-blue-600 text-white rounded-lg uppercase">Definition</span>
               <span v-if="currentCard?.is_noted" class="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 flex items-center gap-1">

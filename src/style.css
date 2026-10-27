@@ -77,7 +77,7 @@
 
 .app-shell main {
   background:
-    radial-gradient(ellipse 80% 60% at 50% -15%, rgba(99, 102, 241, 0.08), transparent),
+    radial-gradient(ellipse 80% 60% at 50% -15%, rgba(37, 99, 235, 0.06), transparent),
     radial-gradient(ellipse 60% 40% at 90% 10%, rgba(168, 85, 247, 0.05), transparent),
     #f8fafc;
 }
@@ -90,7 +90,7 @@
 .app-shell select:focus-visible,
 .app-shell textarea:focus-visible,
 .app-shell button:focus-visible {
-  outline: 3px solid rgba(99, 102, 241, 0.35);
+  outline: 3px solid rgba(37, 99, 235, 0.35);
   outline-offset: 2px;
 }
 
@@ -130,7 +130,7 @@
 .bento-card:hover {
   transform: translateY(-3px);
   border-color: rgba(199, 210, 254, 0.9);
-  box-shadow: 0 20px 40px -12px rgba(99, 102, 241, 0.10), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 20px 40px -12px rgba(37, 99, 235, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
 }
 
 .glass-panel {
@@ -160,7 +160,7 @@
 .sound-bar {
   display: inline-block;
   width: 3.5px;
-  background: linear-gradient(180deg, #6366f1, #a855f7);
+  background: #38bdf8;
   border-radius: 9999px;
   animation: soundWave 1.2s ease-in-out infinite alternate;
 }
@@ -185,7 +185,7 @@
   position: absolute;
   inset: -12px;
   border-radius: 9999px;
-  border: 2px solid rgba(99, 102, 241, 0.45);
+  border: 2px solid rgba(37, 99, 235, 0.45);
   animation: radarExpand 2.2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
   pointer-events: none;
 }

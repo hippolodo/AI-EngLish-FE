@@ -42,7 +42,7 @@
           📖
         </div>
         <div>
-          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Vocabulary</p>
+          <p class="text-xs font-extrabold text-slate-600 uppercase tracking-wider">Vocabulary</p>
           <p class="text-sm font-bold text-slate-800">Save to Flashcards</p>
         </div>
       </div>
@@ -135,7 +135,7 @@
           :key="word"
           type="button"
           @click="searchQuickWord(word)"
-          class="px-3 py-1 rounded-full bg-slate-100 hover:bg-blue-50 hover:text-blue-600 font-medium text-slate-700 transition cursor-pointer"
+          class="px-3 py-1 rounded-full bg-white border border-slate-200 text-slate-800 font-semibold hover:border-blue-300 hover:text-blue-700 hover:bg-blue-50/70 shadow-2xs transition cursor-pointer"
         >
           {{ word }}
         </button>
@@ -288,22 +288,22 @@
 
       <!-- Meaning in Vietnamese -->
       <div class="space-y-2">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Definition:</h3>
+        <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-600">Definition:</h3>
         <p class="text-xl sm:text-2xl font-extrabold text-slate-900 leading-snug">
           {{ selectedWord.meaning_vi }}
         </p>
       </div>
 
-      <!-- English Definition (if available) -->
-      <div v-if="selectedWord.definition_en" class="space-y-2 rounded-2xl bg-slate-50 p-5 border border-slate-200/80">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">English Definition:</h3>
+      <!-- English Definition (if available - styled as accent panel, no nested card border) -->
+      <div v-if="selectedWord.definition_en" class="space-y-2 rounded-2xl bg-slate-50/80 p-5 border-l-4 border-l-slate-400">
+        <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-700">English Definition:</h3>
         <p class="text-base sm:text-lg text-slate-800 font-medium leading-relaxed">
           {{ selectedWord.definition_en }}
         </p>
       </div>
 
-      <!-- Real-world Example Sentence -->
-      <div v-if="selectedWord.example_sentence" class="space-y-3 rounded-2xl bg-blue-50/60 p-5 sm:p-6 border border-blue-100">
+      <!-- Real-world Example Sentence (styled as accent panel, no nested card border) -->
+      <div v-if="selectedWord.example_sentence" class="space-y-3 rounded-2xl bg-blue-50/70 p-5 sm:p-6 border-l-4 border-l-blue-500">
         <div class="flex items-center justify-between">
           <h3 class="text-xs font-bold uppercase tracking-wider text-blue-800 flex items-center gap-1.5">
             <span>💬</span> Real-world Example:

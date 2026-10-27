@@ -41,7 +41,7 @@
       <!-- Action: Create Custom Quiz -->
       <div class="flex items-center gap-2 self-start sm:self-auto shrink-0">
         <AnimateButton
-          variant="gradient"
+          variant="default"
           size="md"
           @click="openCreateQuizModal"
           class="shadow-md shadow-indigo-600/20"
@@ -88,7 +88,7 @@
         <div class="flex items-center gap-3 bg-white px-6 py-4 rounded-3xl border border-slate-200/90 shadow-sm shrink-0">
           <div class="text-right">
             <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Final Score</p>
-            <p class="text-3xl sm:text-4xl font-black text-indigo-600">
+            <p class="text-3xl sm:text-4xl font-black text-blue-600">
               <AnimateCountingNumber :number="quizResult.score" />
               <span class="text-lg text-slate-400 font-bold">/100</span>
             </p>
@@ -186,7 +186,7 @@
         <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
           <div
             :style="{ width: `${((currentStudyIndex + 1) / quizQuestions.length) * 100}%` }"
-            class="h-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-full transition-all duration-300"
+            class="h-full bg-blue-600 rounded-full transition-all duration-300"
           ></div>
         </div>
       </div>
@@ -411,7 +411,7 @@
           type="button"
           @click="checkQuizAnswer"
           :disabled="!canAnswerQuiz || isSubmittingQuiz || ctx.quizFeedbackLoading?.value"
-          class="btn-spring w-full py-4.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:brightness-105 active:scale-[0.99] disabled:opacity-50 text-white font-extrabold text-base sm:text-lg rounded-2xl shadow-lg shadow-blue-600/25 transition cursor-pointer flex items-center justify-center gap-2 select-none"
+          class="btn-spring w-full py-4.5 bg-blue-600 hover:bg-blue-700 active:scale-[0.99] disabled:opacity-50 text-white font-extrabold text-base sm:text-lg rounded-2xl shadow-md shadow-blue-600/20 transition cursor-pointer flex items-center justify-center gap-2 select-none"
         >
           <Loader2 v-if="isSubmittingQuiz || ctx.quizFeedbackLoading?.value" class="w-5 h-5 animate-spin" />
           <span>
@@ -458,9 +458,9 @@
       class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto"
       @click.self="isCreateQuizOpen = false"
     >
-      <div class="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden my-8">
+      <div class="relative w-full max-w-2xl bg-white rounded-3xl shadow-xl border border-slate-200/80 overflow-hidden my-8">
         <!-- Modal Header -->
-        <div class="flex items-center justify-between px-6 py-5 border-b border-slate-100 bg-slate-50/70">
+        <div class="flex items-center justify-between px-6 py-5 border-b border-slate-100">
           <div class="flex items-center gap-2.5">
             <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
               <Plus class="w-5 h-5" />
@@ -696,7 +696,7 @@ const getLetterBadgeClass = (ans, aIdx) => {
   if (!quizChecked?.value) {
     return selectedQuizAnswer?.value?.id === ans.id
       ? 'bg-blue-600 text-white shadow-sm'
-      : 'bg-slate-100 text-slate-700 group-hover:bg-blue-50 group-hover:text-blue-700';
+      : 'bg-white text-slate-950 font-black border border-slate-300 shadow-2xs group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600';
   }
   if (submittedQuizDetail?.value?.correct_answer_id === ans.id) {
     return 'bg-emerald-600 text-white shadow-sm';
@@ -706,7 +706,7 @@ const getLetterBadgeClass = (ans, aIdx) => {
       ? 'bg-emerald-600 text-white shadow-sm'
       : 'bg-rose-500 text-white shadow-sm';
   }
-  return 'bg-slate-100 text-slate-400';
+  return 'bg-white text-slate-400 border border-slate-200 opacity-60';
 };
 
 // Custom Quiz Creator State

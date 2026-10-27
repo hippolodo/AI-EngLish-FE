@@ -1,7 +1,7 @@
 <template>
   <div v-if="isOpen" class="fixed inset-0 z-[60] flex items-end justify-center bg-slate-950/60 p-0 backdrop-blur-sm sm:items-center sm:p-4" @click.self="$emit('close')">
     <section class="w-full max-w-md overflow-hidden rounded-t-[28px] bg-slate-50 shadow-2xl sm:rounded-[28px]" role="dialog" aria-modal="true" aria-labelledby="profile-title">
-      <header class="relative bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 px-6 pb-8 pt-5 text-white">
+      <header class="relative bg-gradient-to-br from-slate-900 via-slate-800 to-blue-950 px-6 pb-8 pt-5 text-white border-b border-slate-800/80">
         <button class="absolute right-4 top-4 rounded-full bg-white/15 p-2 transition hover:bg-white/25 cursor-pointer" aria-label="Close profile" @click="$emit('close')">
           <X class="h-5 w-5" />
         </button>
@@ -36,13 +36,13 @@
         <div class="rounded-2xl border border-slate-200 bg-white p-4">
           <div class="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-800"><ChartNoAxesColumnIncreasing class="h-4 w-4 text-indigo-600" /> Learning Overview</div>
           <div class="grid grid-cols-3 divide-x divide-slate-100 text-center">
-            <div class="px-1"><p class="text-xl font-semibold text-indigo-700">{{ stats.speaking }}</p><p class="mt-1 text-xs text-slate-500">Speaking</p></div>
-            <div class="px-1"><p class="text-xl font-semibold text-indigo-700">{{ stats.writing }}</p><p class="mt-1 text-xs text-slate-500">Writing</p></div>
-            <div class="px-1"><p class="text-xl font-semibold text-indigo-700">{{ stats.chat }}</p><p class="mt-1 text-xs text-slate-500">Chat</p></div>
+            <div class="px-1"><p class="text-xl font-bold text-slate-900">{{ stats.speaking }}</p><p class="mt-1 text-xs font-semibold text-slate-600">Speaking</p></div>
+            <div class="px-1"><p class="text-xl font-bold text-slate-900">{{ stats.writing }}</p><p class="mt-1 text-xs font-semibold text-slate-600">Writing</p></div>
+            <div class="px-1"><p class="text-xl font-bold text-slate-900">{{ stats.chat }}</p><p class="mt-1 text-xs font-semibold text-slate-600">Chat</p></div>
           </div>
         </div>
 
-        <button v-if="isAuthenticated" class="flex w-full items-center justify-center gap-2 rounded-xl border border-rose-200 bg-white py-3 text-sm font-semibold text-rose-600 transition hover:bg-rose-50" @click="$emit('logout')">
+        <button v-if="isAuthenticated" class="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-rose-200 bg-rose-50 py-3 text-sm font-bold text-rose-700 transition hover:bg-rose-100 hover:border-rose-300 cursor-pointer" @click="$emit('logout')">
           <LogOut class="h-4 w-4" /> Sign Out
         </button>
       </div>

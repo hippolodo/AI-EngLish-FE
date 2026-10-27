@@ -4,7 +4,7 @@
     :tap-scale="disabled || loading ? 1 : tapScale"
     :disabled="disabled || loading"
     :class="[
-      'inline-flex items-center justify-center font-bold transition-colors select-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50',
+      'inline-flex items-center justify-center font-bold transition-colors select-none cursor-pointer disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 disabled:shadow-none disabled:border-slate-200',
       variantClasses[variant] || variantClasses.default,
       sizeClasses[size] || sizeClasses.md,
       className
@@ -55,7 +55,7 @@ const props = defineProps({
 
 const variantClasses = {
   default: 'bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 active:bg-blue-800',
-  gradient: 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:brightness-105 text-white shadow-md shadow-indigo-500/25',
+  gradient: 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-md shadow-blue-500/20',
   secondary: 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200/80',
   outline: 'border-2 border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 text-slate-700 shadow-2xs',
   destructive: 'bg-rose-600 hover:bg-rose-700 text-white shadow-md shadow-rose-500/20',
