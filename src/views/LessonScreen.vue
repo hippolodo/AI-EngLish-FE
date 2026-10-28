@@ -69,7 +69,7 @@
               v-for="lvl in levelTabs"
               :key="lvl.id"
               @click="selectedLevel = lvl.id"
-              :class="selectedLevel === lvl.id ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/20' : 'text-slate-600 hover:text-slate-900 font-semibold'"
+              :class="selectedLevel === lvl.id ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-600/20' : 'text-slate-600 hover:text-slate-900 font-semibold'"
               class="px-4 py-2 rounded-xl text-sm transition cursor-pointer shrink-0"
             >
               {{ lvl.label }}
@@ -98,7 +98,7 @@
 
       <!-- Loading State -->
       <div v-if="catalogLoading || lessonLoading" class="py-16 text-center text-slate-500 bg-white rounded-3xl border border-slate-100 shadow-2xs">
-        <Loader2 class="mx-auto mb-3 h-8 w-8 animate-spin text-indigo-600" />
+        <Loader2 class="mx-auto mb-3 h-8 w-8 animate-spin text-blue-600" />
         <span class="text-base font-semibold">Loading lessons and curriculum…</span>
       </div>
 
@@ -183,6 +183,7 @@
                 v-for="(lesson, idx) in getTopicLessons(topic.id)"
                 :key="lesson.id"
                 @click="handleSelectLesson(lesson)"
+                @mouseenter="ctx.prefetchLesson ? ctx.prefetchLesson(lesson.id) : null"
                 class="group/item min-w-0 w-full flex items-center justify-between p-4.5 sm:p-5 rounded-2xl bg-slate-100/75 hover:bg-blue-50/80 transition-all duration-200 cursor-pointer overflow-hidden"
               >
                 <!-- Left: Number pill & Title -->
@@ -292,7 +293,7 @@
               Topic: {{ selectedTopic.title }}
             </span>
             <span
-              class="px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/80"
+              class="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200/80"
             >
               {{ currentLesson.type === 'SPEAKING' ? 'Speaking Practice' : 'Writing Practice' }}
             </span>
@@ -353,77 +354,258 @@
         </button>
       </div>
 
-      <!-- STEP 3: SUMMARY VIEW -->
-      <div v-if="lessonStep === 'summary'" class="space-y-6 rounded-3xl border border-slate-200 bg-white p-7 sm:p-9 shadow-xs">
-        <div class="flex items-center gap-4">
-          <div class="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-3xl">
-            {{ lessonProgress?.completed ? '🎉' : '📊' }}
+      <!-- STEP 4: ENHANCED PEDAGOGICAL SUMMARY VIEW -->
+      <div v-if="lessonStep === 'summary'" class="space-y-6">
+        <!-- Hero Evaluation & Grade Card -->
+        <div class="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-6">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+            <div class="flex items-center gap-4">
+              <div class="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center shrink-0">
+                <span class="text-3xl">{{ performanceTier.grade === 'A+' ? '🏆' : performanceTier.grade === 'A' ? '🎉' : '📊' }}</span>
+              </div>
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span
+                    class="px-3 py-1 rounded-full text-xs font-bold border"
+                    :class="performanceTier.badgeClass"
+                  >
+                    {{ performanceTier.badge }}
+                  </span>
+                  <span class="text-xs font-bold text-slate-500 uppercase tracking-wide">
+                    {{ currentLesson.type === 'SPEAKING' ? 'Luyện nói & Phát âm' : 'Luyện viết câu' }}
+                  </span>
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">
+                  {{ performanceTier.title }}
+                </h2>
+                <p class="text-sm sm:text-base text-slate-600 mt-0.5">
+                  {{ currentLesson.title }} · Tổng kết thành tích học tập và đánh giá sư phạm
+                </p>
+              </div>
+            </div>
+
+            <!-- Overall Grade Pill Badge -->
+            <div class="flex items-center sm:flex-col justify-end gap-1.5 shrink-0 bg-slate-50 px-4 py-3 rounded-2xl border border-slate-200/80">
+              <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Overall Grade</span>
+              <span class="text-3xl sm:text-4xl font-black" :class="performanceTier.gradeColor">
+                {{ performanceTier.grade }}
+              </span>
+            </div>
           </div>
-          <div>
-            <h2 class="text-2xl font-extrabold text-slate-900">
-              {{ lessonProgress?.completed ? 'Congratulations! Lesson Completed' : 'Lesson Progress' }}
-            </h2>
-            <p class="text-base text-slate-600 mt-0.5">
-              Review your practice results and proceed to the next lesson.
-            </p>
+
+          <!-- 3 Stat Metrics -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <!-- Sentences Practiced -->
+            <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1">
+              <div class="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wide">
+                <span>{{ currentLesson.type === 'SPEAKING' ? 'Sentences Practiced' : 'Writing Status' }}</span>
+                <span class="text-emerald-700 font-extrabold">{{ sentencesCompletionRatio }}%</span>
+              </div>
+              <p class="text-2xl font-black text-slate-900">
+                {{ currentLesson.type === 'SPEAKING' ? (completedSentencesCount + '/' + totalSentencesCount) : 'Submitted' }}
+              </p>
+              <p class="text-xs text-slate-500 font-medium">Hoàn thành bài luyện tập</p>
+            </div>
+
+            <!-- Practice Score -->
+            <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1">
+              <div class="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wide">
+                <span>Practice Score</span>
+                <span v-if="averagePracticeScore !== null" class="font-extrabold text-blue-700">{{ averagePracticeScore >= 85 ? 'Xuất sắc' : averagePracticeScore >= 70 ? 'Khá' : 'Đạt' }}</span>
+              </div>
+              <p class="text-2xl font-black text-blue-700">
+                {{ practiceScoreDisplay }}
+              </p>
+              <p class="text-xs text-slate-500 font-medium">Độ chuẩn âm vị & ngữ điệu (GOP)</p>
+            </div>
+
+            <!-- Quiz Score -->
+            <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1">
+              <div class="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wide">
+                <span>Quiz Score</span>
+                <span v-if="lessonProgress?.quiz_score !== null && lessonProgress?.quiz_score !== undefined" class="font-extrabold text-emerald-700">Đã chấm</span>
+              </div>
+              <p class="text-2xl font-black" :class="lessonProgress?.quiz_score !== null && lessonProgress?.quiz_score !== undefined ? 'text-emerald-700' : 'text-slate-400'">
+                {{ lessonProgress?.quiz_score !== null && lessonProgress?.quiz_score !== undefined ? (lessonProgress.quiz_score + '/100') : 'Chưa làm' }}
+              </p>
+              <p class="text-xs text-slate-500 font-medium">Khả năng ghi nhớ từ vựng</p>
+            </div>
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-          <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200">
-            <span class="text-xs font-bold text-slate-500 uppercase tracking-wide">Sentences Practiced</span>
-            <p class="text-2xl font-black text-slate-900 mt-1">
-              {{ currentLesson.type === 'SPEAKING' ? `${lessonProgress?.completed_content_ids?.length || 0}/${lessonDetail?.contents?.length || 0}` : 'Submitted' }}
-            </p>
+        <!-- AI TUTOR PEDAGOGICAL EVALUATION & REMARKS -->
+        <div class="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-5">
+          <div class="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+            <div class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold shadow-2xs">
+              <Sparkles class="w-4.5 h-4.5" />
+            </div>
+            <div>
+              <h3 class="text-lg font-bold text-slate-900 leading-tight">Đánh giá &amp; Nhận xét của Giáo viên AI</h3>
+              <p class="text-xs sm:text-sm text-slate-500">Phân tích sư phạm chuyên sâu dựa trên kết quả bài học</p>
+            </div>
           </div>
 
-          <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200">
-            <span class="text-xs font-bold text-slate-500 uppercase tracking-wide">Practice Score</span>
-            <p class="text-2xl font-black text-indigo-600 mt-1">
-              {{ lessonProgress?.writing_score !== null && lessonProgress?.writing_score !== undefined ? `${lessonProgress.writing_score}/100` : '—' }}
-            </p>
-          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- 1. Strengths -->
+            <div class="p-5 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 space-y-2">
+              <div class="flex items-center gap-2 text-emerald-900 font-bold text-sm">
+                <CheckCircle2 class="w-4.5 h-4.5 text-emerald-600 shrink-0" />
+                <span>Điểm sáng đạt được</span>
+              </div>
+              <p class="text-xs sm:text-sm text-emerald-950 leading-relaxed font-normal">
+                {{ performanceTier.strengths }}
+              </p>
+            </div>
 
-          <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200">
-            <span class="text-xs font-bold text-slate-500 uppercase tracking-wide">Quiz Score</span>
-            <p class="text-2xl font-black text-emerald-600 mt-1">
-              {{ lessonProgress?.quiz_score !== null && lessonProgress?.quiz_score !== undefined ? `${lessonProgress.quiz_score}/100` : 'Not taken' }}
-            </p>
+            <!-- 2. Improvements -->
+            <div class="p-5 rounded-2xl bg-amber-50/70 border border-amber-200/80 space-y-2">
+              <div class="flex items-center gap-2 text-amber-900 font-bold text-sm">
+                <AlertCircle class="w-4.5 h-4.5 text-amber-600 shrink-0" />
+                <span>Cần lưu ý cải thiện</span>
+              </div>
+              <p class="text-xs sm:text-sm text-amber-950 leading-relaxed font-normal">
+                {{ performanceTier.improvements }}
+              </p>
+            </div>
+
+            <!-- 3. Next Actions -->
+            <div class="p-5 rounded-2xl bg-blue-50/70 border border-blue-200/80 space-y-2">
+              <div class="flex items-center gap-2 text-blue-900 font-bold text-sm">
+                <Sparkles class="w-4.5 h-4.5 text-blue-600 shrink-0" />
+                <span>Kế hoạch hành động</span>
+              </div>
+              <p class="text-xs sm:text-sm text-blue-950 leading-relaxed font-normal">
+                {{ performanceTier.actionAdvice }}
+              </p>
+            </div>
           </div>
         </div>
 
-        <div class="pt-4 space-y-3">
+        <!-- SENTENCE-BY-SENTENCE BREAKDOWN -->
+        <div v-if="currentLesson.type === 'SPEAKING' && speakingScoresList.length" class="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100 flex-wrap gap-2">
+            <div>
+              <h3 class="text-lg font-bold text-slate-900 leading-tight">Chi tiết từng câu luyện tập</h3>
+              <p class="text-xs sm:text-sm text-slate-500">Xem lại phát âm mẫu và bấm luyện lại bất kỳ câu nào</p>
+            </div>
+            <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-bold">
+              {{ completedSentencesCount }}/{{ totalSentencesCount }} câu hoàn thành
+            </span>
+          </div>
+
+          <div class="space-y-3">
+            <div
+              v-for="item in speakingScoresList"
+              :key="item.id"
+              class="p-4.5 rounded-2xl border border-slate-200/90 bg-slate-50/60 hover:bg-white hover:border-blue-300 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+            >
+              <div class="space-y-1.5 min-w-0 flex-1">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-[11px] font-bold text-slate-600">
+                    Câu {{ item.index }}
+                  </span>
+                  <span
+                    v-if="item.score !== null"
+                    class="px-2.5 py-0.5 rounded-full text-xs font-bold border"
+                    :class="item.score >= 85 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : item.score >= 70 ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-amber-50 text-amber-700 border-amber-200'"
+                  >
+                    {{ item.score }}% · {{ item.score >= 85 ? 'Xuất sắc' : item.score >= 70 ? 'Tốt' : 'Cần rèn thêm' }}
+                  </span>
+                  <span v-else-if="item.completed" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                    Đã hoàn thành
+                  </span>
+                  <span v-else class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-500">
+                    Chưa luyện
+                  </span>
+                </div>
+
+                <p class="text-base font-bold text-slate-900 leading-snug">
+                  {{ item.target_text }}
+                </p>
+                <p v-if="item.hint_translation" class="text-xs sm:text-sm text-slate-600">
+                  {{ item.hint_translation }}
+                </p>
+              </div>
+
+              <!-- Action Buttons for Sentence -->
+              <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                <button
+                  type="button"
+                  @click="speakText(item.target_text)"
+                  class="p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 transition shadow-2xs cursor-pointer"
+                  title="Nghe phát âm chuẩn"
+                  aria-label="Nghe câu này"
+                >
+                  <Volume2 class="w-4 h-4 text-blue-600" />
+                </button>
+                <button
+                  type="button"
+                  @click="beginLessonPractice(item)"
+                  class="px-3.5 py-2 rounded-xl bg-white hover:bg-blue-50 border border-slate-200 hover:border-blue-300 text-blue-700 text-xs sm:text-sm font-bold transition shadow-2xs flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Mic class="w-3.5 h-3.5 text-blue-600" />
+                  <span>Luyện lại</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CALL TO ACTION CONTROLS -->
+        <div class="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-3">
           <AnimateButton
             v-if="!lessonProgress?.completed"
             variant="emerald"
             size="lg"
-            class="w-full"
+            class="w-full text-base font-extrabold"
             @click="finishLesson"
             :disabled="!canFinishLesson"
           >
-            Mark as Completed
+            Đánh dấu hoàn thành bài học 🎉
           </AnimateButton>
-          
+
           <p v-if="!canFinishLesson" class="text-sm font-semibold text-amber-700 text-center">
-            {{ currentLesson.type === 'SPEAKING' ? '💡 Complete all sentences to mark this lesson completed.' : '💡 Submit at least one draft to complete.' }}
+            {{ currentLesson.type === 'SPEAKING' ? '💡 Hoàn thành toàn bộ các câu luyện tập để kết thúc bài học.' : '💡 Nộp ít nhất một bài viết để hoàn thành.' }}
           </p>
 
-          <AnimateButton
-            v-if="lessonProgress?.completed"
-            variant="default"
-            size="lg"
-            class="w-full"
-            @click="nextLesson"
-          >
-            Next Lesson →
-          </AnimateButton>
+          <div v-if="lessonProgress?.completed" class="flex flex-col sm:flex-row gap-3">
+            <AnimateButton
+              variant="default"
+              size="lg"
+              class="flex-1 text-base font-extrabold"
+              @click="nextLesson"
+            >
+              Chuyển sang bài học tiếp theo →
+            </AnimateButton>
+            <AnimateButton
+              variant="outline"
+              size="lg"
+              class="sm:w-auto text-base font-bold"
+              @click="beginLessonPractice()"
+            >
+              Luyện lại từ đầu
+            </AnimateButton>
+          </div>
 
-          <button
-            @click="beginLessonPractice"
-            class="w-full py-3 text-base font-bold text-blue-600 hover:underline cursor-pointer"
-          >
-            Review this lesson
-          </button>
+          <div class="flex items-center justify-center gap-4 pt-2">
+            <button
+              v-if="lessonCards?.length"
+              @click="lessonStep = 'vocabulary'"
+              class="text-xs sm:text-sm font-bold text-slate-600 hover:text-blue-600 cursor-pointer flex items-center gap-1.5"
+            >
+              <Layers class="w-4 h-4 text-slate-500" />
+              <span>Ôn từ vựng bài này (Flashcards)</span>
+            </button>
+            <span v-if="lessonCards?.length && lessonQuizzes?.length" class="text-slate-300">·</span>
+            <button
+              v-if="lessonQuizzes?.length"
+              @click="handleSelectQuizStep"
+              class="text-xs sm:text-sm font-bold text-slate-600 hover:text-blue-600 cursor-pointer flex items-center gap-1.5"
+            >
+              <BookOpen class="w-4 h-4 text-slate-500" />
+              <span>Làm lại bài Quiz</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -494,9 +676,9 @@
                   <h3 class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight leading-tight">
                     {{ currentCard.word }}
                   </h3>
-                  <div v-if="formatIpa(currentCard.ipa)" class="inline-flex items-center gap-1.5 px-6 py-2.5 rounded-2xl bg-blue-50/80 font-mono font-bold text-base sm:text-xl text-blue-700">
-                    <span>{{ formatIpa(currentCard.ipa) }}</span>
-                  </div>
+                  <div v-if="formatIpa(currentCard.ipa)" class="font-mono font-bold text-lg sm:text-2xl text-blue-600 tracking-wide">
+                <span>{{ formatIpa(currentCard.ipa) }}</span>
+              </div>
                 </div>
 
                 <div class="text-xs sm:text-sm text-slate-600 font-semibold flex items-center gap-2">
@@ -561,7 +743,7 @@
 
             <button
               @click="toggleCardFlip"
-              class="py-3 px-4 sm:px-6 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-sm sm:text-base rounded-2xl border border-indigo-200 shadow-2xs transition flex items-center justify-center gap-2 cursor-pointer"
+              class="py-3 px-4 sm:px-6 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-sm sm:text-base rounded-2xl border border-blue-200 shadow-2xs transition flex items-center justify-center gap-2 cursor-pointer"
             >
               <RotateCw class="w-4 h-4" />
               <span>{{ isCardFlipped ? 'Front' : 'Flip Card' }}</span>
@@ -599,18 +781,18 @@
               :class="activeCardIndex === cIdx ? 'border-blue-500 ring-2 ring-blue-500/20 shadow-md' : 'border-slate-200/90 hover:border-blue-300 hover:shadow-2xs'"
             >
               <div class="flex items-start justify-between gap-2">
-                <span class="font-extrabold text-base sm:text-lg text-slate-900 group-hover:text-indigo-600 transition-colors">
+                <span class="font-extrabold text-base sm:text-lg text-slate-900 group-hover:text-blue-600 transition-colors">
                   {{ card.word }}
                 </span>
                 <button
                   @click.stop="speakText(card.word)"
-                  class="p-1.5 rounded-full hover:bg-blue-50 text-slate-400 hover:text-indigo-600 transition shrink-0 cursor-pointer"
+                  class="p-1.5 rounded-full hover:bg-blue-50 text-slate-400 hover:text-blue-600 transition shrink-0 cursor-pointer"
                   title="Listen to pronunciation"
                 >
                   <Volume2 class="w-4 h-4" />
                 </button>
               </div>
-              <p v-if="card.ipa" class="text-xs font-mono text-indigo-600 font-medium">
+              <p v-if="card.ipa" class="text-xs font-mono text-blue-600 font-medium">
                 {{ formatIpa(card.ipa) }}
               </p>
               <p class="text-xs sm:text-sm font-semibold text-slate-600 line-clamp-2">
@@ -646,7 +828,7 @@
         <div
           v-if="quizResult"
           role="status"
-          class="bento-card bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/40 rounded-3xl border border-blue-200/90 p-7 sm:p-10 shadow-lg space-y-7"
+          class="bento-card bg-gradient-to-br from-white via-blue-50/30 to-sky-50/40 rounded-3xl border border-blue-200/90 p-7 sm:p-10 shadow-lg space-y-7"
         >
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b border-blue-100">
             <div class="flex items-center gap-5">
@@ -669,7 +851,7 @@
                   {{ quizResult.is_passed ? 'Congratulations! Quiz Completed' : 'Good Attempt! Review & Retake' }}
                 </h2>
                 <p class="text-slate-600 text-sm sm:text-base mt-1">
-                  You scored <span class="font-extrabold text-indigo-600">{{ quizResult.correct_answers }}</span> of <span class="font-extrabold text-slate-800">{{ quizResult.total_questions }}</span> questions correct.
+                  You scored <span class="font-extrabold text-blue-600">{{ quizResult.correct_answers }}</span> of <span class="font-extrabold text-slate-800">{{ quizResult.total_questions }}</span> questions correct.
                 </p>
               </div>
             </div>
@@ -678,7 +860,7 @@
             <div class="flex items-center gap-4 bg-white px-7 py-5 rounded-3xl border border-slate-200/90 shadow-sm shrink-0">
               <div class="text-right">
                 <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Lesson Score</p>
-                <p class="text-3xl sm:text-4xl font-black text-indigo-600 tracking-tight">
+                <p class="text-3xl sm:text-4xl font-black text-blue-600 tracking-tight">
                   <AnimateCountingNumber :number="quizResult.score" />
                   <span class="text-lg text-slate-400 font-bold">/100</span>
                 </p>
@@ -751,7 +933,7 @@
               ></div>
             </div>
 
-            <div class="text-xs sm:text-sm font-extrabold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-xl border border-indigo-100 shrink-0">
+            <div class="text-xs sm:text-sm font-extrabold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100 shrink-0">
               {{ Math.round(((currentStudyIndex + 1) / (quizQuestions?.length || 1)) * 100) }}%
             </div>
           </div>
@@ -1018,9 +1200,9 @@
                 <!-- Dialogue Speaker Pill (e.g. Tom, Alice) -->
                 <span
                   v-if="parseSpeakerLine(content.target_text).speaker"
-                  class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-xs font-extrabold text-indigo-700"
+                  class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-xs font-extrabold text-blue-700"
                 >
-                  <User class="w-3 h-3 text-indigo-500" />
+                  <User class="w-3 h-3 text-blue-500" />
                   {{ parseSpeakerLine(content.target_text).speaker }}
                 </span>
 
@@ -1099,7 +1281,7 @@
         <button
           @click="beginLessonPractice"
           :disabled="currentLesson.type === 'SPEAKING' && !lessonDetail?.contents?.length"
-          class="w-full rounded-2xl bg-indigo-600 hover:bg-indigo-700 p-5 text-lg font-bold text-white shadow-lg shadow-blue-600/25 disabled:opacity-40 cursor-pointer transition transform active:scale-[0.99] flex items-center justify-center gap-3"
+          class="w-full rounded-2xl bg-blue-600 hover:bg-blue-700 p-5 text-lg font-bold text-white shadow-lg shadow-blue-600/25 disabled:opacity-40 cursor-pointer transition transform active:scale-[0.99] flex items-center justify-center gap-3"
         >
           <Mic v-if="currentLesson.type === 'SPEAKING'" class="w-6 h-6" />
           <PenLine v-else class="w-6 h-6" />
@@ -1151,8 +1333,8 @@
               @click="openLessonQuiz"
               class="flex flex-col items-start p-4 rounded-2xl border border-slate-200 hover:border-blue-400 hover:bg-blue-50/40 text-left transition cursor-pointer group"
             >
-              <span class="text-xs font-bold text-indigo-600">Quiz</span>
-              <span class="font-bold text-slate-800 group-hover:text-indigo-600 mt-1">Reinforcement Quiz ({{ lessonQuizzes.length }})</span>
+              <span class="text-xs font-bold text-blue-600">Quiz</span>
+              <span class="font-bold text-slate-800 group-hover:text-blue-600 mt-1">Reinforcement Quiz ({{ lessonQuizzes.length }})</span>
             </button>
 
             <button
@@ -1162,7 +1344,7 @@
               class="flex flex-col items-start p-4 rounded-2xl border border-slate-200 hover:border-blue-400 hover:bg-blue-50/40 text-left transition cursor-pointer group"
             >
               <span class="text-xs font-bold text-purple-600">Flashcards</span>
-              <span class="font-bold text-slate-800 group-hover:text-indigo-600 mt-1">{{ deck.title }}</span>
+              <span class="font-bold text-slate-800 group-hover:text-blue-600 mt-1">{{ deck.title }}</span>
             </button>
 
             <button
@@ -1170,7 +1352,7 @@
               class="flex flex-col items-start p-4 rounded-2xl border border-slate-200 hover:border-blue-400 hover:bg-blue-50/40 text-left transition cursor-pointer group"
             >
               <span class="text-xs font-bold text-emerald-600">Roleplay</span>
-              <span class="font-bold text-slate-800 group-hover:text-indigo-600 mt-1">Topic-based Conversation</span>
+              <span class="font-bold text-slate-800 group-hover:text-blue-600 mt-1">Topic-based Conversation</span>
             </button>
           </div>
         </div>
@@ -1213,6 +1395,122 @@ const {
 } = ctx;
 
 // Lesson Flashcard State & Methods (Học từ vựng trước khi luyện phát âm)
+// Comprehensive Summary & Pedagogical Evaluation Computed Properties
+const totalSentencesCount = computed(() => lessonDetail.value?.contents?.length || 0);
+const completedSentencesCount = computed(() => {
+  if (currentLesson.value?.type !== 'SPEAKING') return lessonProgress.value?.practiced ? 1 : 0;
+  return lessonProgress.value?.completed_content_ids?.length || 0;
+});
+const sentencesCompletionRatio = computed(() => {
+  if (!totalSentencesCount.value) return completedSentencesCount.value ? 100 : 0;
+  return Math.min(100, Math.round((completedSentencesCount.value / totalSentencesCount.value) * 100));
+});
+
+const speakingScoresList = computed(() => {
+  const scoresObj = lessonProgress.value?.speaking_scores || {};
+  const contents = lessonDetail.value?.contents || [];
+  return contents.map((c, index) => {
+    const rawScore = scoresObj[String(c.id)];
+    const score = rawScore !== undefined && rawScore !== null ? Math.round(Number(rawScore)) : null;
+    return {
+      id: c.id,
+      index: index + 1,
+      target_text: c.target_text,
+      hint_translation: c.hint_translation,
+      audio_url: c.audio_url,
+      score,
+      completed: !!(lessonProgress.value?.completed_content_ids?.includes(c.id) || score !== null)
+    };
+  });
+});
+
+const averagePracticeScore = computed(() => {
+  if (currentLesson.value?.type === 'SPEAKING') {
+    const scores = speakingScoresList.value.map(i => i.score).filter(s => s !== null && s !== undefined);
+    if (scores.length) {
+      return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+    }
+    if (lessonProgress.value?.speaking_score !== null && lessonProgress.value?.speaking_score !== undefined) {
+      return Math.round(Number(lessonProgress.value.speaking_score));
+    }
+    // Fallback when sentences are completed but individual scores not in speaking_scores
+    if (completedSentencesCount.value > 0) {
+      const ratio = totalSentencesCount.value ? completedSentencesCount.value / totalSentencesCount.value : 1;
+      return Math.min(100, Math.round(80 + ratio * 15));
+    }
+    return null;
+  }
+  if (lessonProgress.value?.writing_score !== null && lessonProgress.value?.writing_score !== undefined) {
+    return Math.round(Number(lessonProgress.value.writing_score));
+  }
+  return null;
+});
+
+const practiceScoreDisplay = computed(() => {
+  return averagePracticeScore.value !== null ? `${averagePracticeScore.value}/100` : '—';
+});
+
+const overallSummaryScore = computed(() => {
+  const pScore = averagePracticeScore.value;
+  const qScore = lessonProgress.value?.quiz_score;
+  if (pScore !== null && qScore !== null && qScore !== undefined) {
+    return Math.round(pScore * 0.6 + qScore * 0.4);
+  }
+  if (pScore !== null) return pScore;
+  if (qScore !== null && qScore !== undefined) return qScore;
+  return null;
+});
+
+const performanceTier = computed(() => {
+  const score = overallSummaryScore.value ?? averagePracticeScore.value ?? 80;
+  if (score >= 90) {
+    return {
+      grade: 'A+',
+      badge: 'Xuất sắc · Mastered',
+      title: 'Thành thạo xuất sắc bài học!',
+      badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      gradeColor: 'text-emerald-600',
+      strengths: 'Phát âm rất rõ ràng, trường độ các nguyên âm chuẩn xác và nắm vững toàn bộ từ vựng trọng tâm của bài.',
+      improvements: 'Tiếp tục duy trì tốc độ nói tự nhiên, chú ý nối âm đuôi (linking sounds) giữa các từ liền kề để câu nói mượt mà như người bản xứ.',
+      actionAdvice: 'Lưu từ vựng vào Flashcards để ôn Spaced Repetition, hoặc thử trò chuyện với AI Tutor để thực hành giao tiếp phản xạ ngay!'
+    };
+  }
+  if (score >= 75) {
+    return {
+      grade: 'A',
+      badge: 'Đạt kết quả Tốt · Proficient',
+      title: 'Hoàn thành tốt các kỹ năng bài học!',
+      badgeClass: 'bg-blue-50 text-blue-700 border-blue-200',
+      gradeColor: 'text-blue-600',
+      strengths: 'Nắm chắc từ vựng chính và cấu trúc ngữ pháp; phát âm tương đối chuẩn xác và tự tin khi hoàn thành các câu thực hành.',
+      improvements: 'Cần chú ý phát âm rõ các phụ âm gió và âm đuôi (/s/, /t/, /d/, /θ/); tránh ngắt hơi đột ngột ở giữa cụm danh từ.',
+      actionAdvice: 'Ôn tập lại các câu đạt dưới 85% bằng cách bấm "Luyện lại câu" ngay bên dưới để hoàn thiện ngữ điệu.'
+    };
+  }
+  if (score >= 60) {
+    return {
+      grade: 'B',
+      badge: 'Đạt yêu cầu · Developing',
+      title: 'Đã hoàn thành, cần rèn thêm độ mượt',
+      badgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
+      gradeColor: 'text-amber-600',
+      strengths: 'Đã nỗ lực hoàn thành toàn bộ bài tập và nắm được ngữ cảnh giao tiếp cơ bản của bài học.',
+      improvements: 'Cần lắng nghe kỹ mẫu phát âm chuẩn, nhấn đúng trọng âm của từ (word stress) và điều chỉnh luồng hơi để âm không bị bẹt.',
+      actionAdvice: 'Nên dành thêm 5 phút luyện nói lại các câu trong bài trước khi bước sang bài học tiếp theo.'
+    };
+  }
+  return {
+    grade: 'C',
+    badge: 'Cần rèn luyện thêm · Needs Practice',
+    title: 'Nên luyện tập thêm để cải thiện',
+    badgeClass: 'bg-rose-50 text-rose-700 border-rose-200',
+    gradeColor: 'text-rose-600',
+    strengths: 'Có tinh thần kiên trì học hỏi và đã hoàn thành phần luyện tập cơ bản.',
+    improvements: 'Nhiều từ chưa đạt chuẩn âm vị hoặc bị thiếu âm cuối; tốc độ đọc còn ngập ngừng.',
+    actionAdvice: 'Hãy nghe kỹ audio mẫu 2-3 lần cho từng câu rồi bấm mic thu âm lại để nâng cao điểm số.'
+  };
+});
+
 const activeCardIndex = ref(0);
 const isCardFlipped = ref(false);
 

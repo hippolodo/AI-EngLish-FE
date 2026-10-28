@@ -160,7 +160,7 @@
             </div>
             <div class="space-y-3">
               <h2 class="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">{{ currentCard?.word }}</h2>
-              <div v-if="formatIpa(currentCard?.ipa)" class="inline-flex items-center gap-1.5 px-6 py-2 rounded-2xl bg-blue-50 font-mono font-bold text-base sm:text-lg text-blue-700 tracking-wide">
+              <div v-if="formatIpa(currentCard?.ipa)" class="font-mono font-bold text-lg sm:text-xl text-blue-600 tracking-wide">
                 <span>{{ formatIpa(currentCard?.ipa) }}</span>
               </div>
             </div>

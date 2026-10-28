@@ -7,8 +7,8 @@
         
         <!-- Header Section -->
         <div>
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-bold uppercase tracking-wider mb-2">
-            <Sparkles class="w-3.5 h-3.5 text-indigo-600" />
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-bold uppercase tracking-wider mb-2">
+            <Sparkles class="w-3.5 h-3.5 text-blue-600" />
             <span>AI Language Studio</span>
           </div>
           <h1 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">Practice Modes</h1>
@@ -47,15 +47,15 @@
                 </div>
               </div>
 
-              <!-- Live Soundwave Animation & Score Preview Capsule -->
-              <div class="shrink-0 flex flex-col items-center sm:items-end justify-center gap-3">
-                <div class="flex items-center gap-1.5 px-4.5 py-3 rounded-2xl bg-white/10 backdrop-blur-md shadow-inner">
+              <!-- Acoustic Soundwave & Score Preview -->
+              <div class="shrink-0 flex flex-col items-center sm:items-end justify-center gap-2">
+                <div class="flex items-center gap-1.5 py-1">
                   <span class="sound-bar" v-for="n in 9" :key="n"></span>
                 </div>
-                <div class="flex items-center gap-2 text-xs font-mono font-bold text-blue-200 bg-white/10 px-3.5 py-1.5 rounded-xl">
+                <p class="text-xs font-mono font-semibold text-blue-200">
                   <span>/prəˌnʌnsiˈeɪʃn/</span>
-                  <span class="text-emerald-400 font-sans font-bold">98% IPA</span>
-                </div>
+                  <span class="text-emerald-400 font-sans font-bold ml-1.5">98% IPA</span>
+                </p>
               </div>
             </div>
           </div>
@@ -134,10 +134,10 @@
           >
             <div>
               <div class="flex items-center justify-between mb-4">
-                <span class="px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100 flex items-center gap-1.5">
-                  <PenLine class="w-3.5 h-3.5 text-indigo-600" /> Guided Writing
+                <span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100 flex items-center gap-1.5">
+                  <PenLine class="w-3.5 h-3.5 text-blue-600" /> Guided Writing
                 </span>
-                <span class="w-7 h-7 rounded-xl bg-indigo-100/60 flex items-center justify-center text-indigo-700 group-hover:scale-110 transition-transform">
+                <span class="w-7 h-7 rounded-xl bg-blue-100/60 flex items-center justify-center text-blue-700 group-hover:scale-110 transition-transform">
                   <ArrowRight class="w-4 h-4" />
                 </span>
               </div>
@@ -150,11 +150,11 @@
             </div>
 
             <!-- Preview snippet -->
-            <div class="mt-5 p-3.5 rounded-2xl bg-indigo-50/80 flex items-center justify-between">
-              <span class="text-xs font-bold text-indigo-900 flex items-center gap-1.5">
+            <div class="mt-5 p-3.5 rounded-2xl bg-blue-50/80 flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
                 <CheckCircle2 class="w-3.5 h-3.5 text-emerald-600" /> Grammar &amp; Rubric
               </span>
-              <span class="text-xs font-bold text-indigo-700 bg-white px-2 py-0.5 rounded-md border border-indigo-200/60">
+              <span class="text-xs font-bold text-blue-700 bg-white px-2 py-0.5 rounded-md border border-blue-200/60">
                 CEFR Scoring
               </span>
             </div>
@@ -253,6 +253,7 @@
 
           <button
             @click="continueLearning"
+            @mouseenter="journey.state.value.resume?.lesson_id && ctx.prefetchLesson ? ctx.prefetchLesson(journey.state.value.resume.lesson_id) : null"
             :disabled="journey.loading.value || homeLoading"
             class="btn-spring w-full bg-white hover:bg-slate-50 transition-colors text-slate-900 text-sm font-extrabold py-3.5 px-6 rounded-2xl shadow-md cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
           >
@@ -315,8 +316,8 @@
 
         <!-- 4. Daily Practice Tip -->
         <div class="bg-white/90 backdrop-blur-xl rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-2">
-          <div class="flex items-center gap-2 text-indigo-900 font-bold text-sm">
-            <span class="w-7 h-7 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-amber-500 text-sm">💡</span>
+          <div class="flex items-center gap-2 text-slate-900 font-bold text-sm">
+            <span class="w-7 h-7 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-amber-500 text-sm">💡</span>
             <span>Daily Practice Tip</span>
           </div>
           <p class="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">

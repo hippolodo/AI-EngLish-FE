@@ -5,36 +5,36 @@
         <button class="absolute right-4 top-4 rounded-full bg-white/15 p-2 transition hover:bg-white/25 cursor-pointer" aria-label="Close profile" @click="$emit('close')">
           <X class="h-5 w-5" />
         </button>
-        <div class="mb-5 flex items-center gap-2 text-sm font-semibold text-indigo-100"><UserRound class="h-4 w-4" /> Learner Profile</div>
+        <div class="mb-5 flex items-center gap-2 text-sm font-semibold text-slate-200"><UserRound class="h-4 w-4" /> Learner Profile</div>
         <div class="flex items-center gap-4">
           <img :src="avatarUrl" :alt="displayName" class="h-16 w-16 rounded-full border-2 border-white/80 bg-white object-cover p-0.5" />
           <div class="min-w-0">
             <h2 id="profile-title" class="truncate text-xl font-semibold">{{ displayName }}</h2>
-            <p class="mt-1 truncate text-sm text-indigo-100">{{ user?.email || 'Guest' }}</p>
+            <p class="mt-1 truncate text-sm text-slate-200">{{ user?.email || 'Guest' }}</p>
           </div>
         </div>
       </header>
 
       <div class="max-h-[65vh] space-y-5 overflow-y-auto p-5">
         <div class="rounded-2xl border border-slate-200 bg-white p-4">
-          <div class="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-800"><Target class="h-4 w-4 text-indigo-600" /> Target Level</div>
+          <div class="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-800"><Target class="h-4 w-4 text-blue-600" /> Target Level</div>
           <div class="flex items-center gap-2">
-            <select v-model="selectedLevel" :disabled="!isAuthenticated || saving" class="min-w-0 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-semibold text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 disabled:opacity-70">
+            <select v-model="selectedLevel" :disabled="!isAuthenticated || saving" class="min-w-0 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-semibold text-slate-800 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:opacity-70">
               <option>Beginner</option><option>Intermediate</option><option>Advanced</option>
             </select>
-            <button v-if="isAuthenticated" :disabled="saving || selectedLevel === user?.target_level" class="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300" @click="saveLevel">
+            <button v-if="isAuthenticated" :disabled="saving || selectedLevel === user?.target_level" class="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300" @click="saveLevel">
               {{ saving ? 'Saving…' : 'Save' }}
             </button>
           </div>
           <p v-if="!isAuthenticated" class="mt-2 text-sm text-slate-500">Sign in to save target level changes.</p>
           <p v-if="message" class="mt-2 text-sm" :class="saveError ? 'text-rose-600' : 'text-emerald-700'">{{ message }}</p>
-          <button v-if="!isAuthenticated" class="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700" @click="$emit('auth')">
+          <button v-if="!isAuthenticated" class="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700" @click="$emit('auth')">
             <LogIn class="h-4 w-4" /> Sign In or Register
           </button>
         </div>
 
         <div class="rounded-2xl border border-slate-200 bg-white p-4">
-          <div class="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-800"><ChartNoAxesColumnIncreasing class="h-4 w-4 text-indigo-600" /> Learning Overview</div>
+          <div class="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-800"><ChartNoAxesColumnIncreasing class="h-4 w-4 text-blue-600" /> Learning Overview</div>
           <div class="grid grid-cols-3 divide-x divide-slate-100 text-center">
             <div class="px-1"><p class="text-xl font-bold text-slate-900">{{ stats.speaking }}</p><p class="mt-1 text-xs font-semibold text-slate-600">Speaking</p></div>
             <div class="px-1"><p class="text-xl font-bold text-slate-900">{{ stats.writing }}</p><p class="mt-1 text-xs font-semibold text-slate-600">Writing</p></div>

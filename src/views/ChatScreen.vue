@@ -147,7 +147,7 @@
             v-for="conversation in chatConversations"
             :key="conversation.id"
             type="button"
-            class="flex w-full items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 text-left shadow-2xs transition hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-md cursor-pointer"
+            class="flex w-full items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 text-left shadow-2xs transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md cursor-pointer"
             @click="openChatConversation(conversation)"
           >
             <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 text-xl font-bold">
@@ -210,7 +210,7 @@
                   @click="isAuthenticated ? startChatConversation() : requireAuthentication()"
                   :disabled="!scenarios.length"
                   type="button"
-                  class="rounded-xl bg-blue-600 hover:bg-indigo-700 px-6 py-3 text-sm sm:text-base font-bold text-white disabled:opacity-50 transition shadow-md shadow-indigo-600/20 cursor-pointer flex items-center gap-2"
+                  class="rounded-xl bg-blue-600 hover:bg-blue-700 px-6 py-3 text-sm sm:text-base font-bold text-white disabled:opacity-50 transition shadow-md shadow-blue-600/20 cursor-pointer flex items-center gap-2"
                 >
                   <Sparkles class="w-4 h-4" />
                   <span>{{ isAuthenticated ? 'Start Conversation' : 'Sign In' }}</span>
@@ -224,7 +224,7 @@
                 <!-- Bot Message Turn -->
                 <div v-if="msg.sender === 'BOT' || msg.sender === 'bot'" class="flex items-start space-x-3.5 max-w-[90%] sm:max-w-[82%] self-start">
                   <!-- Bot Avatar -->
-                  <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-full overflow-hidden shrink-0 mt-0.5 ring-2 ring-indigo-100 shadow-2xs">
+                  <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-full overflow-hidden shrink-0 mt-0.5 ring-2 ring-blue-100 shadow-2xs">
                     <img
                       src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80"
                       alt="Emma"
@@ -269,7 +269,7 @@
                       v-if="showTranslationMap[msg.id || idx]"
                       class="mt-2 text-base text-slate-700 bg-blue-50/70 border border-blue-100/90 rounded-2xl px-4.5 py-3 flex items-start gap-3 animate-in fade-in slide-in-from-top-1 duration-150 shadow-2xs"
                     >
-                      <span class="text-xs font-bold text-blue-700 uppercase shrink-0 mt-0.5 bg-indigo-100 px-2 py-0.5 rounded-md">Translation</span>
+                      <span class="text-xs font-bold text-blue-700 uppercase shrink-0 mt-0.5 bg-blue-100 px-2 py-0.5 rounded-md">Translation</span>
                       <p class="leading-relaxed font-medium text-slate-800">{{ msg.translation_vi || 'Hello! Feel free to chat with me.' }}</p>
                     </div>
                   </div>
@@ -337,7 +337,7 @@
 
               <!-- Typing Indicator -->
               <div v-if="isBotTyping" class="flex items-start space-x-3.5 max-w-[85%] self-start">
-                <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-full overflow-hidden shrink-0 mt-0.5 ring-2 ring-indigo-100">
+                <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-full overflow-hidden shrink-0 mt-0.5 ring-2 ring-blue-100">
                   <img
                     src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80"
                     alt="Emma"
@@ -458,14 +458,14 @@
               :disabled="chatLoading || isBotTyping || !conversationId"
               type="text"
               placeholder="Type your message..."
-              class="flex-1 bg-slate-100 text-base sm:text-lg lg:text-xl text-slate-900 placeholder-slate-400 px-5 sm:px-6 py-3.5 sm:py-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-600 transition"
+              class="flex-1 bg-slate-100 text-base sm:text-lg lg:text-xl text-slate-900 placeholder-slate-400 px-5 sm:px-6 py-3.5 sm:py-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
             />
 
             <!-- Send Button -->
             <button
               @click="sendChatText"
               :disabled="chatLoading || isBotTyping || !conversationId || !chatInput.trim()"
-              class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-blue-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white flex items-center justify-center shadow-xs shadow-indigo-600/30 transition shrink-0 cursor-pointer"
+              class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white flex items-center justify-center shadow-xs shadow-blue-600/20 transition shrink-0 cursor-pointer"
             >
               <Send class="w-6 h-6" />
             </button>
@@ -571,6 +571,7 @@
       </aside>
 
       <!-- MOBILE FEEDBACK DRAWER MODAL (lg:hidden) -->
+      <Teleport to="body">
       <div
         v-if="isMobileFeedbackOpen"
         class="lg:hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 animate-in fade-in duration-200"
@@ -628,9 +629,11 @@
           </div>
         </div>
       </div>
+      </Teleport>
     </div>
 
     <!-- Topic Explorer & Custom Topic Modal -->
+    <Teleport to="body">
     <div
       v-if="isTopicModalOpen"
       class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200"
@@ -678,7 +681,7 @@
                 :disabled="isCreatingCustomTopic || chatLoading"
                 type="text"
                 placeholder="Enter scenario (e.g. Booking a hotel, Tech job interview, Coffee shop...)"
-                class="flex-1 bg-white border border-blue-200/90 text-xs sm:text-sm text-gray-800 placeholder-gray-400 px-3.5 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-600 shadow-2xs"
+                class="flex-1 bg-white border border-blue-200/90 text-xs sm:text-sm text-gray-800 placeholder-gray-400 px-3.5 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-2xs"
               />
               <button
                 @click="handleCreateCustom"
@@ -728,7 +731,7 @@
                   v-model="searchQuery"
                   type="text"
                   placeholder="Search scenarios..."
-                  class="w-full bg-gray-50 border border-gray-200 text-xs sm:text-sm text-gray-800 placeholder-gray-400 pl-9 pr-3.5 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                  class="w-full bg-gray-50 border border-gray-200 text-xs sm:text-sm text-gray-800 placeholder-gray-400 pl-9 pr-3.5 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600"
                 />
               </div>
             </div>
@@ -802,6 +805,7 @@
         </div>
       </div>
     </div>
+    </Teleport>
   </div>
 </template>
 
