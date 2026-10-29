@@ -308,14 +308,24 @@
           <h3 class="text-xs font-bold uppercase tracking-wider text-blue-800 flex items-center gap-1.5">
             <span>💬</span> Real-world Example:
           </h3>
-          <button
-            @click="speak(selectedWord.example_sentence)"
-            class="p-1.5 rounded-xl bg-white text-blue-600 hover:bg-blue-100 transition cursor-pointer shadow-2xs text-xs font-bold flex items-center gap-1"
-            title="Listen to example"
-          >
-            <Volume2 class="w-4 h-4" />
-            <span class="hidden sm:inline">Listen</span>
-          </button>
+          <div class="flex items-center gap-2">
+            <button
+              @click="practiceExampleSentence"
+              class="p-1.5 px-3 rounded-xl bg-white text-emerald-700 hover:bg-emerald-50 border border-emerald-200 transition cursor-pointer shadow-2xs text-xs font-bold flex items-center gap-1.5"
+              title="Practice speaking this example"
+            >
+              <Mic class="w-3.5 h-3.5 text-emerald-600" />
+              <span>Practice Example</span>
+            </button>
+            <button
+              @click="speak(selectedWord.example_sentence)"
+              class="p-1.5 px-3 rounded-xl bg-white text-blue-600 hover:bg-blue-100 transition cursor-pointer shadow-2xs text-xs font-bold flex items-center gap-1"
+              title="Listen to example"
+            >
+              <Volume2 class="w-4 h-4" />
+              <span class="hidden sm:inline">Listen</span>
+            </button>
+          </div>
         </div>
 
         <p class="text-lg sm:text-xl font-bold text-slate-900 leading-relaxed font-sans">
@@ -701,9 +711,46 @@ const saveToNotebook = () => {
 
 const practiceInLab = () => {
   if (!selectedWord.value) return;
-  if (isCustomSpeakingMode) isCustomSpeakingMode.value = true;
-  if (targetSpeakingText) targetSpeakingText.value = selectedWord.value.word;
-  if (navigateTab) navigateTab('speaking');
+  if (ctx.practiceCustomWord) {
+    ctx.practiceCustomWord(selectedWord.value);
+  } else {
+    if (isCustomSpeakingMode) isCustomSpeakingMode.value = true;
+    if (targetSpeakingText) targetSpeakingText.value = selectedWord.value.word;
+    if (ctx.targetIpa) ctx.targetIpa.value = (selectedWord.value.ipa || '').replace(/^\/+|\/+$/g, '').trim();
+    if (ctx.targetTranslation) ctx.targetTranslation.value = selectedWord.value.meaning_vi || selectedWord.value.definition_en || '';
+    if (ctx.nativeAudioUrl) ctx.nativeAudioUrl.value = selectedWord.value.audio_url || '';
+    if (ctx.selectedSpeakingContentId) ctx.selectedSpeakingContentId.value = null;
+    if (ctx.speakingLessonId) ctx.speakingLessonId.value = null;
+    if (ctx.currentLesson) ctx.currentLesson.value = null;
+    if (ctx.lessonDetail) ctx.lessonDetail.value = null;
+    if (ctx.speakingResult) ctx.speakingResult.value = null;
+    if (navigateTab) navigateTab('speaking');
+  }
+};
+
+const practiceExampleSentence = () => {
+  if (!selectedWord.value?.example_sentence) return;
+  const sentenceData = {
+    word: selectedWord.value.example_sentence,
+    meaning_vi: selectedWord.value.example_translation || '',
+    ipa: '',
+    audio_url: ''
+  };
+  if (ctx.practiceCustomWord) {
+    ctx.practiceCustomWord(sentenceData);
+  } else {
+    if (isCustomSpeakingMode) isCustomSpeakingMode.value = true;
+    if (targetSpeakingText) targetSpeakingText.value = sentenceData.word;
+    if (ctx.targetIpa) ctx.targetIpa.value = '';
+    if (ctx.targetTranslation) ctx.targetTranslation.value = sentenceData.meaning_vi;
+    if (ctx.nativeAudioUrl) ctx.nativeAudioUrl.value = '';
+    if (ctx.selectedSpeakingContentId) ctx.selectedSpeakingContentId.value = null;
+    if (ctx.speakingLessonId) ctx.speakingLessonId.value = null;
+    if (ctx.currentLesson) ctx.currentLesson.value = null;
+    if (ctx.lessonDetail) ctx.lessonDetail.value = null;
+    if (ctx.speakingResult) ctx.speakingResult.value = null;
+    if (navigateTab) navigateTab('speaking');
+  }
 };
 
 const loadHistory = async () => {

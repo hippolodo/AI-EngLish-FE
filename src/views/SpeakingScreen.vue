@@ -30,9 +30,9 @@
     </div>
 
     <!-- Lesson & Target Picker -->
-    <div v-if="ctx.currentLesson.value?.type === 'SPEAKING'" class="glass-panel p-4 sm:p-5 rounded-3xl border border-indigo-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+    <div v-if="!isCustomSpeakingMode && ctx.currentLesson.value?.type === 'SPEAKING'" class="glass-panel p-4 sm:p-5 rounded-3xl border border-blue-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
       <div class="flex items-center gap-3">
-        <div class="w-11 h-11 rounded-2xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-700 font-extrabold text-sm shrink-0">
+        <div class="w-11 h-11 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-700 font-extrabold text-sm shrink-0">
           {{ ctx.lessonProgress.value.completed_content_ids.length }}/{{ speakingLessonContents.length }}
         </div>
         <div>
@@ -490,8 +490,18 @@ const toggleSpeakingMode = () => {
   ctx.isCustomSpeakingMode.value = !ctx.isCustomSpeakingMode.value;
   ctx.speakingResult.value = null;
   ctx.speakingError.value = '';
-  if (!ctx.isCustomSpeakingMode.value) ctx.onSpeakingLessonChange();
-  else { ctx.targetIpa.value = ''; ctx.targetTranslation.value = ''; ctx.nativeAudioUrl.value = ''; }
+  if (!ctx.isCustomSpeakingMode.value) {
+    if (!ctx.speakingLessonId?.value && ctx.topics?.value?.length > 0) {
+      if (!ctx.speakingTopicId?.value) ctx.speakingTopicId.value = ctx.topics.value[0].id;
+      ctx.onSpeakingTopicChange();
+    } else if (ctx.onSpeakingLessonChange) {
+      ctx.onSpeakingLessonChange();
+    }
+  } else {
+    ctx.targetIpa.value = '';
+    ctx.targetTranslation.value = '';
+    ctx.nativeAudioUrl.value = '';
+  }
 };
 
 // Interactive Diagnostic State
