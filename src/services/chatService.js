@@ -38,10 +38,13 @@ export const chatService = {
     return res.data;
   },
 
-  async sendVoiceMessage(conversationId, audioBlob) {
+  async sendVoiceMessage(conversationId, audioBlob, transcribedText = null) {
     const formData = new FormData();
     const fileName = getAudioFileName(audioBlob, 'user_voice');
     formData.append('audio_file', audioBlob, fileName);
+    if (transcribedText && transcribedText.trim()) {
+      formData.append('transcribed_text', transcribedText.trim());
+    }
 
     const res = await apiClient.post(`/chat/conversations/${conversationId}/voice`, formData, {
       headers: {

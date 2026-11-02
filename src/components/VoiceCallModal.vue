@@ -259,11 +259,15 @@ let vadInterval = null;
 let currentAudioPlayer = null;
 let autoNextTurnTimer = null;
 
-// VAD Constants
-const VOICE_THRESHOLD = 14;      // Level to consider user is talking
-const INTERRUPT_THRESHOLD = 22;  // Level to trigger barge-in while AI is speaking
-const SILENCE_TIMEOUT_MS = 1300; // Continuous silence duration before auto-sending
-const MIN_SPEECH_MS = 450;       // Minimum talking time to avoid sending background clicks
+// VAD Constants (Tối ưu tốc độ phản hồi sub-second)
+const VOICE_THRESHOLD = 13;      // Level to consider user is talking
+const INTERRUPT_THRESHOLD = 20;  // Level to trigger barge-in while AI is speaking
+const SILENCE_TIMEOUT_MS = 800;  // Continuous silence duration before auto-sending (800ms cực nhạy)
+const MIN_SPEECH_MS = 350;       // Minimum talking time to avoid sending background clicks
+
+// Browser Web Speech Recognizer for 0ms zero-latency transcription
+let speechRecognizer = null;
+let liveTranscribedText = '';
 
 // VAD tracking variables
 let speechStartTime = 0;
@@ -363,6 +367,32 @@ const autoVadModeText = computed(() => {
 // ==========================================
 // AUDIO & VAD (VOICE ACTIVITY DETECTION) ENGINE
 // ==========================================
+const initSpeechRecognizer = () => {
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRec || speechRecognizer) return;
+  try {
+    speechRecognizer = new SpeechRec();
+    speechRecognizer.continuous = true;
+    speechRecognizer.interimResults = true;
+    speechRecognizer.lang = 'en-US';
+
+    speechRecognizer.onresult = (event) => {
+      let full = '';
+      for (let i = 0; i < event.results.length; ++i) {
+        full += event.results[i][0].transcript;
+      }
+      if (full.trim()) {
+        liveTranscribedText = full.trim();
+        hasSpoken = true;
+        silenceStartTime = 0;
+      }
+    };
+
+    speechRecognizer.onerror = () => {};
+  } catch (e) {
+    console.warn('[VoiceMode] Web Speech API not supported:', e);
+  }
+};
 const initAudioEngine = async () => {
   if (!navigator.mediaDevices?.getUserMedia) {
     console.warn('[VoiceMode] MediaDevices not supported.');
@@ -390,10 +420,13 @@ const initAudioEngine = async () => {
     analyserNode.smoothingTimeConstant = 0.4;
     sourceNode.connect(analyserNode);
 
-    // 3. Khởi động vòng lặp kiểm tra VAD liên tục (~50ms)
+    // 3. Khởi động Web Speech API song song để nhận diện trực tiếp 0ms
+    initSpeechRecognizer();
+
+    // 4. Khởi động vòng lặp kiểm tra VAD liên tục (~50ms)
     startVadLoop();
 
-    // 4. Bắt đầu lắng nghe
+    // 5. Bắt đầu lắng nghe
     startListeningSession();
     return true;
   } catch (err) {
@@ -482,6 +515,16 @@ const startListeningSession = () => {
   silenceStartTime = 0;
   interruptCounter = 0;
   recordedChunks = [];
+  liveTranscribedText = '';
+
+  if (speechRecognizer) {
+    try {
+      speechRecognizer.abort();
+    } catch {}
+    try {
+      speechRecognizer.start();
+    } catch {}
+  }
 
   // Tạo MediaRecorder mới trên MediaStream hiện có
   try {
@@ -540,8 +583,16 @@ const finishSpeakingAndSend = async (durationMs = 2000) => {
       return;
     }
 
-    // Gửi âm thanh lên backend xử lý STT (Whisper) + LLM (Gemini) + TTS (Edge TTS)
-    const result = await chatService.sendVoiceMessage(props.conversationId, audioBlob);
+    if (speechRecognizer) {
+      try { speechRecognizer.stop(); } catch {}
+    }
+    const clientText = liveTranscribedText.trim();
+    if (clientText) {
+      lastUserText.value = clientText;
+    }
+
+    // Gửi âm thanh & text nhận diện siêu tốc lên backend (bỏ qua thời gian đợi Whisper ASR)
+    const result = await chatService.sendVoiceMessage(props.conversationId, audioBlob, clientText);
     if (!props.isOpen) return;
 
     if (result?.user_message) {
@@ -672,6 +723,10 @@ const cleanupAllAudio = () => {
   if (mediaStream) {
     mediaStream.getTracks().forEach((track) => track.stop());
     mediaStream = null;
+  }
+  if (speechRecognizer) {
+    try { speechRecognizer.abort(); } catch {}
+    speechRecognizer = null;
   }
   if (audioContext && audioContext.state !== 'closed') {
     try { audioContext.close(); } catch {}
