@@ -66,6 +66,17 @@
           <span>Feedback</span>
         </button>
 
+        <!-- Live Voice Call Button in Header -->
+        <button
+          :disabled="chatLoading || isBotTyping || isChatRecording || !conversationId"
+          @click="openVoiceMode"
+          title="Start Live Voice Conversation (Đàm thoại trực tiếp 2 chiều)"
+          class="inline-flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 px-3.5 py-2.5 text-sm font-bold text-blue-700 transition cursor-pointer shadow-2xs group"
+        >
+          <AudioLines class="w-4 h-4 text-blue-600 transition-transform group-hover:scale-110" />
+          <span class="hidden sm:inline">Voice Call</span>
+        </button>
+
         <button
           :disabled="chatLoading || isBotTyping || isChatRecording"
           @click="toggleChatHistory"
@@ -218,13 +229,13 @@
               </div>
             </div>
 
-            <!-- In-Session Messages Stream -->
+            <!-- In-Session Messages Stream (Clean ChatGPT Style: Pure text, soft light blue pills, no audio replay) -->
             <template v-else>
-              <div v-for="(msg, idx) in chatMessages" :key="idx" class="flex flex-col">
+              <div v-for="(msg, idx) in chatMessages" :key="idx" class="flex flex-col mb-6 sm:mb-7">
                 <!-- Bot Message Turn -->
-                <div v-if="msg.sender === 'BOT' || msg.sender === 'bot'" class="flex items-start space-x-3.5 max-w-[90%] sm:max-w-[82%] self-start">
+                <div v-if="msg.sender === 'BOT' || msg.sender === 'bot'" class="flex items-start space-x-3.5 max-w-[92%] sm:max-w-[85%] self-start">
                   <!-- Bot Avatar -->
-                  <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-full overflow-hidden shrink-0 mt-0.5 ring-2 ring-blue-100 shadow-2xs">
+                  <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden shrink-0 mt-0.5 ring-2 ring-blue-100 shadow-2xs">
                     <img
                       src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80"
                       alt="Emma"
@@ -232,35 +243,41 @@
                     />
                   </div>
 
-                  <!-- Bot Speech Bubble & Action Tools -->
-                  <div class="space-y-2 min-w-0">
-                    <div class="reading-text bg-slate-100 text-slate-800 p-5 sm:p-6 rounded-3xl rounded-tl-sm text-lg sm:text-[19px] leading-relaxed">
+                  <!-- Bot Speech Bubble & Action Tools (Clean ChatGPT style) -->
+                  <div class="space-y-2 min-w-0 flex-1">
+                    <div class="reading-text text-slate-900 text-base sm:text-lg lg:text-[19px] leading-relaxed font-normal">
                       {{ msg.message_text || msg.text }}
                     </div>
 
                     <!-- Under-bubble Mini Action Tools -->
-                    <div class="flex items-center gap-3.5 px-2 pt-0.5 text-slate-400">
+                    <div class="flex items-center gap-2.5 px-0.5 pt-1 text-slate-400">
+                      <!-- Copy Text -->
+                      <button
+                        @click="copyMessageText(msg.message_text || msg.text, idx)"
+                        class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                        :title="copiedMessageIdx === idx ? 'Copied!' : 'Copy message'"
+                      >
+                        <Check v-if="copiedMessageIdx === idx" class="w-4 h-4 text-emerald-600" />
+                        <Copy v-else class="w-4 h-4" />
+                      </button>
+
                       <!-- Replay Audio (Edge TTS) -->
                       <button
                         @click="speakBotMessage(msg)"
-                        class="inline-flex items-center gap-1.5 text-sm sm:text-base font-semibold text-slate-500 hover:text-blue-600 transition cursor-pointer"
+                        class="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition cursor-pointer"
                         title="Listen to pronunciation"
                       >
-                        <Volume2 class="w-4 h-4 sm:w-5 sm:h-5" />
-                        <span>Speak</span>
+                        <Volume2 class="w-4 h-4" />
                       </button>
 
-                      <span class="text-slate-300">•</span>
-
-                      <!-- Translate Toggle Button (文A) -->
+                      <!-- Translate Toggle Button -->
                       <button
                         @click="toggleTranslation(msg.id || idx)"
-                        class="inline-flex items-center gap-1.5 text-sm sm:text-base font-semibold transition cursor-pointer"
-                        :class="showTranslationMap[msg.id || idx] ? 'text-blue-600' : 'text-slate-500 hover:text-blue-600'"
+                        class="p-1.5 rounded-lg transition cursor-pointer"
+                        :class="showTranslationMap[msg.id || idx] ? 'text-blue-600 bg-blue-50' : 'text-slate-400 hover:text-blue-600 hover:bg-slate-100'"
                         title="View translation"
                       >
-                        <Languages class="w-4 h-4 sm:w-5 sm:h-5" />
-                        <span>{{ showTranslationMap[msg.id || idx] ? 'Hide' : 'Translate' }}</span>
+                        <Languages class="w-4 h-4" />
                       </button>
                     </div>
 
@@ -275,60 +292,44 @@
                   </div>
                 </div>
 
-                <!-- User Message Turn -->
-                <div v-else class="flex flex-col items-end self-end max-w-[90%] sm:max-w-[82%] group">
-                  <!-- Case 1: Pending Loading Bubble (Image 2 style) -->
-                  <div v-if="msg.isPending" class="bg-[#2b59ff] text-white px-5 py-4 rounded-3xl rounded-br-sm shadow-2xs flex items-center gap-2 self-end animate-in fade-in duration-150">
-                    <span class="w-2.5 h-2.5 rounded-full bg-white animate-bounce"></span>
-                    <span class="w-2.5 h-2.5 rounded-full bg-white animate-bounce [animation-delay:0.2s]"></span>
-                    <span class="w-2.5 h-2.5 rounded-full bg-white animate-bounce [animation-delay:0.4s]"></span>
+                <!-- User Message Turn (ChatGPT Style: Soft light blue bubble, pure text, no audio replay) -->
+                <div v-else class="flex flex-col items-end self-end max-w-[90%] sm:max-w-[80%] group">
+                  <!-- Case 1: Pending Loading Bubble -->
+                  <div v-if="msg.isPending" class="bg-[#e8f1fd] text-blue-600 px-5 py-3.5 rounded-3xl rounded-tr-md shadow-2xs flex items-center gap-2 self-end animate-in fade-in duration-150">
+                    <span class="w-2 h-2 rounded-full bg-blue-500 animate-bounce"></span>
+                    <span class="w-2 h-2 rounded-full bg-blue-500 animate-bounce [animation-delay:0.2s]"></span>
+                    <span class="w-2 h-2 rounded-full bg-blue-500 animate-bounce [animation-delay:0.4s]"></span>
                   </div>
 
                   <!-- Case 2: Standard User Message -->
-                  <div v-else class="flex items-end justify-end space-x-3 w-full">
+                  <div v-else class="flex items-end justify-end space-x-2.5 w-full">
                     <!-- Feedback Status Badge: ONLY when sentence needs improvement (amber !) -->
                     <button
                       v-if="msg.feedback && msg.feedback.needs_improvement"
                       @click="selectFeedbackMessage(idx)"
                       title="Click to view phrase & word corrections"
-                      class="shrink-0 mb-1 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm shadow-2xs cursor-pointer transition-transform hover:scale-115 active:scale-95 bg-amber-500 text-white ring-2 ring-amber-200"
+                      class="shrink-0 mb-1 w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shadow-2xs cursor-pointer transition-transform hover:scale-115 active:scale-95 bg-amber-500 text-white ring-2 ring-amber-200"
                     >
-                      <span class="font-black text-sm">!</span>
+                      <span class="font-black text-xs">!</span>
                     </button>
 
-                    <!-- User Speech Bubble & Action Tools -->
-                    <div class="space-y-1.5 flex flex-col items-end">
+                    <!-- User Speech Bubble (Clean light blue pill, dark text) -->
+                    <div class="space-y-1 flex flex-col items-end">
                       <div
                         @click="msg.feedback?.needs_improvement && selectFeedbackMessage(idx)"
-                        class="reading-text bg-[#2b59ff] text-white p-5 sm:p-6 rounded-3xl rounded-br-sm shadow-2xs text-lg sm:text-[19px] leading-relaxed font-normal transition"
+                        class="reading-text bg-[#e8f1fd] text-slate-900 px-5 py-3.5 sm:px-6 sm:py-4 rounded-3xl rounded-tr-md shadow-2xs text-base sm:text-lg leading-relaxed font-normal transition"
                         :class="[
-                          msg.feedback?.needs_improvement ? 'cursor-pointer hover:brightness-105' : '',
+                          msg.feedback?.needs_improvement ? 'cursor-pointer hover:brightness-95' : '',
                           selectedFeedbackIndex === idx ? 'ring-3 ring-blue-300 ring-offset-2' : ''
                         ]"
                       >
                         {{ msg.message_text || msg.text }}
                       </div>
 
-                      <!-- Under-bubble User Mini Action Tools -->
-                      <div class="flex items-center gap-3 px-2 pt-0.5 text-slate-400">
-                        <!-- Replay User Audio - ONLY when message was recorded by voice -->
-                        <button
-                          v-if="msg.audio_url || msg.audio_blob_url"
-                          @click.stop="playUserMessageAudio(msg, idx)"
-                          class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold transition cursor-pointer"
-                          :class="playingMessageId === (msg.id || idx) ? 'text-blue-600 font-bold' : 'text-slate-500 hover:text-blue-600'"
-                          title="Replay your recorded audio"
-                        >
-                          <Volume2 class="w-3.5 h-3.5 sm:w-4 sm:h-4" :class="playingMessageId === (msg.id || idx) ? 'animate-bounce text-blue-600' : ''" />
-                          <span>{{ playingMessageId === (msg.id || idx) ? 'Playing...' : 'Replay' }}</span>
-                        </button>
-
-                        <!-- Fluency Pill if Available -->
-                        <span v-if="(msg.audio_url || msg.audio_blob_url) && msg.fluency_score" class="text-slate-300">•</span>
-                        <div v-if="msg.fluency_score" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          <Sparkles class="w-3 h-3 text-emerald-500 fill-emerald-500" />
-                          <span>Fluency {{ Math.round(msg.fluency_score) }}%</span>
-                        </div>
+                      <!-- Subtle mic indicator if spoken by voice (matching screenshot, NO replay audio player) -->
+                      <div v-if="msg.audio_url || msg.audio_blob_url || msg.isVoice" class="flex items-center gap-1 text-slate-400 text-xs px-2 pt-0.5 select-none">
+                        <Mic class="w-3.5 h-3.5 text-slate-400" />
+                        <span class="text-[11px] font-medium text-slate-400">{{ formatVoiceDuration(msg) }}</span>
                       </div>
                     </div>
                   </div>
@@ -461,13 +462,24 @@
               class="flex-1 bg-slate-100 text-base sm:text-lg lg:text-xl text-slate-900 placeholder-slate-400 px-5 sm:px-6 py-3.5 sm:py-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
             />
 
-            <!-- Send Button -->
+            <!-- Send Button (if text present) OR Blue Live Voice button (if input empty, ChatGPT style) -->
             <button
+              v-if="chatInput.trim()"
               @click="sendChatText"
-              :disabled="chatLoading || isBotTyping || !conversationId || !chatInput.trim()"
+              :disabled="chatLoading || isBotTyping || !conversationId"
               class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white flex items-center justify-center shadow-xs shadow-blue-600/20 transition shrink-0 cursor-pointer"
+              title="Send message"
             >
               <Send class="w-6 h-6" />
+            </button>
+            <button
+              v-else
+              @click="openVoiceMode"
+              :disabled="chatLoading || isBotTyping || !conversationId"
+              class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center shadow-md shadow-blue-600/25 transition shrink-0 cursor-pointer hover:scale-105 active:scale-95 group"
+              title="Start Live Voice Call with AI (Đàm thoại trực tiếp 2 chiều)"
+            >
+              <AudioLines class="w-6 h-6 transition-transform group-hover:scale-110" />
             </button>
           </div>
         </div>
@@ -806,6 +818,16 @@
       </div>
     </div>
     </Teleport>
+
+    <!-- Live Voice Call Modal (ChatGPT style) -->
+    <VoiceCallModal
+      :is-open="isVoiceModeOpen"
+      :conversation-id="conversationId"
+      :scenario-title="currentChatScenario?.title"
+      :bot-role="currentChatScenario?.bot_role"
+      @close="closeVoiceMode"
+      @message-added="onVoiceMessageAdded"
+    />
   </div>
 </template>
 
@@ -813,9 +835,12 @@
 import AnimateButton from '../components/ui/Button.vue';
 import AnimateCard from '../components/ui/Card.vue';
 import AnimateBadge from '../components/ui/Badge.vue';
+import VoiceCallModal from '../components/VoiceCallModal.vue';
 import {
   AlertCircle,
   ArrowLeft,
+  AudioLines,
+  Copy,
   BookOpen,
   Bot,
   Check,
@@ -849,6 +874,40 @@ const ctx = inject('screenContext');
 const goBack = ctx.goBack;
 const hasHistory = ctx.hasHistory;
 const { chatError, requireAuthentication } = ctx;
+
+const copiedMessageIdx = ref(null);
+const copyMessageText = (text, idx) => {
+  if (!text) return;
+  if (navigator?.clipboard?.writeText) {
+    navigator.clipboard.writeText(text);
+  }
+  copiedMessageIdx.value = idx;
+  setTimeout(() => {
+    if (copiedMessageIdx.value === idx) copiedMessageIdx.value = null;
+  }, 2000);
+};
+
+const formatVoiceDuration = (msg) => {
+  if (msg?.duration_seconds) {
+    const s = Math.min(59, Math.max(1, Math.round(msg.duration_seconds)));
+    return `00:${s < 10 ? '0' : ''}${s}`;
+  }
+  return '00:02';
+};
+
+const isVoiceModeOpen = ref(false);
+const openVoiceMode = () => {
+  if (!requireAuthentication()) return;
+  isVoiceModeOpen.value = true;
+};
+const closeVoiceMode = () => {
+  isVoiceModeOpen.value = false;
+};
+const onVoiceMessageAdded = (msg) => {
+  if (!msg) return;
+  chatMessages.value.push(msg);
+  if (ctx.scrollChatToBottom) ctx.scrollChatToBottom();
+};
 
 const activeTab = ctx.activeTab;
 const chatInput = ctx.chatInput;
