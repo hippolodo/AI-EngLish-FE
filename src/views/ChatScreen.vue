@@ -39,17 +39,21 @@
               @click="openTopicModal"
               :disabled="chatLoading || isBotTyping || isChatRecording"
               class="group text-left cursor-pointer flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-50 hover:bg-blue-50 border border-slate-200/80 hover:border-blue-300 transition text-sm sm:text-base font-semibold text-slate-700 hover:text-blue-700 shadow-2xs"
-              title="Click to change or create scenario"
+              title="Click to change or choose scenario"
             >
               <span class="text-lg shrink-0">{{ getScenarioEmoji(currentChatScenario) }}</span>
-              <span class="truncate max-w-[240px] sm:max-w-md lg:max-w-xl">{{ currentChatScenario?.title || 'Choose Scenario' }}</span>
-              <ChevronRight class="w-4 h-4 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-0.5 transition" />
+              <span class="truncate max-w-[240px] sm:max-w-md lg:max-w-xl">
+                {{ (!currentChatScenario || currentChatScenario.id === 'free_chat') ? 'Trò chuyện tự do (Chọn chủ đề)' : currentChatScenario.title }}
+              </span>
+              <ChevronDown class="w-4 h-4 text-slate-400 group-hover:text-blue-600 transition" />
             </button>
           </div>
 
           <p class="text-xs sm:text-sm text-slate-500 font-medium flex items-center gap-1.5 truncate mt-1">
             <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
-            <span class="truncate">{{ currentChatScenario?.bot_role ? 'Role: ' + currentChatScenario.bot_role : 'Ready • Reflex practice & real-time feedback' }}</span>
+            <span class="truncate">
+              {{ (!currentChatScenario || currentChatScenario.id === 'free_chat') ? 'Emma - Trợ lý AI • Hỏi gì trả lời nấy, đàm thoại tự do' : 'Vai trò: ' + currentChatScenario.bot_role }}
+            </span>
           </p>
         </div>
       </div>
@@ -196,35 +200,34 @@
 
           <template v-else>
             <!-- Starter Welcome Screen if no active conversation -->
-            <div v-if="!conversationId" class="space-y-6 py-12 text-center max-w-lg mx-auto">
+            <div v-if="!conversationId" class="space-y-6 py-10 sm:py-14 text-center max-w-lg mx-auto px-4">
               <div class="w-16 h-16 mx-auto rounded-3xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center shadow-xs">
-                <Compass class="w-8 h-8" />
+                <Sparkles class="w-8 h-8" />
               </div>
-              <div>
+              <div class="space-y-2">
                 <h3 class="text-xl sm:text-2xl font-bold text-slate-900 flex items-center justify-center gap-2">
                   <span class="text-2xl">{{ getScenarioEmoji(currentChatScenario) }}</span>
-                  <span>{{ currentChatScenario ? currentChatScenario.title : 'Choose a conversation scenario' }}</span>
+                  <span>{{ currentChatScenario ? currentChatScenario.title : 'Trò chuyện tự do (Free Chat)' }}</span>
                 </h3>
-                <p class="text-base sm:text-lg text-slate-500 mt-2 leading-relaxed">
-                  {{ currentChatScenario?.description || 'Select a real-world scenario or create your own custom topic.' }}
+                <p class="text-base sm:text-lg text-slate-500 leading-relaxed">
+                  {{ currentChatScenario?.description || 'Giao tiếp tự do cùng Emma, thoải mái hỏi đáp mọi thắc mắc và trò chuyện về bất kỳ chủ đề nào bạn muốn.' }}
                 </p>
               </div>
               <div class="flex items-center justify-center gap-3 pt-2">
                 <button
                   @click="openTopicModal"
                   type="button"
-                  class="rounded-xl border border-blue-200 bg-white hover:bg-blue-50 px-5 py-3 text-sm sm:text-base font-bold text-blue-700 transition shadow-2xs cursor-pointer flex items-center gap-2"
+                  class="rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-5 py-3 text-sm sm:text-base font-bold text-slate-700 transition shadow-2xs cursor-pointer flex items-center gap-2"
                 >
-                  <Compass class="w-4 h-4 text-blue-600" /> Explore Scenarios
+                  <Compass class="w-4 h-4 text-blue-600" /> Chọn kịch bản đóng vai
                 </button>
                 <button
                   @click="isAuthenticated ? startChatConversation() : requireAuthentication()"
-                  :disabled="!scenarios.length"
                   type="button"
-                  class="rounded-xl bg-blue-600 hover:bg-blue-700 px-6 py-3 text-sm sm:text-base font-bold text-white disabled:opacity-50 transition shadow-md shadow-blue-600/20 cursor-pointer flex items-center gap-2"
+                  class="rounded-xl bg-blue-600 hover:bg-blue-700 px-6 py-3 text-sm sm:text-base font-bold text-white transition shadow-md shadow-blue-600/20 cursor-pointer flex items-center gap-2 hover:scale-102 active:scale-98"
                 >
-                  <Sparkles class="w-4 h-4" />
-                  <span>{{ isAuthenticated ? 'Start Conversation' : 'Sign In' }}</span>
+                  <MessageSquare class="w-4 h-4" />
+                  <span>{{ isAuthenticated ? 'Bắt đầu trò chuyện' : 'Đăng nhập để trò chuyện' }}</span>
                 </button>
               </div>
             </div>
@@ -456,9 +459,9 @@
             <input
               v-model="chatInput"
               @keyup.enter="sendChatText"
-              :disabled="chatLoading || isBotTyping || !conversationId"
+              :disabled="chatLoading || isBotTyping"
               type="text"
-              placeholder="Type your message..."
+              placeholder="Nhập tin nhắn hoặc hỏi Emma bất cứ điều gì..."
               class="flex-1 bg-slate-100 text-base sm:text-lg lg:text-xl text-slate-900 placeholder-slate-400 px-5 sm:px-6 py-3.5 sm:py-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
             />
 
@@ -466,7 +469,7 @@
             <button
               v-if="chatInput.trim()"
               @click="sendChatText"
-              :disabled="chatLoading || isBotTyping || !conversationId"
+              :disabled="chatLoading || isBotTyping"
               class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white flex items-center justify-center shadow-xs shadow-blue-600/20 transition shrink-0 cursor-pointer"
               title="Send message"
             >
@@ -475,7 +478,7 @@
             <button
               v-else
               @click="openVoiceMode"
-              :disabled="chatLoading || isBotTyping || !conversationId"
+              :disabled="chatLoading || isBotTyping"
               class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center shadow-md shadow-blue-600/25 transition shrink-0 cursor-pointer hover:scale-105 active:scale-95 group"
               title="Start Live Voice Call with AI (Đàm thoại trực tiếp 2 chiều)"
             >
@@ -896,8 +899,12 @@ const formatVoiceDuration = (msg) => {
 };
 
 const isVoiceModeOpen = ref(false);
-const openVoiceMode = () => {
+const openVoiceMode = async () => {
   if (!requireAuthentication()) return;
+  if (!conversationId.value) {
+    await startChatConversation();
+    if (!conversationId.value) return;
+  }
   isVoiceModeOpen.value = true;
 };
 const closeVoiceMode = () => {
@@ -1099,6 +1106,7 @@ const QUICK_SUGGESTIONS = [
 const getScenarioEmoji = (sc) => {
   if (!sc) return '💬';
   const id = (sc.id || '').toLowerCase();
+  if (id.includes('free') || id === 'default') return '💬';
   if (id.includes('coffee') || id.includes('starbucks')) return '☕';
   if (id.includes('hotel')) return '🏨';
   if (id.includes('restaurant') || id.includes('order')) return '🍽️';

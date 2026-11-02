@@ -1247,7 +1247,7 @@ const copyRewritten = async () => {
 // ==========================================
 const chatScrollContainer = ref(null);
 const scenarios = ref([]);
-const chatScenarioId = ref('hotel_checkin');
+const chatScenarioId = ref('free_chat');
 const conversationId = ref(null);
 const chatMessages = ref([]);
 const chatInput = ref('');
@@ -1390,7 +1390,13 @@ const scrollChatToBottom = async () => {
 
 const sendChatText = async (customText = null) => {
   const text = (typeof customText === 'string' && customText.trim()) ? customText.trim() : chatInput.value.trim();
-  if (!text || chatLoading.value || isBotTyping.value || isChatRecording.value || !conversationId.value || !requireAuthentication()) return;
+  if (!text || chatLoading.value || isBotTyping.value || isChatRecording.value || !requireAuthentication()) return;
+
+  if (!conversationId.value) {
+    await startChatConversation();
+    if (!conversationId.value) return;
+  }
+
   const version = sessionVersion;
   const id = conversationId.value;
 
@@ -1469,7 +1475,13 @@ const formattedRecordingTime = computed(() => {
 });
 
 const startChatVoice = async () => {
-  if (chatLoading.value || isBotTyping.value || !conversationId.value || !requireAuthentication()) return;
+  if (chatLoading.value || isBotTyping.value || !requireAuthentication()) return;
+
+  if (!conversationId.value) {
+    await startChatConversation();
+    if (!conversationId.value) return;
+  }
+
   const version = sessionVersion;
   chatError.value = '';
   try {
