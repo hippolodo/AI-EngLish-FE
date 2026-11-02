@@ -486,6 +486,16 @@ const startListeningSession = () => {
   if (isMuted.value || !props.isOpen || !mediaStream) return;
   stopAudioPlayer();
 
+  // Dọn dẹp hoàn toàn MediaRecorder cũ trước khi khởi động session mới để không dính chunk rác
+  if (mediaRecorder) {
+    mediaRecorder.ondataavailable = null;
+    mediaRecorder.onstop = null;
+    if (mediaRecorder.state !== 'inactive') {
+      try { mediaRecorder.stop(); } catch {}
+    }
+    mediaRecorder = null;
+  }
+
   hasSpoken = false;
   speechStartTime = 0;
   silenceStartTime = 0;
@@ -528,7 +538,8 @@ const startListeningSession = () => {
       }
     };
 
-    mediaRecorder.start(200);
+    // Không truyền timeslice để MediaRecorder tạo 1 file WebM hoàn chỉnh có EBML header chuẩn
+    mediaRecorder.start();
     callState.value = 'listening';
   } catch (err) {
     console.warn('[VoiceMode] Could not start mediaRecorder:', err);
@@ -554,6 +565,7 @@ const finishSpeakingAndSend = async (durationMs = 2000) => {
     }
 
     const audioBlob = await blobPromise;
+    mediaRecorder = null;
     if (!audioBlob || audioBlob.size === 0 || !props.conversationId || !props.isOpen) {
       if (props.isOpen && !isMuted.value) startListeningSession();
       return;
