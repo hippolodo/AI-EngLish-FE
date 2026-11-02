@@ -129,12 +129,9 @@
           </div>
 
           <!-- Helper Status Hint -->
-          <div class="mt-8 text-center space-y-1">
+          <div class="mt-8 text-center">
             <p class="text-base sm:text-lg font-bold text-slate-800">
               {{ mainStatusPrompt }}
-            </p>
-            <p class="text-xs sm:text-sm text-slate-500 font-medium">
-              {{ subStatusPrompt }}
             </p>
           </div>
 
@@ -170,9 +167,9 @@
           </div>
         </main>
 
-        <!-- BOTTOM CONTROLS (Image 1 ChatGPT Style) -->
-        <footer class="w-full max-w-md mx-auto px-6 pb-8 pt-4">
-          <div class="flex items-center justify-between gap-4">
+        <!-- BOTTOM CONTROLS (Clean ChatGPT Style) -->
+        <footer class="w-full max-w-sm mx-auto px-6 pb-8 pt-4">
+          <div class="flex items-center justify-center gap-8">
             <!-- Mute / Unmute Button -->
             <button
               @click="toggleMute"
@@ -185,15 +182,7 @@
               <Mic v-else class="w-6 h-6" />
             </button>
 
-            <!-- Center Info Badge: Auto VAD Mode -->
-            <div
-              class="flex-1 h-14 rounded-full px-4 flex items-center justify-center gap-2 border bg-slate-50 border-slate-200/80 text-slate-600 text-xs sm:text-sm font-semibold select-none shadow-2xs"
-            >
-              <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
-              <span class="truncate">{{ autoVadModeText }}</span>
-            </div>
-
-            <!-- Close Button (X in black circle, matching Image 1) -->
+            <!-- Close Button (X in black circle, matching ChatGPT) -->
             <button
               @click="handleClose"
               type="button"
@@ -349,19 +338,6 @@ const mainStatusPrompt = computed(() => {
   if (callState.value === 'thinking') return 'Emma đang suy nghĩ câu trả lời...';
   if (callState.value === 'speaking') return 'Emma đang trả lời...';
   return 'Sẵn sàng hội thoại trực tiếp';
-});
-
-const subStatusPrompt = computed(() => {
-  if (isMuted.value) return 'Bấm nút mic bên dưới để bật lại micro';
-  if (callState.value === 'listening') return 'Hệ thống tự nhận diện dứt lời & gửi đi. Không cần bấm nút.';
-  if (callState.value === 'thinking') return 'Đang xử lý Whisper ASR & Gemini AI...';
-  if (callState.value === 'speaking') return 'Bạn có thể nói chen ngang bất cứ lúc nào để ngắt lời AI.';
-  return 'Tự động 2 chiều hoàn toàn';
-});
-
-const autoVadModeText = computed(() => {
-  if (callState.value === 'speaking') return 'Nói để ngắt lời (Barge-in)';
-  return 'Tự động nghe & ngắt lời 100%';
 });
 
 // ==========================================
