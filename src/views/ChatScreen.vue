@@ -72,7 +72,7 @@
 
         <!-- Live Voice Call Button in Header -->
         <button
-          :disabled="chatLoading || isBotTyping || isChatRecording || !conversationId"
+          :disabled="isBotTyping || isChatRecording"
           @click="openVoiceMode"
           title="Start Live Voice Conversation (Đàm thoại trực tiếp 2 chiều)"
           class="inline-flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 px-3.5 py-2.5 text-sm font-bold text-blue-700 transition cursor-pointer shadow-2xs group"
@@ -191,49 +191,50 @@
       <section class="flex-1 flex flex-col min-w-0 bg-white relative">
         <p v-if="chatError" role="alert" class="mx-5 my-3 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-base text-rose-700">{{ chatError }}</p>
 
-        <!-- Messages Scroll Container -->
+        <!-- Messages Scroll Container (ChatGPT Style: Vào là chat ngay lập tức, không loading) -->
         <div ref="chatScrollContainer" class="flex-1 p-5 sm:p-8 space-y-6 overflow-y-auto no-scrollbar">
-          <div v-if="chatLoading" class="py-16 text-center text-base sm:text-lg text-slate-500">
-            <Loader2 class="w-8 h-8 animate-spin mx-auto text-blue-600 mb-3" />
-            Connecting conversation with Emma...
-          </div>
-
-          <template v-else>
-            <!-- Starter Welcome Screen if no active conversation -->
-            <div v-if="!conversationId" class="space-y-6 py-10 sm:py-14 text-center max-w-lg mx-auto px-4">
-              <div class="w-16 h-16 mx-auto rounded-3xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center shadow-xs">
-                <Sparkles class="w-8 h-8" />
+          <!-- Starter Welcome Greeting & Pills if no messages yet -->
+          <div v-if="chatMessages.length === 0" class="space-y-6 max-w-2xl mx-auto py-6">
+            <div class="flex items-start space-x-3.5 max-w-[92%] sm:max-w-[85%] self-start">
+              <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-full overflow-hidden shrink-0 mt-0.5 ring-2 ring-blue-100 shadow-2xs">
+                <img
+                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80"
+                  alt="Emma"
+                  class="w-full h-full object-cover"
+                />
               </div>
-              <div class="space-y-2">
-                <h3 class="text-xl sm:text-2xl font-bold text-slate-900 flex items-center justify-center gap-2">
-                  <span class="text-2xl">{{ getScenarioEmoji(currentChatScenario) }}</span>
-                  <span>{{ currentChatScenario ? currentChatScenario.title : 'Trò chuyện tự do (Free Chat)' }}</span>
-                </h3>
-                <p class="text-base sm:text-lg text-slate-500 leading-relaxed">
-                  {{ currentChatScenario?.description || 'Giao tiếp tự do cùng Emma, thoải mái hỏi đáp mọi thắc mắc và trò chuyện về bất kỳ chủ đề nào bạn muốn.' }}
-                </p>
-              </div>
-              <div class="flex items-center justify-center gap-3 pt-2">
-                <button
-                  @click="openTopicModal"
-                  type="button"
-                  class="rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-5 py-3 text-sm sm:text-base font-bold text-slate-700 transition shadow-2xs cursor-pointer flex items-center gap-2"
-                >
-                  <Compass class="w-4 h-4 text-blue-600" /> Chọn kịch bản đóng vai
-                </button>
-                <button
-                  @click="isAuthenticated ? startChatConversation() : requireAuthentication()"
-                  type="button"
-                  class="rounded-xl bg-blue-600 hover:bg-blue-700 px-6 py-3 text-sm sm:text-base font-bold text-white transition shadow-md shadow-blue-600/20 cursor-pointer flex items-center gap-2 hover:scale-102 active:scale-98"
-                >
-                  <MessageSquare class="w-4 h-4" />
-                  <span>{{ isAuthenticated ? 'Bắt đầu trò chuyện' : 'Đăng nhập để trò chuyện' }}</span>
-                </button>
+              <div class="space-y-2 min-w-0 flex-1">
+                <div class="inline-block bg-[#f1f5f9] text-slate-900 px-5 py-3.5 sm:px-6 sm:py-4 rounded-3xl rounded-tl-md shadow-2xs text-base sm:text-lg leading-relaxed">
+                  Hi there! I'm Emma, your English speaking partner. Feel free to ask me anything or chat about whatever is on your mind today! How are you doing?
+                </div>
               </div>
             </div>
 
-            <!-- In-Session Messages Stream (Clean ChatGPT Style: Pure text, soft light blue pills, no audio replay) -->
-            <template v-else>
+            <!-- Quick Starter Prompt Suggestion Pills -->
+            <div class="pt-2 pl-13 flex flex-wrap gap-2.5">
+              <button
+                @click="sendChatText('Hi Emma! How are you doing today?')"
+                class="px-4 py-2 rounded-2xl bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-300 text-slate-700 hover:text-blue-700 text-sm font-medium transition cursor-pointer shadow-2xs"
+              >
+                👋 Hi Emma! How are you doing today?
+              </button>
+              <button
+                @click="sendChatText('Can you help me practice daily English conversation?')"
+                class="px-4 py-2 rounded-2xl bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-300 text-slate-700 hover:text-blue-700 text-sm font-medium transition cursor-pointer shadow-2xs"
+              >
+                💬 Practice daily conversation
+              </button>
+              <button
+                @click="sendChatText('Tell me an interesting fun fact in English!')"
+                class="px-4 py-2 rounded-2xl bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-300 text-slate-700 hover:text-blue-700 text-sm font-medium transition cursor-pointer shadow-2xs"
+              >
+                ✨ Tell me an interesting fun fact
+              </button>
+            </div>
+          </div>
+
+          <!-- In-Session Messages Stream -->
+          <template v-else>
               <div v-for="(msg, idx) in chatMessages" :key="idx" class="flex flex-col mb-6 sm:mb-7">
                 <!-- Bot Message Turn -->
                 <div v-if="msg.sender === 'BOT' || msg.sender === 'bot'" class="flex items-start space-x-3.5 max-w-[92%] sm:max-w-[85%] self-start">
@@ -308,7 +309,7 @@
                   <div v-else class="flex items-end justify-end space-x-2.5 w-full">
                     <!-- Feedback Status Badge: ONLY when sentence needs improvement (amber !) -->
                     <button
-                      v-if="msg.feedback && msg.feedback.needs_improvement"
+                      v-if="!msg.isVoice && msg.feedback && msg.feedback.needs_improvement"
                       @click="selectFeedbackMessage(idx)"
                       title="Click to view phrase & word corrections"
                       class="shrink-0 mb-1 w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shadow-2xs cursor-pointer transition-transform hover:scale-115 active:scale-95 bg-amber-500 text-white ring-2 ring-amber-200"
@@ -355,7 +356,6 @@
                   <span class="ml-2 font-medium text-slate-700">Emma is typing...</span>
                 </div>
               </div>
-            </template>
           </template>
         </div>
 
@@ -447,7 +447,7 @@
           <div v-else class="flex items-center space-x-3">
             <!-- Voice Input Button -->
             <button
-              :disabled="chatLoading || isBotTyping || !conversationId"
+              :disabled="isBotTyping || isChatRecording"
               @click="startChatVoice"
               title="Record voice"
               class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-slate-100 text-slate-700 hover:bg-blue-50 hover:text-blue-600 flex items-center justify-center transition shrink-0 cursor-pointer shadow-2xs disabled:opacity-50"
@@ -899,20 +899,45 @@ const formatVoiceDuration = (msg) => {
 };
 
 const isVoiceModeOpen = ref(false);
-const openVoiceMode = async () => {
+const openVoiceMode = () => {
   if (!requireAuthentication()) return;
-  if (!conversationId.value) {
-    await startChatConversation();
-    if (!conversationId.value) return;
-  }
   isVoiceModeOpen.value = true;
 };
-const closeVoiceMode = () => {
+const closeVoiceMode = async (result) => {
   isVoiceModeOpen.value = false;
+  if (result && result.messages && result.messages.length > 0) {
+    for (const m of result.messages) {
+      if (!m.text) continue;
+      const alreadyPresent = chatMessages.value.some(
+        cm => cm.message_text === m.text && cm.sender === (m.sender === 'bot' ? 'bot' : 'user')
+      );
+      if (!alreadyPresent) {
+        chatMessages.value.push({
+          id: Date.now() + Math.random(),
+          conversation_id: result.conversationId || conversationId.value,
+          sender: m.sender === 'bot' ? 'bot' : 'user',
+          message_text: m.text,
+          created_at: new Date().toISOString()
+        });
+      }
+    }
+  } else if (result && result.conversationId && ctx.openChatConversation) {
+    try {
+      await ctx.openChatConversation({ id: result.conversationId });
+    } catch (e) {}
+  }
+  if (ctx.scrollChatToBottom) {
+    setTimeout(() => ctx.scrollChatToBottom(), 100);
+  }
 };
 const onVoiceMessageAdded = (msg) => {
   if (!msg) return;
-  chatMessages.value.push(msg);
+  const last = chatMessages.value[chatMessages.value.length - 1];
+  if (last && last.sender === msg.sender && (last.isVoice || !last.id)) {
+    last.message_text = msg.message_text;
+  } else {
+    chatMessages.value.push({ ...msg, isVoice: true });
+  }
   if (ctx.scrollChatToBottom) ctx.scrollChatToBottom();
 };
 

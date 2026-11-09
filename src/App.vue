@@ -1390,17 +1390,11 @@ const scrollChatToBottom = async () => {
 
 const sendChatText = async (customText = null) => {
   const text = (typeof customText === 'string' && customText.trim()) ? customText.trim() : chatInput.value.trim();
-  if (!text || chatLoading.value || isBotTyping.value || isChatRecording.value || !requireAuthentication()) return;
-
-  if (!conversationId.value) {
-    await startChatConversation();
-    if (!conversationId.value) return;
-  }
+  if (!text || isBotTyping.value || isChatRecording.value || !requireAuthentication()) return;
 
   const version = sessionVersion;
-  const id = conversationId.value;
 
-  // 1. Clear input immediately so user gets instant visual feedback
+  // 1. Clear input immediately so user gets instant visual feedback (0ms)
   chatInput.value = '';
 
   // 2. Optimistically push user message to chatMessages and scroll immediately
@@ -1417,6 +1411,17 @@ const sendChatText = async (customText = null) => {
   chatError.value = '';
 
   try {
+    // Lazily create conversation in background if not created yet (zero blocking UI)
+    let id = conversationId.value;
+    if (!id) {
+      const conv = await chatService.startConversation(chatScenarioId.value || 'free_chat');
+      if (conv) {
+        id = conv.id;
+        conversationId.value = conv.id;
+      }
+    }
+    if (!id) throw new Error('Could not establish chat session.');
+
     const reply = await chatService.sendMessage(id, text);
     if (version !== sessionVersion || id !== conversationId.value) return;
 
@@ -1432,11 +1437,9 @@ const sendChatText = async (customText = null) => {
   } catch (err) {
     if (version === sessionVersion) {
       chatError.value = getErrorMessage(err, 'Could not send message. Please try again.');
-      // Restore draft if empty so user can retry without retyping
       if (!chatInput.value) {
         chatInput.value = text;
       }
-      // Remove optimistic message on failure
       const idx = chatMessages.value.indexOf(userMsgObj);
       if (idx !== -1) {
         chatMessages.value.splice(idx, 1);

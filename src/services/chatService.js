@@ -53,5 +53,21 @@ export const chatService = {
       timeout: 40000
     });
     return res.data;
+  },
+
+  async getLiveKitToken(conversationId = null, scenarioId = 'custom', customTopic = null) {
+    const res = await apiClient.post('/chat/livekit/token', {
+      conversation_id: conversationId,
+      scenario_id: scenarioId,
+      custom_topic: customTopic
+    });
+    return res.data;
+  },
+
+  async saveBatchMessages(conversationId, messages) {
+    const res = await apiClient.post(`/chat/conversations/${conversationId}/batch_messages`, {
+      messages: messages
+    });
+    return res.data;
   }
 };

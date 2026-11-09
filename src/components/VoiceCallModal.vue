@@ -13,7 +13,7 @@
         class="fixed inset-0 z-[120] flex flex-col justify-between bg-gradient-to-b from-slate-50 via-white to-slate-100 text-slate-900 select-none overflow-hidden"
         role="dialog"
         aria-modal="true"
-        aria-label="AI Real-time Hands-free Voice Call"
+        aria-label="LiveKit Real-time Voice Call"
       >
         <!-- TOP BAR (Header) -->
         <header class="w-full max-w-2xl mx-auto px-6 pt-6 sm:pt-8 flex items-center justify-between">
@@ -30,16 +30,16 @@
                 <h2 class="text-base sm:text-lg font-bold text-slate-900">Emma</h2>
                 <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
                   <span class="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></span>
-                  Hands-free AI Call
+                  LiveKit • Gemini Live
                 </span>
               </div>
               <p class="text-xs text-slate-500 truncate max-w-[200px] sm:max-w-xs">
-                {{ scenarioTitle || 'Casual English Practice' }}
+                {{ scenarioTitle || 'Trò chuyện tự do' }}
               </p>
             </div>
           </div>
 
-          <!-- Status & Auto-VAD Badge -->
+          <!-- Status Badge -->
           <div class="flex items-center gap-2">
             <div
               class="px-3 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-2 border shadow-2xs"
@@ -61,9 +61,7 @@
 
           <!-- Central Interactive Pulsating Orb -->
           <div
-            @click="handleOrbClick"
-            class="relative flex items-center justify-center cursor-pointer group transition-transform duration-200 active:scale-95"
-            :title="orbTooltip"
+            class="relative flex items-center justify-center transition-transform duration-200"
           >
             <!-- Outer Concentric Ripple Rings (Active when listening or speaking) -->
             <div
@@ -84,24 +82,24 @@
               <!-- Internal light reflection layer (ChatGPT aesthetic) -->
               <div class="absolute inset-0 bg-gradient-to-t from-transparent via-white/20 to-white/60 opacity-80 pointer-events-none"></div>
 
-              <!-- Animated Waveform Bars inside Orb when listening to user -->
+              <!-- Animated Waveform Bars inside Orb when user is speaking -->
               <div v-if="callState === 'listening' && !isMuted" class="flex items-center gap-1.5 z-10">
                 <span
                   v-for="b in 5"
                   :key="b"
                   class="w-1.5 bg-white/90 rounded-full transition-all duration-75"
                   :style="{
-                    height: (12 + (volumeLevel * 0.4) + ((b * 7) % 18)) + 'px'
+                    height: (12 + (volumeLevel * 0.45) + ((b * 7) % 18)) + 'px'
                   }"
                 ></span>
               </div>
 
-              <!-- Thinking Spinner inside Orb -->
-              <div v-else-if="callState === 'thinking'" class="z-10 flex flex-col items-center gap-2 text-white">
+              <!-- Connecting Spinner inside Orb -->
+              <div v-else-if="callState === 'connecting'" class="z-10 flex flex-col items-center gap-2 text-white">
                 <Loader2 class="w-10 h-10 animate-spin text-white/90" />
               </div>
 
-              <!-- Speaking Waves inside Orb when AI is speaking -->
+              <!-- Speaking Waves inside Orb when Emma is speaking -->
               <div v-else-if="callState === 'speaking'" class="flex items-center gap-1.5 z-10">
                 <span
                   v-for="b in 7"
@@ -129,9 +127,12 @@
           </div>
 
           <!-- Helper Status Hint -->
-          <div class="mt-8 text-center">
+          <div class="mt-8 text-center space-y-1.5">
             <p class="text-base sm:text-lg font-bold text-slate-800">
               {{ mainStatusPrompt }}
+            </p>
+            <p v-if="callState === 'listening' && !lastUserText && !lastBotText" class="text-xs sm:text-sm text-slate-500 font-medium">
+              💡 Gợi ý: Hãy nói <span class="text-blue-600 font-semibold">"Hi Emma, how are you today?"</span> hoặc bất kỳ câu nào
             </p>
           </div>
 
@@ -159,9 +160,6 @@
                 <p class="text-sm sm:text-base font-semibold text-blue-950 leading-snug">
                   {{ lastBotText }}
                 </p>
-                <p v-if="lastBotTranslation" class="text-xs sm:text-sm text-slate-500 leading-normal italic">
-                  💡 {{ lastBotTranslation }}
-                </p>
               </div>
             </div>
           </div>
@@ -187,7 +185,7 @@
               @click="handleClose"
               type="button"
               class="w-14 h-14 rounded-full bg-slate-900 hover:bg-black text-white flex items-center justify-center transition cursor-pointer shadow-md hover:scale-105 active:scale-95 shrink-0"
-              title="End Voice Call"
+              title="Kết thúc đàm thoại"
             >
               <X class="w-6 h-6 stroke-[2.5]" />
             </button>
@@ -206,8 +204,8 @@ import {
   MicOff,
   X
 } from 'lucide-vue-next';
+import { Room, RoomEvent, Track } from 'livekit-client';
 import { chatService } from '../services/chatService';
-import { getFullAudioUrl } from '../services/api';
 
 const props = defineProps({
   isOpen: {
@@ -230,69 +228,51 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'message-added']);
 
-// State: 'idle' | 'listening' | 'thinking' | 'speaking'
+// State: 'idle' | 'connecting' | 'listening' | 'speaking'
 const callState = ref('idle');
 const isMuted = ref(false);
 const lastUserText = ref('');
 const lastBotText = ref('');
-const lastBotTranslation = ref('');
-const volumeLevel = ref(0); // 0 - 100 for dynamic orb scaling
+const volumeLevel = ref(0);
+const callHistory = ref([]);
+const activeConversationId = ref(null);
 
-// Audio & VAD references
-let mediaStream = null;
-let mediaRecorder = null;
-let recordedChunks = [];
+// LiveKit Room instance and Web Audio Analyzer
+let currentRoom = null;
 let audioContext = null;
 let analyserNode = null;
-let vadInterval = null;
-let currentAudioPlayer = null;
-let autoNextTurnTimer = null;
+let volumeInterval = null;
+let attachedAudioElements = [];
 
-// VAD Constants (Tối ưu tốc độ phản hồi sub-second)
-const VOICE_THRESHOLD = 13;      // Level to consider user is talking
-const INTERRUPT_THRESHOLD = 20;  // Level to trigger barge-in while AI is speaking
-const SILENCE_TIMEOUT_MS = 800;  // Continuous silence duration before auto-sending (800ms cực nhạy)
-const MIN_SPEECH_MS = 350;       // Minimum talking time to avoid sending background clicks
-
-// Browser Web Speech Recognizer for 0ms zero-latency transcription
-let speechRecognizer = null;
-let liveTranscribedText = '';
-
-// VAD tracking variables
-let speechStartTime = 0;
-let silenceStartTime = 0;
-let hasSpoken = false;
-let interruptCounter = 0;
-
-// Dynamic status strings
+// Dynamic labels
 const statusLabel = computed(() => {
   if (isMuted.value) return 'Muted';
-  if (callState.value === 'listening') return hasSpoken ? 'Hearing you...' : 'Listening...';
-  if (callState.value === 'thinking') return 'Thinking...';
-  if (callState.value === 'speaking') return 'Speaking...';
+  if (callState.value === 'connecting') return 'Connecting...';
+  if (callState.value === 'listening') return 'Listening...';
+  if (callState.value === 'speaking') return 'Emma Speaking...';
   return 'Ready';
 });
 
 const statusBadgeClass = computed(() => {
   if (isMuted.value) return 'bg-amber-50 text-amber-700 border-amber-200';
+  if (callState.value === 'connecting') return 'bg-violet-50 text-violet-700 border-violet-200';
   if (callState.value === 'listening') return 'bg-blue-50 text-blue-700 border-blue-200';
-  if (callState.value === 'thinking') return 'bg-violet-50 text-violet-700 border-violet-200';
   if (callState.value === 'speaking') return 'bg-emerald-50 text-emerald-700 border-emerald-200';
   return 'bg-slate-50 text-slate-700 border-slate-200';
 });
 
 const statusDotClass = computed(() => {
   if (isMuted.value) return 'bg-amber-500';
+  if (callState.value === 'connecting') return 'bg-violet-600 animate-spin';
   if (callState.value === 'listening') return 'bg-blue-600 animate-ping';
-  if (callState.value === 'thinking') return 'bg-violet-600 animate-pulse';
   if (callState.value === 'speaking') return 'bg-emerald-500 animate-bounce';
   return 'bg-slate-400';
 });
 
 const glowColorClass = computed(() => {
   if (isMuted.value) return 'bg-amber-400/10';
+  if (callState.value === 'connecting') return 'bg-violet-500/25 animate-pulse';
   if (callState.value === 'listening') return 'bg-blue-500/25 animate-pulse';
-  if (callState.value === 'thinking') return 'bg-violet-500/25';
   if (callState.value === 'speaking') return 'bg-sky-400/30 animate-pulse';
   return 'bg-blue-400/15';
 });
@@ -301,11 +281,11 @@ const orbSphereClass = computed(() => {
   if (isMuted.value) {
     return 'bg-gradient-to-tr from-slate-400 to-slate-500 opacity-80';
   }
+  if (callState.value === 'connecting') {
+    return 'bg-gradient-to-tr from-violet-600 via-indigo-600 to-blue-500 animate-pulse';
+  }
   if (callState.value === 'listening') {
     return 'bg-gradient-to-tr from-blue-600 via-indigo-500 to-sky-400 ring-8 ring-blue-300/30';
-  }
-  if (callState.value === 'thinking') {
-    return 'bg-gradient-to-tr from-violet-600 via-indigo-600 to-blue-500 animate-pulse';
   }
   if (callState.value === 'speaking') {
     return 'bg-gradient-to-tr from-sky-500 via-blue-600 to-indigo-500 ring-8 ring-sky-300/40';
@@ -324,442 +304,259 @@ const orbDynamicScaleStyle = computed(() => {
   return { transform: 'scale(1.0)' };
 });
 
-const orbTooltip = computed(() => {
-  if (callState.value === 'listening') return 'Nói tự nhiên, hệ thống sẽ tự gửi khi bạn dứt lời';
-  if (callState.value === 'speaking') return 'Nói bất kỳ câu gì để ngắt lời AI (Barge-in)';
+const mainStatusPrompt = computed(() => {
+  if (isMuted.value) return 'Microphone đang tắt';
+  if (callState.value === 'connecting') return 'Đang kết nối...';
+  if (callState.value === 'listening') return 'Emma đang lắng nghe... Bạn có thể nói ngay!';
+  if (callState.value === 'speaking') return 'Emma đang trả lời... (Nói để ngắt lời bất cứ lúc nào)';
   return 'Sẵn sàng đàm thoại';
 });
 
-const mainStatusPrompt = computed(() => {
-  if (isMuted.value) return 'Microphone đang tắt';
-  if (callState.value === 'listening') {
-    return hasSpoken ? 'Đang lắng nghe câu nói của bạn...' : 'Hãy nói câu tiếng Anh bất kỳ...';
-  }
-  if (callState.value === 'thinking') return 'Emma đang suy nghĩ câu trả lời...';
-  if (callState.value === 'speaking') return 'Emma đang trả lời...';
-  return 'Sẵn sàng hội thoại trực tiếp';
-});
-
-// ==========================================
-// AUDIO & VAD (VOICE ACTIVITY DETECTION) ENGINE
-// ==========================================
-const initSpeechRecognizer = () => {
-  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRec || speechRecognizer) return;
+// Setup volume level tracking from the published local audio track
+const setupVolumeAnalysis = (track) => {
   try {
-    speechRecognizer = new SpeechRec();
-    speechRecognizer.continuous = true;
-    speechRecognizer.interimResults = true;
-    speechRecognizer.lang = 'en-US';
+    const mediaStreamTrack = track?.mediaStreamTrack;
+    if (!mediaStreamTrack) return;
 
-    speechRecognizer.onresult = (event) => {
-      let full = '';
-      for (let i = 0; i < event.results.length; ++i) {
-        full += event.results[i][0].transcript;
-      }
-      if (full.trim()) {
-        liveTranscribedText = full.trim();
-        hasSpoken = true;
-        silenceStartTime = 0;
-      }
-    };
-
-    speechRecognizer.onerror = () => {};
-  } catch (e) {
-    console.warn('[VoiceMode] Web Speech API not supported:', e);
-  }
-};
-const initAudioEngine = async () => {
-  if (!navigator.mediaDevices?.getUserMedia) {
-    console.warn('[VoiceMode] MediaDevices not supported.');
-    return false;
-  }
-
-  try {
-    // 1. Lấy Stream âm thanh với Echo Cancellation & Noise Suppression
-    mediaStream = await navigator.mediaDevices.getUserMedia({
-      audio: {
-        channelCount: 1,
-        sampleRate: 16000,
-        echoCancellation: true,
-        noiseSuppression: true,
-        autoGainControl: true
-      }
-    });
-
-    // 2. Kết nối Web Audio API AnalyserNode để đo âm lượng thời gian thực
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
     audioContext = new AudioCtx();
-    const sourceNode = audioContext.createMediaStreamSource(mediaStream);
+    const source = audioContext.createMediaStreamSource(new MediaStream([mediaStreamTrack]));
     analyserNode = audioContext.createAnalyser();
     analyserNode.fftSize = 256;
     analyserNode.smoothingTimeConstant = 0.4;
-    sourceNode.connect(analyserNode);
+    source.connect(analyserNode);
 
-    // 3. Khởi động Web Speech API song song để nhận diện trực tiếp 0ms
-    initSpeechRecognizer();
-
-    // 4. Khởi động vòng lặp kiểm tra VAD liên tục (~50ms)
-    startVadLoop();
-
-    // 5. Bắt đầu lắng nghe
-    startListeningSession();
-    return true;
+    const dataArray = new Uint8Array(analyserNode.frequencyBinCount);
+    clearInterval(volumeInterval);
+    volumeInterval = setInterval(() => {
+      if (isMuted.value || !analyserNode) {
+        volumeLevel.value = 0;
+        return;
+      }
+      analyserNode.getByteFrequencyData(dataArray);
+      let sum = 0;
+      for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+      const avg = sum / dataArray.length;
+      volumeLevel.value = Math.round(avg);
+    }, 50);
   } catch (err) {
-    console.warn('[VoiceMode] Could not initialize audio engine:', err);
-    return false;
+    console.warn('[LiveKit] Volume analyzer setup warning:', err);
   }
 };
 
-const startVadLoop = () => {
-  clearInterval(vadInterval);
-  const dataArray = new Uint8Array(analyserNode.frequencyBinCount);
+// Start LiveKit Room session
+const startLiveKitSession = async () => {
+  cleanup();
+  callState.value = 'connecting';
+  isMuted.value = false;
+  lastUserText.value = '';
+  lastBotText.value = '';
+  callHistory.value = [];
 
-  vadInterval = setInterval(() => {
-    if (!props.isOpen || isMuted.value || !analyserNode) {
-      volumeLevel.value = 0;
-      return;
+  try {
+    // 1. Lấy Token kết nối WebRTC từ Backend
+    const tokenRes = await chatService.getLiveKitToken(
+      props.conversationId,
+      'custom',
+      props.scenarioTitle
+    );
+
+    if (!tokenRes?.token || !tokenRes?.server_url) {
+      throw new Error('Không nhận được token kết nối LiveKit.');
     }
 
-    analyserNode.getByteFrequencyData(dataArray);
-    let sum = 0;
-    for (let i = 0; i < dataArray.length; i++) {
-      sum += dataArray[i];
-    }
-    const avg = sum / dataArray.length;
-    volumeLevel.value = Math.round(avg);
+    activeConversationId.value = tokenRes.conversation_id;
 
-    // KỊCH BẢN 1: AI ĐANG NÓI (callState === 'speaking') -> BẮT CHEN LỜI (BARGE-IN)
-    if (callState.value === 'speaking') {
-      if (avg >= INTERRUPT_THRESHOLD) {
-        interruptCounter++;
-        // Nếu người dùng phát âm thanh vượt ngưỡng 3 chu kỳ liên tiếp (~150ms) -> CHEN LỜI THẬT
-        if (interruptCounter >= 3) {
-          console.log('[VoiceMode] Barge-in triggered! Stopping AI voice and listening to user...');
-          interruptCounter = 0;
-          // Ngắt ngay lập tức âm thanh AI
-          stopAudioPlayer();
-          // Chuyển sang lắng nghe và ghi âm câu nói mới của người dùng
-          startListeningSession();
-        }
-      } else {
-        interruptCounter = Math.max(0, interruptCounter - 1);
+    // 2. Khởi tạo đối tượng Room LiveKit
+    const room = new Room({
+      adaptiveStream: true,
+      dynacast: true,
+    });
+    currentRoom = room;
+
+    // Lắng nghe khi có Track âm thanh từ Agent (Emma) gửi về
+    room.on(RoomEvent.TrackSubscribed, (track, publication, participant) => {
+      if (track.kind === Track.Kind.Audio) {
+        console.log('[LiveKit] Subscribed to Emma audio track');
+        const element = track.attach();
+        element.autoplay = true;
+        attachedAudioElements.push(element);
+        element.play().catch(e => console.warn('[LiveKit] Audio auto-play error:', e));
       }
-      return;
-    }
+    });
 
-    // KỊCH BẢN 2: HỆ THỐNG ĐANG LẮNG NGHE (callState === 'listening')
-    if (callState.value === 'listening') {
-      const now = Date.now();
+    room.on(RoomEvent.TrackUnsubscribed, (track) => {
+      track.detach();
+    });
 
-      if (avg >= VOICE_THRESHOLD) {
-        // Người dùng đang phát ra tiếng nói
-        if (!hasSpoken) {
-          hasSpoken = true;
-          speechStartTime = now;
-        }
-        silenceStartTime = 0; // Reset bộ đếm im lặng
-      } else {
-        // Không có tiếng nói (im lặng)
-        if (hasSpoken) {
-          if (!silenceStartTime) {
-            silenceStartTime = now;
-          } else if (now - silenceStartTime >= SILENCE_TIMEOUT_MS) {
-            // Người dùng đã im lặng đủ 1.3s sau khi nói -> ĐÃ DỨT LỜI!
-            const totalSpeechDuration = (now - SILENCE_TIMEOUT_MS) - speechStartTime;
-            if (totalSpeechDuration >= MIN_SPEECH_MS) {
-              console.log('[VoiceMode] Silence detected after speech -> Auto-sending turn!');
-              finishSpeakingAndSend(totalSpeechDuration);
-            } else {
-              // Âm thanh quá ngắn (tiếng ho/click) -> Tiếp tục nghe
-              hasSpoken = false;
-              silenceStartTime = 0;
+    // Lắng nghe trạng thái ai đang nói (Active Speakers)
+    room.on(RoomEvent.ActiveSpeakersChanged, (speakers) => {
+      const isAgentSpeaking = speakers.some(
+        s => s.identity !== room.localParticipant.identity
+      );
+      if (isAgentSpeaking) {
+        callState.value = 'speaking';
+      } else if (callState.value === 'speaking') {
+        callState.value = 'listening';
+      }
+    });
+
+    // Lắng nghe Subtitles / Transcript thời gian thực từ Agent qua WebRTC Data Packet
+    room.on(RoomEvent.DataReceived, (payload) => {
+      try {
+        const decoded = new TextDecoder().decode(payload);
+        const data = JSON.parse(decoded);
+        if (data.type === 'transcript') {
+          if (data.sender === 'user') {
+            lastUserText.value = data.text;
+            if (data.is_final) {
+              const prev = callHistory.value[callHistory.value.length - 1];
+              if (prev && prev.sender === 'user') {
+                prev.text = data.text;
+              } else {
+                callHistory.value.push({ sender: 'user', text: data.text });
+              }
+              emit('message-added', {
+                sender: 'user',
+                message_text: data.text,
+                isVoice: true
+              });
+            }
+          } else if (data.sender === 'bot') {
+            lastBotText.value = data.text;
+            callState.value = 'speaking';
+            if (data.is_final) {
+              const prev = callHistory.value[callHistory.value.length - 1];
+              if (prev && prev.sender === 'bot') {
+                // Cập nhật câu hoàn chỉnh thay vì tạo bong bóng rời rạc thứ 2
+                prev.text = data.text;
+              } else {
+                callHistory.value.push({ sender: 'bot', text: data.text });
+              }
+              emit('message-added', {
+                sender: 'bot',
+                message_text: data.text,
+                isVoice: true
+              });
             }
           }
         }
+      } catch (e) {
+        console.warn('[LiveKit] Data packet decode error:', e);
       }
-    }
-  }, 50);
-};
-
-const startListeningSession = () => {
-  if (isMuted.value || !props.isOpen || !mediaStream) return;
-  stopAudioPlayer();
-
-  // Dọn dẹp hoàn toàn MediaRecorder cũ trước khi khởi động session mới để không dính chunk rác
-  if (mediaRecorder) {
-    mediaRecorder.ondataavailable = null;
-    mediaRecorder.onstop = null;
-    if (mediaRecorder.state !== 'inactive') {
-      try { mediaRecorder.stop(); } catch {}
-    }
-    mediaRecorder = null;
-  }
-
-  hasSpoken = false;
-  speechStartTime = 0;
-  silenceStartTime = 0;
-  interruptCounter = 0;
-  recordedChunks = [];
-  liveTranscribedText = '';
-
-  if (speechRecognizer) {
-    try {
-      speechRecognizer.abort();
-    } catch {}
-    try {
-      speechRecognizer.start();
-    } catch {}
-  }
-
-  // Tạo MediaRecorder mới trên MediaStream hiện có
-  try {
-    const mimeTypes = [
-      'audio/webm;codecs=opus',
-      'audio/webm',
-      'audio/ogg;codecs=opus',
-      'audio/mp4',
-      ''
-    ];
-    let selectedMime = '';
-    for (const mime of mimeTypes) {
-      if (!mime || MediaRecorder.isTypeSupported(mime)) {
-        selectedMime = mime;
-        break;
-      }
-    }
-
-    const options = selectedMime ? { mimeType: selectedMime } : {};
-    mediaRecorder = new MediaRecorder(mediaStream, options);
-
-    mediaRecorder.ondataavailable = (e) => {
-      if (e.data && e.data.size > 0) {
-        recordedChunks.push(e.data);
-      }
-    };
-
-    // Không truyền timeslice để MediaRecorder tạo 1 file WebM hoàn chỉnh có EBML header chuẩn
-    mediaRecorder.start();
-    callState.value = 'listening';
-  } catch (err) {
-    console.warn('[VoiceMode] Could not start mediaRecorder:', err);
-    callState.value = 'idle';
-  }
-};
-
-const finishSpeakingAndSend = async (durationMs = 2000) => {
-  if (callState.value !== 'listening' || !mediaRecorder) return;
-  callState.value = 'thinking';
-
-  try {
-    const blobPromise = new Promise((resolve) => {
-      mediaRecorder.onstop = () => {
-        const mimeType = mediaRecorder.mimeType || 'audio/webm';
-        const blob = new Blob(recordedChunks, { type: mimeType });
-        resolve(blob);
-      };
     });
 
-    if (mediaRecorder.state !== 'inactive') {
-      mediaRecorder.stop();
-    }
-
-    const audioBlob = await blobPromise;
-    mediaRecorder = null;
-    if (!audioBlob || audioBlob.size === 0 || !props.conversationId || !props.isOpen) {
-      if (props.isOpen && !isMuted.value) startListeningSession();
-      return;
-    }
-
-    if (speechRecognizer) {
-      try { speechRecognizer.stop(); } catch {}
-    }
-    const clientText = liveTranscribedText.trim();
-    if (clientText) {
-      lastUserText.value = clientText;
-    }
-
-    // Gửi âm thanh & text nhận diện siêu tốc lên backend (bỏ qua thời gian đợi Whisper ASR)
-    const result = await chatService.sendVoiceMessage(props.conversationId, audioBlob, clientText);
-    if (!props.isOpen) return;
-
-    if (result?.user_message) {
-      result.user_message.isVoice = true;
-      result.user_message.duration_seconds = Math.max(1, Math.round(durationMs / 1000));
-      lastUserText.value = result.user_message.message_text;
-      emit('message-added', result.user_message);
-    }
-
-    if (result?.bot_message) {
-      lastBotText.value = result.bot_message.message_text;
-      lastBotTranslation.value = result.bot_message.translation_vi || '';
-      emit('message-added', result.bot_message);
-
-      // Phát âm thanh giọng đọc của Bot
-      playBotAudio(result.bot_message);
-    } else {
-      if (props.isOpen && !isMuted.value) startListeningSession();
-    }
-  } catch (err) {
-    console.warn('[VoiceMode] Auto voice turn error:', err);
-    if (props.isOpen && !isMuted.value) {
-      setTimeout(() => startListeningSession(), 1000);
-    }
-  }
-};
-
-const playBotAudio = (botMsg) => {
-  stopAudioPlayer();
-  callState.value = 'speaking';
-  interruptCounter = 0;
-
-  const audioUrl = botMsg.audio_url ? getFullAudioUrl(botMsg.audio_url) : null;
-  const rawText = botMsg.message_text || '';
-
-  if (audioUrl) {
-    currentAudioPlayer = new Audio(audioUrl);
-    currentAudioPlayer.onended = () => {
-      onBotFinishedSpeaking();
-    };
-    currentAudioPlayer.onerror = () => {
-      fallbackBrowserTTS(rawText);
-    };
-    currentAudioPlayer.play().catch(() => {
-      fallbackBrowserTTS(rawText);
-    });
-  } else {
-    fallbackBrowserTTS(rawText);
-  }
-};
-
-const fallbackBrowserTTS = (text) => {
-  if (!text || !('speechSynthesis' in window)) {
-    onBotFinishedSpeaking();
-    return;
-  }
-  window.speechSynthesis.cancel();
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.lang = 'en-US';
-  utter.rate = 1.0;
-  utter.onend = () => {
-    onBotFinishedSpeaking();
-  };
-  utter.onerror = () => {
-    onBotFinishedSpeaking();
-  };
-  window.speechSynthesis.speak(utter);
-};
-
-const onBotFinishedSpeaking = () => {
-  if (!props.isOpen) return;
-  // Khoảng nghỉ tự nhiên 0.5s trước khi tự động kích hoạt lượt lắng nghe tiếp theo
-  clearTimeout(autoNextTurnTimer);
-  autoNextTurnTimer = setTimeout(() => {
-    if (props.isOpen && !isMuted.value) {
-      startListeningSession();
-    } else {
+    room.on(RoomEvent.Disconnected, () => {
+      console.log('[LiveKit] Disconnected from room');
       callState.value = 'idle';
+    });
+
+    // 3. Kết nối vào LiveKit Cloud Room
+    await room.connect(tokenRes.server_url, tokenRes.token);
+    console.log('[LiveKit] Successfully connected to room:', tokenRes.room_name);
+
+    // 4. Bật microphone người dùng và phát qua WebRTC
+    await room.localParticipant.setMicrophoneEnabled(true);
+    callState.value = 'listening';
+
+    // 5. Kết nối track microphone để phân tích volume level cho Orb
+    const micPub = room.localParticipant.getTrackPublication(Track.Source.Microphone);
+    if (micPub?.track) {
+      setupVolumeAnalysis(micPub.track);
     }
-  }, 500);
-};
-
-const stopAudioPlayer = () => {
-  clearTimeout(autoNextTurnTimer);
-  if (currentAudioPlayer) {
-    currentAudioPlayer.pause();
-    currentAudioPlayer = null;
-  }
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel();
-  }
-};
-
-const handleOrbClick = () => {
-  // Chạm thủ công dự phòng nếu người dùng muốn gửi ngay hoặc ngắt lời tức thì
-  if (callState.value === 'listening' && hasSpoken) {
-    finishSpeakingAndSend();
-  } else if (callState.value === 'speaking') {
-    stopAudioPlayer();
-    startListeningSession();
-  } else if (callState.value === 'idle') {
-    startListeningSession();
-  }
-};
-
-const toggleMute = () => {
-  isMuted.value = !isMuted.value;
-  if (isMuted.value) {
-    stopAudioPlayer();
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-      try { mediaRecorder.stop(); } catch {}
-    }
+  } catch (err) {
+    console.error('[LiveKit] Error connecting to voice session:', err);
     callState.value = 'idle';
-  } else {
-    startListeningSession();
   }
 };
 
-const cleanupAllAudio = () => {
-  clearInterval(vadInterval);
-  clearTimeout(autoNextTurnTimer);
-  stopAudioPlayer();
+const toggleMute = async () => {
+  if (!currentRoom?.localParticipant) return;
+  isMuted.value = !isMuted.value;
+  await currentRoom.localParticipant.setMicrophoneEnabled(!isMuted.value);
+};
 
-  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-    try { mediaRecorder.stop(); } catch {}
-    mediaRecorder = null;
+const cleanup = () => {
+  clearInterval(volumeInterval);
+  volumeInterval = null;
+
+  if (analyserNode) {
+    try { analyserNode.disconnect(); } catch {}
+    analyserNode = null;
   }
-  if (mediaStream) {
-    mediaStream.getTracks().forEach((track) => track.stop());
-    mediaStream = null;
-  }
-  if (speechRecognizer) {
-    try { speechRecognizer.abort(); } catch {}
-    speechRecognizer = null;
-  }
-  if (audioContext && audioContext.state !== 'closed') {
+  if (audioContext) {
     try { audioContext.close(); } catch {}
     audioContext = null;
   }
-  analyserNode = null;
-  callState.value = 'idle';
+  for (const el of attachedAudioElements) {
+    try {
+      el.pause();
+      el.remove();
+    } catch {}
+  }
+  attachedAudioElements = [];
+
+  if (currentRoom) {
+    try {
+      currentRoom.disconnect();
+    } catch {}
+    currentRoom = null;
+  }
   volumeLevel.value = 0;
 };
 
+// Xử lý khi người dùng nhấn nút X đóng cuộc gọi
 const handleClose = () => {
-  cleanupAllAudio();
-  emit('close');
+  const messagesToSave = [...callHistory.value];
+  const convId = activeConversationId.value || props.conversationId;
+
+  // 1. Đóng Modal ngay lập tức trên UI (0ms delay - Optimistic Dismiss)
+  emit('close', {
+    conversationId: convId,
+    messages: messagesToSave
+  });
+
+  // 2. Dọn dẹp âm thanh & ngắt kết nối WebRTC
+  cleanup();
+  callState.value = 'idle';
+
+  // 3. Lưu lịch sử các câu hội thoại vào database chạy ngầm (không block UI)
+  if (messagesToSave.length > 0 && convId) {
+    chatService.saveBatchMessages(convId, messagesToSave).catch((e) => {
+      console.warn('[LiveKit] Failed to save batch messages on call close:', e);
+    });
+  }
 };
 
-// Lifecycle & Watchers
 watch(
   () => props.isOpen,
   (open) => {
     if (open) {
-      isMuted.value = false;
-      initAudioEngine();
+      startLiveKitSession();
     } else {
-      cleanupAllAudio();
+      cleanup();
     }
   }
 );
 
 onBeforeUnmount(() => {
-  cleanupAllAudio();
+  cleanup();
 });
 </script>
 
 <style scoped>
 @keyframes soundwave {
   0%, 100% {
-    transform: scaleY(0.4);
+    transform: scaleY(0.3);
   }
   50% {
-    transform: scaleY(1.3);
+    transform: scaleY(1);
   }
 }
 
 .animate-soundwave {
-  animation: soundwave 0.7s ease-in-out infinite;
+  animation: soundwave 0.8s ease-in-out infinite;
   transform-origin: center;
 }
 </style>

@@ -1,11 +1,11 @@
 <template>
   <section v-if="activeTab === 'lesson'" class="w-full max-w-6xl mx-auto space-y-8 pb-28">
     
-    <!-- STATE 1: BROWSE ALL TOPICS & LESSONS (CATALOG VIEW) -->
+    <!-- STATE 1: BROWSE ALL TOPICS & LESSONS (CATALOG VIEW - BENTO CHAPTER CARDS) -->
     <template v-if="!currentLesson">
       
       <!-- Top Title & Overview Stats -->
-      <div class="space-y-4">
+      <div class="space-y-5">
         <!-- Back to Topics Catalog (Only visible when filtering by a specific topic) -->
         <div v-if="selectedTopic">
           <AnimateButton
@@ -17,42 +17,46 @@
             <template #prefix>
               <ArrowLeft class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
             </template>
-            <span>Back to Topics</span>
+            <span>Quay lại tất cả chủ đề</span>
           </AnimateButton>
         </div>
 
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div class="flex items-center gap-2 mb-1.5">
-              <span class="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-wide border border-blue-100">
-                CEFR Curriculum
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-5">
+          <div class="space-y-1.5">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold tracking-wide border border-blue-200/80 shadow-2xs">
+                <Sparkles class="w-3.5 h-3.5 text-blue-600" />
+                Lộ trình CEFR 60 bài học chuẩn
               </span>
               <span v-if="selectedTopic" class="px-3 py-1 rounded-full bg-amber-50 text-amber-800 text-xs font-bold flex items-center gap-1.5 border border-amber-200">
-                Filter: {{ selectedTopic.title }}
-                <button @click="clearTopicFilter" class="hover:text-red-600 font-extrabold cursor-pointer">✕</button>
+                Đang lọc: {{ selectedTopic.title }}
+                <button @click="clearTopicFilter" class="hover:text-red-600 font-extrabold cursor-pointer ml-1">✕</button>
               </span>
             </div>
-            <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-              Curriculum Topics
+            <h1 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+              Chương trình Bài học
             </h1>
-            <p class="text-base sm:text-lg text-slate-600 mt-1 max-w-2xl leading-relaxed">
-              Explore structured lessons organized by real-world topics. Select any lesson to start practicing.
+            <p class="text-sm sm:text-base text-slate-600 max-w-2xl leading-relaxed">
+              Luyện nói hội thoại thực tế và chấm phát âm từng âm vị bằng AI (MMS_FA + GOP), tích hợp 8 Flashcards IPA và 10 câu trắc nghiệm mỗi bài.
             </p>
           </div>
 
-          <!-- Quick Progress Widget -->
-          <div class="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-2xs flex items-center gap-5 shrink-0 min-w-[280px]">
-            <div class="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 text-2xl font-black shrink-0">
+          <!-- Overall Progress Card (Modern Bento Widget) -->
+          <div class="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-2xs flex items-center gap-5 shrink-0 min-w-[280px] sm:min-w-[310px]">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-xl font-black shrink-0 shadow-md shadow-blue-500/20">
               {{ overallStats.percent }}%
             </div>
             <div class="flex-1 min-w-0">
-              <p class="text-xs font-extrabold text-slate-600 uppercase tracking-wider">Overall Progress</p>
-              <p class="text-base font-extrabold text-slate-900 mt-0.5">
-                {{ overallStats.completed }}/{{ overallStats.total }} completed
+              <div class="flex items-center justify-between">
+                <p class="text-xs font-extrabold text-slate-500 uppercase tracking-wider">Tiến độ chung</p>
+                <span class="text-xs font-bold text-blue-600">{{ overallStats.completed }}/{{ overallStats.total }} bài</span>
+              </div>
+              <p class="text-sm font-bold text-slate-900 mt-0.5">
+                {{ overallStats.percent === 100 ? '🎉 Đã hoàn thành toàn bộ!' : 'Đang trong lộ trình học' }}
               </p>
-              <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden mt-2">
+              <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden mt-2">
                 <div
-                  class="bg-blue-600 h-full rounded-full transition-all duration-500"
+                  class="bg-gradient-to-r from-blue-600 to-indigo-600 h-full rounded-full transition-all duration-700"
                   :style="{ width: `${overallStats.percent}%` }"
                 ></div>
               </div>
@@ -60,37 +64,50 @@
           </div>
         </div>
 
-        <!-- Filter Bar & Search Input -->
+        <!-- Filter Bar & Search Input Toolbar -->
         <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
           
-          <!-- CEFR Level Tabs -->
+          <!-- CEFR Level Tabs with Icons and counts -->
           <div class="flex items-center gap-1.5 p-1.5 bg-slate-100 rounded-2xl overflow-x-auto shrink-0">
             <button
               v-for="lvl in levelTabs"
               :key="lvl.id"
               @click="selectedLevel = lvl.id"
-              :class="selectedLevel === lvl.id ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-600/20' : 'text-slate-600 hover:text-slate-900 font-semibold'"
-              class="px-4 py-2 rounded-xl text-sm transition cursor-pointer shrink-0"
+              :class="selectedLevel === lvl.id ? 'bg-white text-blue-700 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 font-semibold'"
+              class="px-4 py-2 rounded-xl text-xs sm:text-sm transition cursor-pointer shrink-0 flex items-center gap-1.5"
             >
-              {{ lvl.label }}
+              <span>{{ lvl.label }}</span>
             </button>
           </div>
 
-          <!-- Search Input -->
-          <div class="relative flex-1 sm:max-w-xs">
-            <Search class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              v-model="searchQuery"
-              type="text"
-              placeholder="Search topics or lessons…"
-              class="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-200 bg-white text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
-            />
+          <!-- Right side: Search Input & Toggle All Accordion -->
+          <div class="flex items-center gap-2 flex-1 sm:max-w-md justify-end">
+            <!-- Search Input -->
+            <div class="relative flex-1">
+              <Search class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                v-model="searchQuery"
+                type="text"
+                placeholder="Tìm chủ đề hoặc bài học…"
+                class="w-full pl-10 pr-8 py-2.5 rounded-2xl border border-slate-200 bg-white text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition shadow-2xs"
+              />
+              <button
+                v-if="searchQuery"
+                @click="searchQuery = ''"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-600"
+              >
+                ✕
+              </button>
+            </div>
+
+            <!-- Expand / Collapse All Button -->
             <button
-              v-if="searchQuery"
-              @click="searchQuery = ''"
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-600"
+              @click="toggleAllTopics"
+              class="px-3.5 py-2.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 shrink-0 shadow-2xs cursor-pointer"
+              :title="areAllExpanded ? 'Thu gọn tất cả chủ đề' : 'Mở rộng tất cả chủ đề'"
             >
-              ✕
+              <ChevronsUpDown class="w-4 h-4 text-slate-500" />
+              <span class="hidden md:inline">{{ areAllExpanded ? 'Thu gọn' : 'Mở tất cả' }}</span>
             </button>
           </div>
         </div>
@@ -99,83 +116,131 @@
       <!-- Loading State -->
       <div v-if="catalogLoading || lessonLoading" class="py-16 text-center text-slate-500 bg-white rounded-3xl border border-slate-100 shadow-2xs">
         <Loader2 class="mx-auto mb-3 h-8 w-8 animate-spin text-blue-600" />
-        <span class="text-base font-semibold">Loading lessons and curriculum…</span>
+        <span class="text-base font-semibold">Đang tải danh sách bài học và chủ đề…</span>
       </div>
 
       <!-- Error State -->
       <div v-else-if="catalogError || lessonError" role="alert" class="rounded-3xl bg-rose-50 border border-rose-200 p-6 text-base text-rose-700 flex items-center justify-between">
         <span>{{ catalogError || lessonError }}</span>
         <button @click="loadCatalog" class="px-4 py-2 rounded-xl bg-rose-600 text-white font-bold text-sm hover:bg-rose-700 transition cursor-pointer">
-          Retry
+          Thử lại
         </button>
       </div>
 
-      <!-- Curriculum List Grouped by Topic -->
-      <div v-else class="space-y-7">
+      <!-- Curriculum List Grouped by Topic (Bento Accordion Cards) -->
+      <div v-else class="space-y-6">
         
-        <!-- Each Topic Card Container -->
+        <!-- Each Topic Bento Chapter Card Container -->
         <article
           v-for="topic in displayedTopics"
           :key="topic.id"
-          class="bg-white rounded-3xl border border-slate-200/90 shadow-2xs overflow-hidden transition-all duration-200 hover:border-slate-300 hover:shadow-md"
+          class="bg-white rounded-3xl border border-slate-200/90 shadow-2xs overflow-hidden transition-all duration-300 hover:shadow-md"
+          :class="isTopicExpanded(topic.id) ? 'ring-2 ring-blue-500/20 border-blue-200' : ''"
         >
-          <!-- Topic Header Header Bar -->
-          <div class="p-6 sm:p-7 border-b border-slate-100 bg-gradient-to-r from-slate-50/80 via-white to-slate-50/40">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              
-              <div class="flex items-start gap-4">
-                <!-- Topic Emoji / Icon Avatar -->
-                <div class="w-14 h-14 rounded-2xl bg-white border border-slate-200/80 shadow-2xs flex items-center justify-center text-3xl shrink-0">
-                  {{ getTopicEmoji(topic.title) }}
-                </div>
-                
-                <div>
-                  <div class="flex items-center gap-2.5 mb-1 flex-wrap">
-                    <span
-                      class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide"
-                      :class="getLevelBadgeClass(topic.level)"
-                    >
-                      {{ getLevelLabel(topic.level) }}
-                    </span>
-                    <span class="text-xs font-semibold text-slate-500">
-                      Topic {{ topic.id }} · {{ getTopicLessons(topic.id).length }} lessons
-                    </span>
-                  </div>
-
-                  <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 leading-snug">
-                    {{ topic.title }}
-                  </h2>
-                  <p v-if="topic.description" class="text-sm sm:text-base text-slate-600 mt-1 leading-relaxed">
-                    {{ topic.description }}
-                  </p>
-                </div>
+          <!-- Topic Header Bar (Clickable Accordion Trigger) -->
+          <div
+            @click="toggleTopicExpand(topic.id)"
+            class="p-5 sm:p-6 cursor-pointer select-none transition-colors duration-200 flex flex-col md:flex-row md:items-center justify-between gap-4"
+            :class="isTopicExpanded(topic.id)
+              ? 'bg-gradient-to-r from-slate-50/90 via-white to-blue-50/30 border-b border-slate-100'
+              : 'hover:bg-slate-50/60'"
+          >
+            <!-- Left Info with Topic Icon & Badges -->
+            <div class="flex items-start sm:items-center gap-4">
+              <!-- Topic Emoji Avatar Box -->
+              <div
+                class="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shrink-0 shadow-2xs transition-transform duration-200 group-hover:scale-105 border"
+                :class="getTopicIconBoxClass(topic.level)"
+              >
+                {{ getTopicEmoji(topic.title) }}
               </div>
 
-              <!-- Topic Progress Bar (Top Right) -->
-              <div class="sm:text-right shrink-0 min-w-[160px] pl-18 sm:pl-0">
-                <span class="text-xs font-bold text-slate-500">
-                  {{ getTopicProgress(topic.id).completed }}/{{ getTopicProgress(topic.id).total }} completed
-                </span>
-                <div class="w-full sm:w-36 bg-slate-100 h-2 rounded-full overflow-hidden mt-1.5">
+              <div class="space-y-1">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span
+                    class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide border"
+                    :class="getLevelBadgeClass(topic.level)"
+                  >
+                    {{ getLevelLabel(topic.level) }}
+                  </span>
+                  <span class="text-xs font-extrabold text-slate-500 uppercase tracking-wider">
+                    Chương {{ topic.id }}
+                  </span>
+                  <span class="text-xs font-semibold text-slate-400">·</span>
+                  <span class="text-xs font-semibold text-slate-500">
+                    {{ getTopicLessons(topic.id).length }} bài học
+                  </span>
+                </div>
+
+                <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 leading-snug">
+                  {{ topic.title }}
+                </h2>
+
+                <p v-if="topic.description" class="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-xl line-clamp-1 sm:line-clamp-2">
+                  {{ topic.description }}
+                </p>
+
+                <!-- Quick Pillar Metrics Tags -->
+                <div class="flex items-center gap-2 pt-1 flex-wrap text-slate-500 text-[11px] font-semibold">
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+                    <Mic class="w-3 h-3 text-blue-600" />
+                    4 bài nói đối thoại
+                  </span>
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+                    <Layers class="w-3 h-3 text-emerald-600" />
+                    32 từ vựng IPA
+                  </span>
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+                    <HelpCircle class="w-3 h-3 text-purple-600" />
+                    40 câu hỏi Quiz
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Controls: Progress & Accordion Toggle Button -->
+            <div class="flex items-center justify-between md:justify-end gap-5 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100">
+              <!-- Topic Progress Widget -->
+              <div class="text-left md:text-right min-w-[130px]">
+                <div class="flex items-center justify-between md:justify-end gap-2 text-xs font-bold">
+                  <span :class="getTopicProgress(topic.id).percent === 100 ? 'text-emerald-600' : 'text-slate-600'">
+                    {{ getTopicProgress(topic.id).completed }}/{{ getTopicProgress(topic.id).total }} bài
+                  </span>
+                  <span class="text-[11px] font-semibold text-slate-400">({{ getTopicProgress(topic.id).percent }}%)</span>
+                </div>
+                <div class="w-32 bg-slate-100 h-2 rounded-full overflow-hidden mt-1.5">
                   <div
-                    class="h-full rounded-full transition-all duration-300"
+                    class="h-full rounded-full transition-all duration-500"
                     :class="getTopicProgress(topic.id).percent === 100 ? 'bg-emerald-500' : 'bg-blue-600'"
                     :style="{ width: `${getTopicProgress(topic.id).percent}%` }"
                   ></div>
                 </div>
               </div>
 
+              <!-- Accordion Toggle Pill Button -->
+              <button
+                type="button"
+                class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-2xs border cursor-pointer"
+                :class="isTopicExpanded(topic.id)
+                  ? 'bg-blue-50 text-blue-700 border-blue-200'
+                  : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'"
+              >
+                <span>{{ isTopicExpanded(topic.id) ? 'Thu gọn' : 'Xem 4 bài học' }}</span>
+                <ChevronDown
+                  class="w-4 h-4 transition-transform duration-200"
+                  :class="isTopicExpanded(topic.id) ? 'rotate-180 text-blue-600' : 'text-slate-500'"
+                />
+              </button>
             </div>
           </div>
 
-          <!-- Inside Topic: Lessons Grid (Lesson 1, Lesson 2, Lesson 3...) -->
-          <div class="p-6 sm:p-7 bg-white">
-            <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-4">
-              Lessons:
-            </h3>
-
+          <!-- Inside Topic: Expanded Lessons Mission Cards Grid -->
+          <div
+            v-if="isTopicExpanded(topic.id)"
+            class="p-5 sm:p-6 bg-slate-50/50 border-t border-slate-100 transition-all duration-300"
+          >
             <div v-if="getTopicLessons(topic.id).length === 0" class="py-6 text-center text-slate-500 text-sm italic">
-              No lessons in this topic yet.
+              Chưa có bài học trong chủ đề này.
             </div>
 
             <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -184,75 +249,101 @@
                 :key="lesson.id"
                 @click="handleSelectLesson(lesson)"
                 @mouseenter="ctx.prefetchLesson ? ctx.prefetchLesson(lesson.id) : null"
-                class="group/item min-w-0 w-full flex items-center justify-between p-4.5 sm:p-5 rounded-2xl bg-slate-100/75 hover:bg-blue-50/80 transition-all duration-200 cursor-pointer overflow-hidden"
+                class="group bg-white rounded-2xl border border-slate-200/90 p-4.5 sm:p-5 transition-all duration-200 hover:border-blue-400 hover:shadow-md hover:-translate-y-0.5 cursor-pointer flex flex-col justify-between"
               >
-                <!-- Left: Number pill & Title -->
-                <div class="flex items-center gap-3.5 flex-1 min-w-0 overflow-hidden">
-                  
-                  <!-- Lesson Number Badge -->
-                  <div
-                    class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center font-extrabold text-xs sm:text-sm shrink-0 transition-colors shadow-2xs"
-                    :class="journey.lesson(lesson.id).completed ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-white text-slate-700 border border-slate-200 group-hover/item:border-blue-300 group-hover/item:text-blue-600'"
-                  >
-                    <CheckCircle2 v-if="journey.lesson(lesson.id).completed" class="w-5 h-5 text-emerald-600" />
-                    <span v-else>L{{ idx + 1 }}</span>
+                <!-- Card Top: Lesson Index & Status Pill -->
+                <div class="flex items-start justify-between gap-3 mb-2.5">
+                  <div class="flex items-center gap-2">
+                    <span
+                      class="w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs shrink-0 transition-colors border shadow-2xs"
+                      :class="journey.lesson(lesson.id).completed
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        : 'bg-slate-50 text-slate-700 border-slate-200 group-hover:bg-blue-50 group-hover:text-blue-700 group-hover:border-blue-200'"
+                    >
+                      <CheckCircle2 v-if="journey.lesson(lesson.id).completed" class="w-4 h-4 text-emerald-600" />
+                      <span v-else>{{ idx + 1 }}</span>
+                    </span>
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      Bài học {{ idx + 1 }}
+                    </span>
                   </div>
 
-                  <!-- Details with strict width bounding -->
-                  <div class="flex-1 min-w-0 overflow-hidden">
-                    <div v-if="journey.lesson(lesson.id).completed" class="flex items-center gap-2 mb-0.5 flex-wrap">
-                      <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.2 rounded-full">
-                        Completed
-                      </span>
-                    </div>
-
-                    <h4
-                      class="text-sm sm:text-base font-bold text-slate-900 group-hover/item:text-blue-600 transition leading-snug line-clamp-2 break-words"
-                      :title="'Lesson ' + (idx + 1) + ': ' + lesson.title"
-                    >
-                      Lesson {{ idx + 1 }}: {{ lesson.title }}
-                    </h4>
+                  <!-- Status / Score Pill -->
+                  <div v-if="journey.lesson(lesson.id).completed" class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold">
+                    <Check class="w-3 h-3 text-emerald-600" />
+                    <span>Hoàn thành {{ getLessonScore(lesson.id) ? `· ${getLessonScore(lesson.id)}` : '' }}</span>
+                  </div>
+                  <div v-else class="text-xs font-semibold text-slate-400">
+                    ~10 phút
                   </div>
                 </div>
 
-                <!-- Right: Action Button -->
-                <div class="shrink-0 ml-3">
-                  <button
-                    class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer"
-                    :class="journey.lesson(lesson.id).completed
-                      ? 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
-                      : 'bg-blue-600 text-white shadow-xs group-hover/item:bg-blue-700'"
+                <!-- Card Middle: Lesson Title & Pillars -->
+                <div class="space-y-2 mb-4">
+                  <h3
+                    class="text-base font-extrabold text-slate-900 group-hover:text-blue-600 transition leading-snug line-clamp-2"
+                    :title="'Bài ' + (idx + 1) + ': ' + lesson.title"
                   >
-                    <span>{{ journey.lesson(lesson.id).completed ? 'Review' : 'Start' }}</span>
-                    <ChevronRight class="w-4 h-4 group-hover/item:translate-x-0.5 transition-transform" />
+                    {{ lesson.title }}
+                  </h3>
+
+                  <!-- 3 Pillar Mini Badges -->
+                  <div class="flex items-center gap-2 flex-wrap text-[11px] font-semibold text-slate-500">
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50/70 text-blue-700 border border-blue-100">
+                      <Mic class="w-3 h-3" />
+                      Hội thoại nói
+                    </span>
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50/70 text-emerald-700 border border-emerald-100">
+                      <Layers class="w-3 h-3" />
+                      8 Flashcards
+                    </span>
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-50/70 text-purple-700 border border-purple-100">
+                      <HelpCircle class="w-3 h-3" />
+                      10 câu Quiz
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Card Bottom: Action Button & Prompt -->
+                <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+                  <span class="text-xs font-medium text-slate-400">
+                    Chấm âm vị AI (CUDA)
+                  </span>
+
+                  <button
+                    type="button"
+                    class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition shadow-xs group-hover:shadow-md cursor-pointer"
+                    :class="journey.lesson(lesson.id).completed
+                      ? 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                      : 'bg-blue-600 hover:bg-blue-700 text-white'"
+                  >
+                    <span>{{ journey.lesson(lesson.id).completed ? 'Ôn tập lại' : 'Bắt đầu học' }}</span>
+                    <ArrowRight class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                   </button>
                 </div>
-
               </div>
             </div>
           </div>
-
         </article>
 
         <!-- No Results Fallback -->
         <div v-if="displayedTopics.length === 0" class="rounded-3xl border border-slate-200 bg-white p-12 text-center text-slate-500 shadow-2xs space-y-3">
           <BookOpen class="w-12 h-12 text-slate-400 mx-auto" />
-          <h3 class="text-lg font-bold text-slate-800">No matching lessons found</h3>
+          <h3 class="text-lg font-bold text-slate-800">Không tìm thấy bài học phù hợp</h3>
           <p class="text-sm text-slate-500 max-w-md mx-auto">
-            No topics or lessons match your filter "{{ searchQuery || selectedLevel }}". Try choosing another level or clearing your search.
+            Không có chủ đề hoặc bài học nào khớp với từ khóa "{{ searchQuery || selectedLevel }}". Hãy thử chọn cấp độ khác hoặc xóa từ khóa tìm kiếm.
           </p>
           <button
             @click="selectedLevel = 'ALL'; searchQuery = ''; clearTopicFilter()"
             class="px-5 py-2.5 rounded-full bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 transition cursor-pointer"
           >
-            View all lessons
+            Xem tất cả bài học
           </button>
         </div>
 
       </div>
 
     </template>
-
 
     <!-- STATE 2: ACTIVE LESSON STUDY VIEW (When currentLesson is selected) -->
     <template v-else>
@@ -1369,7 +1460,8 @@ import { ref, computed, onMounted, watch, inject } from 'vue';
 import {
   Loader2, Mic, PenLine, CheckCircle2, ChevronRight, BookOpen, Search, ArrowLeft,
   Volume2, RotateCw, ChevronLeft, BookmarkPlus, Layers, Sparkles, User, Check,
-  XCircle, AlertCircle, RotateCcw, ArrowRight, Trophy, HelpCircle
+  XCircle, AlertCircle, RotateCcw, ArrowRight, Trophy, HelpCircle,
+  ChevronDown, ChevronUp, ChevronsUpDown
 } from 'lucide-vue-next';
 import AnimateButton from '../components/ui/Button.vue';
 import AudioPlayer from '../components/ui/AudioPlayer.vue';
@@ -1619,13 +1711,44 @@ const allLessons = ref([]);
 const catalogLoading = ref(false);
 const catalogError = ref('');
 const searchQuery = ref('');
-const selectedLevel = ref('ALL');
+const selectedLevel = ref('Beginner');
+
+// Accordion expansion state for Topic Bento Cards
+const expandedTopicIds = ref(new Set());
+
+const isTopicExpanded = (topicId) => {
+  if (searchQuery.value && searchQuery.value.trim()) return true;
+  return expandedTopicIds.value.has(topicId);
+};
+
+const toggleTopicExpand = (topicId) => {
+  const next = new Set(expandedTopicIds.value);
+  if (next.has(topicId)) {
+    next.delete(topicId);
+  } else {
+    next.add(topicId);
+  }
+  expandedTopicIds.value = next;
+};
+
+const areAllExpanded = computed(() => {
+  if (!displayedTopics.value.length) return false;
+  return displayedTopics.value.every(t => expandedTopicIds.value.has(t.id));
+});
+
+const toggleAllTopics = () => {
+  if (areAllExpanded.value) {
+    expandedTopicIds.value = new Set();
+  } else {
+    expandedTopicIds.value = new Set(displayedTopics.value.map(t => t.id));
+  }
+};
 
 const levelTabs = [
-  { id: 'ALL', label: 'All' },
-  { id: 'Beginner', label: 'Beginner' },
-  { id: 'Intermediate', label: 'Intermediate' },
-  { id: 'Advanced', label: 'Advanced' }
+  { id: 'Beginner', label: '🌱 Beginner (20)' },
+  { id: 'Intermediate', label: '🚀 Intermediate (20)' },
+  { id: 'Advanced', label: '👑 Advanced (20)' },
+  { id: 'ALL', label: 'Tất cả (60)' }
 ];
 
 const getLevelLabel = (level) => {
@@ -1636,10 +1759,26 @@ const getLevelLabel = (level) => {
 };
 
 const getLevelBadgeClass = (level) => {
-  if (level === 'Beginner') return 'bg-emerald-50 text-emerald-700 border border-emerald-200';
-  if (level === 'Intermediate') return 'bg-blue-50 text-blue-700 border border-blue-200';
-  if (level === 'Advanced') return 'bg-purple-50 text-purple-700 border border-purple-200';
-  return 'bg-slate-100 text-slate-700 border border-slate-200';
+  if (level === 'Beginner') return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+  if (level === 'Intermediate') return 'bg-blue-50 text-blue-700 border-blue-200';
+  if (level === 'Advanced') return 'bg-purple-50 text-purple-700 border-purple-200';
+  return 'bg-slate-100 text-slate-700 border-slate-200';
+};
+
+const getTopicIconBoxClass = (level) => {
+  if (level === 'Beginner') return 'bg-emerald-50 text-emerald-700 border-emerald-200/80';
+  if (level === 'Intermediate') return 'bg-blue-50 text-blue-700 border-blue-200/80';
+  if (level === 'Advanced') return 'bg-purple-50 text-purple-700 border-purple-200/80';
+  return 'bg-slate-50 text-slate-700 border-slate-200';
+};
+
+const getLessonScore = (lessonId) => {
+  const p = journey?.lesson(lessonId);
+  if (!p) return null;
+  if (p.speaking_score) return `${Math.round(p.speaking_score)}%`;
+  if (p.quiz_score) return `${Math.round(p.quiz_score)}%`;
+  if (p.completed) return '100%';
+  return null;
 };
 
 const getTopicEmoji = ctx.getTopicEmoji || ((title = '') => {
@@ -1649,7 +1788,16 @@ const getTopicEmoji = ctx.getTopicEmoji || ((title = '') => {
   if (t.includes('travel') || t.includes('hotel') || t.includes('du lịch')) return '✈️';
   if (t.includes('interview') || t.includes('career') || t.includes('job') || t.includes('phỏng vấn')) return '💼';
   if (t.includes('tech') || t.includes('ai') || t.includes('intelligence') || t.includes('công nghệ')) return '🤖';
-  if (t.includes('climate') || t.includes('environment') || t.includes('môi trường')) return '🌿';
+  if (t.includes('climate') || t.includes('environment') || t.includes('sustainability') || t.includes('môi trường')) return '🌿';
+  if (t.includes('shop') || t.includes('errand') || t.includes('mua sắm') || t.includes('store') || t.includes('price')) return '🛍️';
+  if (t.includes('commute') || t.includes('transport') || t.includes('taxi') || t.includes('subway') || t.includes('train')) return '🚇';
+  if (t.includes('weather') || t.includes('season') || t.includes('thời tiết') || t.includes('picnic')) return '⛅';
+  if (t.includes('health') || t.includes('doctor') || t.includes('fitness') || t.includes('sức khỏe') || t.includes('gym')) return '🩺';
+  if (t.includes('entertain') || t.includes('media') || t.includes('film') || t.includes('cinema') || t.includes('music')) return '🎬';
+  if (t.includes('workplace') || t.includes('team') || t.includes('collaborat') || t.includes('công sở') || t.includes('meeting')) return '🏢';
+  if (t.includes('business') || t.includes('strateg') || t.includes('negotiat') || t.includes('merger') || t.includes('valuation')) return '📊';
+  if (t.includes('psycholog') || t.includes('society') || t.includes('behavioral') || t.includes('cognitive') || t.includes('bias')) return '🧠';
+  if (t.includes('academic') || t.includes('philosoph') || t.includes('research') || t.includes('quantum') || t.includes('consciousness')) return '🔬';
   return '📚';
 });
 
@@ -1754,6 +1902,11 @@ watch(activeTab, (tab) => {
   if (tab === 'lesson' && allLessons.value.length === 0) {
     loadCatalog();
   }
+});
+
+// Khi đổi cấp độ, thu gọn toàn bộ chủ đề để giao diện luôn gọn gàng, sạch sẽ
+watch(selectedLevel, () => {
+  expandedTopicIds.value = new Set();
 });
 </script>
 
