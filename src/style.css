@@ -1,225 +1,223 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-@layer base {
-  :root {
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-    font-size: 16px;
-    color: #0f172a;
-    background: #f8fafc;
-    font-synthesis: none;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-
-  body {
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-    font-size: 1rem;
-    line-height: 1.6;
-    min-width: 320px;
-    min-height: 100vh;
-    margin: 0;
-    background: #f8fafc;
-    color: #0f172a;
-  }
-
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 9999px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
-  }
-
-  button, input, select, textarea {
-    font: inherit;
-  }
-
-  button {
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  ::selection {
-    color: #312e81;
-    background: #e0e7ff;
-  }
-}
-
-/* Consistent form text */
-.app-shell :is(input, select, textarea) {
-  font-family: inherit;
-  font-size: 1rem;
-  font-weight: 400;
-  line-height: 1.6;
-  letter-spacing: normal;
-}
-
-.app-shell textarea {
-  line-height: 1.75;
-}
-
-.app-shell .reading-text {
-  font-size: 1.125rem;
-  font-weight: 400;
-  line-height: 1.7;
-  letter-spacing: normal;
-  overflow-wrap: anywhere;
-}
-
-.app-shell main {
-  background:
-    radial-gradient(ellipse 80% 60% at 50% -15%, rgba(37, 99, 235, 0.06), transparent),
-    radial-gradient(ellipse 60% 40% at 90% 10%, rgba(168, 85, 247, 0.05), transparent),
-    #f8fafc;
-}
-
-.app-shell nav button {
-  border-radius: 16px;
-}
-
-.app-shell input:focus-visible,
-.app-shell select:focus-visible,
-.app-shell textarea:focus-visible,
-.app-shell button:focus-visible {
-  outline: 3px solid rgba(37, 99, 235, 0.35);
-  outline-offset: 2px;
-}
-
-/* ==========================================================================
-   Modern Animate UI & Apple/TalkPal Design System
-   ========================================================================== */
-.btn-spring {
-  transition: all 220ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-.btn-spring:active:not(:disabled) {
-  transform: scale(0.96);
-}
-.btn-spring:hover:not(:disabled) {
-  transform: translateY(-1.5px);
-}
-
-.card-spring {
-  transition: all 280ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-.card-spring:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 16px 36px -8px rgba(30, 41, 59, 0.08), 0 4px 12px -2px rgba(30, 41, 59, 0.04);
-}
-
-.bento-card {
-  position: relative;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(226, 232, 240, 0.85);
-  border-radius: 1.75rem;
-  padding: 1.75rem;
-  transition: all 300ms cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.03), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
-  overflow: hidden;
-}
-.bento-card:hover {
-  transform: translateY(-3px);
-  border-color: rgba(199, 210, 254, 0.9);
-  box-shadow: 0 20px 40px -12px rgba(37, 99, 235, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
-}
-
-.glass-panel {
-  background: rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.04);
-}
-
-.glass-card {
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04);
-}
-
-.glass-pill {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(226, 232, 240, 0.85);
-}
-
-/* Sound Wave Equalizer Bars */
-.sound-bar {
-  display: inline-block;
-  width: 3.5px;
-  background: #38bdf8;
-  border-radius: 9999px;
-  animation: soundWave 1.2s ease-in-out infinite alternate;
-}
-.sound-bar:nth-child(1) { animation-delay: 0.0s; height: 10px; }
-.sound-bar:nth-child(2) { animation-delay: 0.15s; height: 24px; }
-.sound-bar:nth-child(3) { animation-delay: 0.3s; height: 16px; }
-.sound-bar:nth-child(4) { animation-delay: 0.45s; height: 30px; }
-.sound-bar:nth-child(5) { animation-delay: 0.6s; height: 20px; }
-.sound-bar:nth-child(6) { animation-delay: 0.2s; height: 26px; }
-.sound-bar:nth-child(7) { animation-delay: 0.5s; height: 14px; }
-.sound-bar:nth-child(8) { animation-delay: 0.35s; height: 22px; }
-.sound-bar:nth-child(9) { animation-delay: 0.1s; height: 12px; }
-
-@keyframes soundWave {
-  0% { transform: scaleY(0.25); opacity: 0.5; }
-  50% { transform: scaleY(1); opacity: 1; }
-  100% { transform: scaleY(0.35); opacity: 0.65; }
-}
-
-/* Concentric Radar Rings */
-.radar-ring {
-  position: absolute;
-  inset: -12px;
-  border-radius: 9999px;
-  border: 2px solid rgba(37, 99, 235, 0.45);
-  animation: radarExpand 2.2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
-  pointer-events: none;
-}
-.radar-ring-2 {
-  position: absolute;
-  inset: -24px;
-  border-radius: 9999px;
-  border: 2px solid rgba(168, 85, 247, 0.25);
-  animation: radarExpand 2.2s cubic-bezier(0.16, 1, 0.3, 1) infinite 0.55s;
-  pointer-events: none;
-}
-
-@keyframes radarExpand {
-  0% { transform: scale(0.85); opacity: 0.9; }
-  100% { transform: scale(1.45); opacity: 0; }
-}
-
-/* Shimmer animated gradient */
-.animate-shimmer-bg {
-  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
-  background-size: 200% 100%;
-  animation: shimmerSlide 2.5s infinite;
-}
-
-@keyframes shimmerSlide {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    font-size: 16px;
+    color: #0f172a;
+    background: #f8fafc;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    font-size: 1rem;
+    line-height: 1.6;
+    min-width: 320px;
+    min-height: 100vh;
+    margin: 0;
+    background: #f8fafc;
+    color: #0f172a;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+
+  button, input, select, textarea {
+    font: inherit;
+  }
+
+  button {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  ::selection {
+    color: #312e81;
+    background: #e0e7ff;
+  }
+}
+
+/* Consistent form text */
+.app-shell :is(input, select, textarea) {
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: normal;
+}
+
+.app-shell textarea {
+  line-height: 1.75;
+}
+
+.app-shell .reading-text {
+  font-size: 1.125rem;
+  font-weight: 400;
+  line-height: 1.7;
+  letter-spacing: normal;
+  overflow-wrap: anywhere;
+}
+
+.app-shell main {
+  background:
+    radial-gradient(ellipse 80% 60% at 50% -15%, rgba(37, 99, 235, 0.06), transparent),
+    radial-gradient(ellipse 60% 40% at 90% 10%, rgba(168, 85, 247, 0.05), transparent),
+    #f8fafc;
+}
+
+.app-shell nav button {
+  border-radius: 16px;
+}
+
+.app-shell input:focus-visible,
+.app-shell select:focus-visible,
+.app-shell textarea:focus-visible,
+.app-shell button:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.35);
+  outline-offset: 2px;
+}
+
+/* ==========================================================================
+   Modern Animate UI & Apple/TalkPal Design System
+   ========================================================================== */
+.btn-spring {
+  transition: all 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn-spring:active:not(:disabled) {
+  transform: scale(0.96);
+}
+.btn-spring:hover:not(:disabled) {
+  transform: translateY(-1.5px);
+}
+
+.card-spring {
+  transition: all 280ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.card-spring:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 36px -8px rgba(30, 41, 59, 0.08), 0 4px 12px -2px rgba(30, 41, 59, 0.04);
+}
+
+.bento-card {
+  position: relative;
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 1.75rem;
+  padding: 1.75rem;
+  transition: all 300ms cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.03), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+  overflow: hidden;
+}
+.bento-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(199, 210, 254, 0.9);
+  box-shadow: 0 20px 40px -12px rgba(37, 99, 235, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.04);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04);
+}
+
+.glass-pill {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 240, 0.85);
+}
+
+/* Sound Wave Equalizer Bars */
+.sound-bar {
+  display: inline-block;
+  width: 3.5px;
+  background: #38bdf8;
+  border-radius: 9999px;
+  animation: soundWave 1.2s ease-in-out infinite alternate;
+}
+.sound-bar:nth-child(1) { animation-delay: 0.0s; height: 10px; }
+.sound-bar:nth-child(2) { animation-delay: 0.15s; height: 24px; }
+.sound-bar:nth-child(3) { animation-delay: 0.3s; height: 16px; }
+.sound-bar:nth-child(4) { animation-delay: 0.45s; height: 30px; }
+.sound-bar:nth-child(5) { animation-delay: 0.6s; height: 20px; }
+.sound-bar:nth-child(6) { animation-delay: 0.2s; height: 26px; }
+.sound-bar:nth-child(7) { animation-delay: 0.5s; height: 14px; }
+.sound-bar:nth-child(8) { animation-delay: 0.35s; height: 22px; }
+.sound-bar:nth-child(9) { animation-delay: 0.1s; height: 12px; }
+
+@keyframes soundWave {
+  0% { transform: scaleY(0.25); opacity: 0.5; }
+  50% { transform: scaleY(1); opacity: 1; }
+  100% { transform: scaleY(0.35); opacity: 0.65; }
+}
+
+/* Concentric Radar Rings */
+.radar-ring {
+  position: absolute;
+  inset: -12px;
+  border-radius: 9999px;
+  border: 2px solid rgba(37, 99, 235, 0.45);
+  animation: radarExpand 2.2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  pointer-events: none;
+}
+.radar-ring-2 {
+  position: absolute;
+  inset: -24px;
+  border-radius: 9999px;
+  border: 2px solid rgba(168, 85, 247, 0.25);
+  animation: radarExpand 2.2s cubic-bezier(0.16, 1, 0.3, 1) infinite 0.55s;
+  pointer-events: none;
+}
+
+@keyframes radarExpand {
+  0% { transform: scale(0.85); opacity: 0.9; }
+  100% { transform: scale(1.45); opacity: 0; }
+}
+
+/* Shimmer animated gradient */
+.animate-shimmer-bg {
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
+  background-size: 200% 100%;
+  animation: shimmerSlide 2.5s infinite;
+}
+
+@keyframes shimmerSlide {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

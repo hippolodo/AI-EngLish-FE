@@ -342,10 +342,10 @@
     <!-- SEARCH HISTORY & RECENT WORDS -->
     <div class="space-y-4">
       <div class="flex items-center justify-between">
-        <h3 class="text-lg sm:text-xl font-extrabold text-slate-900 flex items-center gap-2">
+        <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 flex items-center gap-2">
           <History class="w-5 h-5 text-slate-600" />
           <span>Recent Search History</span>
-        </h3>
+        </h2>
         <span v-if="searchHistory.length" class="text-xs font-bold text-slate-500">
           {{ searchHistory.length }} words searched
         </span>
@@ -367,21 +367,21 @@
           v-for="item in searchHistory"
           :key="item.id"
           @click="selectWord(item.word || item)"
-          class="p-4 rounded-2xl bg-white border border-slate-200/90 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer group flex items-start justify-between gap-3 shadow-2xs"
+          class="p-4 rounded-2xl bg-white border border-slate-200/90 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer group flex items-start justify-between gap-3 shadow-2xs overflow-hidden"
         >
-          <div class="min-w-0">
+          <div class="min-w-0 flex-1 overflow-hidden">
             <div class="flex items-center gap-2 mb-1">
-              <span class="text-base font-extrabold text-slate-900 group-hover:text-blue-600 transition truncate">
+              <span class="text-base font-extrabold text-slate-900 group-hover:text-blue-600 transition truncate max-w-full">
                 {{ (item.word?.word || item.word) }}
               </span>
-              <span v-if="item.word?.part_of_speech" class="text-xs px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-semibold">
+              <span v-if="item.word?.part_of_speech" class="text-xs px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-semibold shrink-0">
                 {{ item.word?.part_of_speech }}
               </span>
             </div>
-            <p v-if="item.word?.ipa" class="text-xs font-mono text-indigo-600 font-medium truncate">
+            <p v-if="item.word?.ipa" class="text-xs font-mono text-indigo-600 font-medium truncate max-w-full">
               {{ formatIpa(item.word?.ipa) }}
             </p>
-            <p class="text-xs sm:text-sm text-slate-600 truncate mt-1">
+            <p class="text-xs sm:text-sm text-slate-600 line-clamp-2 mt-1 break-words leading-relaxed overflow-hidden max-w-full">
               {{ item.word?.meaning_vi }}
             </p>
           </div>

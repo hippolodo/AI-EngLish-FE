@@ -324,7 +324,7 @@
                     >
                       {{ ['A','B','C','D'][aIdx] || (aIdx + 1) }}
                     </span>
-                    <span class="text-base sm:text-lg font-bold leading-snug">
+                    <span class="text-base sm:text-lg font-bold leading-snug text-slate-900 group-hover:text-indigo-950">
                       {{ ans.answer_text }}
                     </span>
                   </div>
@@ -417,25 +417,25 @@ const ctx = inject('screenContext');
 const getOptionCardClass = (ans) => {
   if (!quizChecked?.value) {
     return selectedQuizAnswer?.value?.id === ans.id
-      ? 'border-indigo-600 bg-indigo-50/70 text-indigo-950 ring-2 ring-indigo-500/20 shadow-sm'
-      : 'border-slate-200/90 bg-white hover:border-indigo-300 hover:bg-slate-50/60 text-slate-800 hover:shadow-2xs';
+      ? 'border-2 border-indigo-600 bg-indigo-50/70 text-indigo-950 ring-2 ring-indigo-500/20 shadow-sm'
+      : 'border-2 border-slate-200 bg-white hover:border-indigo-400 hover:bg-slate-50/50 text-slate-950 hover:shadow-2xs';
   }
   if (submittedQuizDetail?.value?.correct_answer_id === ans.id) {
-    return 'border-emerald-500 bg-emerald-50/80 text-emerald-950 ring-2 ring-emerald-500/20 shadow-sm';
+    return 'border-2 border-emerald-500 bg-emerald-50/80 text-emerald-950 ring-2 ring-emerald-500/20 shadow-sm';
   }
   if (selectedQuizAnswer?.value?.id === ans.id) {
     return submittedQuizDetail?.value?.is_correct
-      ? 'border-emerald-500 bg-emerald-50/80 text-emerald-950 font-bold ring-2 ring-emerald-500/20 shadow-sm'
-      : 'border-rose-400 bg-rose-50/80 text-rose-950 ring-2 ring-rose-400/20 shadow-sm';
+      ? 'border-2 border-emerald-500 bg-emerald-50/80 text-emerald-950 font-bold ring-2 ring-emerald-500/20 shadow-sm'
+      : 'border-2 border-rose-400 bg-rose-50/80 text-rose-950 ring-2 ring-rose-400/20 shadow-sm';
   }
-  return 'border-slate-200/60 bg-slate-50/40 text-slate-400 opacity-60';
+  return 'border-2 border-slate-200 bg-slate-50/40 text-slate-700 opacity-60';
 };
 
 const getLetterBadgeClass = (ans, aIdx) => {
   if (!quizChecked?.value) {
     return selectedQuizAnswer?.value?.id === ans.id
       ? 'bg-indigo-600 text-white shadow-sm'
-      : 'bg-slate-100 text-slate-700 group-hover:bg-indigo-50 group-hover:text-indigo-700';
+      : 'bg-white text-slate-950 font-black border-2 border-slate-300 shadow-2xs group-hover:bg-indigo-600 group-hover:text-white group-hover:border-indigo-600';
   }
   if (submittedQuizDetail?.value?.correct_answer_id === ans.id) {
     return 'bg-emerald-600 text-white shadow-sm';
@@ -445,7 +445,7 @@ const getLetterBadgeClass = (ans, aIdx) => {
       ? 'bg-emerald-600 text-white shadow-sm'
       : 'bg-rose-500 text-white shadow-sm';
   }
-  return 'bg-slate-100 text-slate-400';
+  return 'bg-white text-slate-700 font-bold border border-slate-200 opacity-60';
 };
 const ALL_CARDS = 'Tất cả thẻ';
 const NOTED_WORDS = 'Từ đã note';

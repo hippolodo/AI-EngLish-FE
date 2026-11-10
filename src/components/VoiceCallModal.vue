@@ -265,7 +265,7 @@ const statusDotClass = computed(() => {
   if (isMuted.value) return 'bg-amber-500';
   if (callState.value === 'connecting') return 'bg-violet-600 animate-spin';
   if (callState.value === 'listening') return 'bg-blue-600 animate-ping';
-  if (callState.value === 'speaking') return 'bg-emerald-500 animate-bounce';
+  if (callState.value === 'speaking') return 'bg-emerald-500 animate-pulse';
   return 'bg-slate-400';
 });
 

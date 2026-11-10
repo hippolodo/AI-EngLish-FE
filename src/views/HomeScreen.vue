@@ -293,14 +293,25 @@
 
         <!-- 3. Streak & Practice Counters -->
         <div class="grid grid-cols-2 gap-4">
-          <!-- Daily Streak -->
-          <div class="bg-white/90 backdrop-blur-xl rounded-3xl p-5 border border-slate-200/80 shadow-xs space-y-1">
-            <span class="text-xs font-extrabold text-slate-600 uppercase tracking-wider">Streak</span>
+          <!-- Daily Streak (Clickable to open Streak Modal) -->
+          <div
+            @click="openStreakModal ? openStreakModal() : null"
+            class="bg-white/90 backdrop-blur-xl rounded-3xl p-5 border border-slate-200/80 shadow-xs space-y-1 hover:border-amber-300 hover:shadow-md transition-all duration-200 cursor-pointer group select-none"
+            title="Bấm để xem chi tiết Chuỗi ngày học"
+          >
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-extrabold text-slate-600 uppercase tracking-wider">Streak</span>
+              <span class="text-[10px] font-bold text-amber-700 bg-amber-50 group-hover:bg-amber-100 px-2 py-0.5 rounded-full border border-amber-200/80 transition-colors">
+                Lịch tuần →
+              </span>
+            </div>
             <p class="text-2xl font-black text-slate-900 flex items-center gap-1.5">
-              <span>🔥</span>
+              <span class="group-hover:scale-110 transition-transform">🔥</span>
               <AnimateCountingNumber :number="dashboard?.streak || 0" />
             </p>
-            <p class="text-xs text-slate-500 font-medium">Days active</p>
+            <p class="text-xs font-medium" :class="dashboard?.today_studied ? 'text-emerald-600' : 'text-slate-500'">
+              {{ dashboard?.today_studied ? 'Đã học hôm nay ✓' : 'Chưa học hôm nay' }}
+            </p>
           </div>
 
           <!-- Total Practice Count -->
@@ -346,7 +357,7 @@ const ctx = inject('screenContext');
 const {
   activeTab, userProfile, isAuthenticated,
   homeLoading, topics, dashboard,
-  journey, continueLearning, recommendedTopic, totalPracticeCount
+  journey, continueLearning, recommendedTopic, totalPracticeCount, openStreakModal
 } = ctx;
 
 const levelLabels = {

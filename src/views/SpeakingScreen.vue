@@ -196,7 +196,7 @@
             title="Listen to your recording"
           >
             <template #prefix>
-              <Headphones class="w-4 h-4" :class="{ 'animate-bounce': isPlayingUserAudio }" />
+              <Headphones class="w-4 h-4" :class="{ 'animate-pulse text-indigo-600': isPlayingUserAudio }" />
             </template>
             <span>{{ isPlayingUserAudio ? 'Playing...' : 'Your Voice' }}</span>
           </AnimateButton>
