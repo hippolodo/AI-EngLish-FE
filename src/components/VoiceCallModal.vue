@@ -247,6 +247,8 @@ let attachedAudioElements = [];
 // Dynamic labels
 const statusLabel = computed(() => {
   if (isMuted.value) return 'Muted';
+  if (callState.value === 'mic-error') return 'Lỗi Microphone';
+  if (callState.value === 'reconnecting') return 'Đang kết nối lại...';
   if (callState.value === 'connecting') return 'Connecting...';
   if (callState.value === 'listening') return 'Listening...';
   if (callState.value === 'speaking') return 'Emma Speaking...';
@@ -255,6 +257,8 @@ const statusLabel = computed(() => {
 
 const statusBadgeClass = computed(() => {
   if (isMuted.value) return 'bg-amber-50 text-amber-700 border-amber-200';
+  if (callState.value === 'mic-error') return 'bg-rose-50 text-rose-700 border-rose-200';
+  if (callState.value === 'reconnecting') return 'bg-amber-50 text-amber-700 border-amber-200';
   if (callState.value === 'connecting') return 'bg-violet-50 text-violet-700 border-violet-200';
   if (callState.value === 'listening') return 'bg-blue-50 text-blue-700 border-blue-200';
   if (callState.value === 'speaking') return 'bg-emerald-50 text-emerald-700 border-emerald-200';
@@ -263,6 +267,8 @@ const statusBadgeClass = computed(() => {
 
 const statusDotClass = computed(() => {
   if (isMuted.value) return 'bg-amber-500';
+  if (callState.value === 'mic-error') return 'bg-rose-500';
+  if (callState.value === 'reconnecting') return 'bg-amber-500 animate-ping';
   if (callState.value === 'connecting') return 'bg-violet-600 animate-spin';
   if (callState.value === 'listening') return 'bg-blue-600 animate-ping';
   if (callState.value === 'speaking') return 'bg-emerald-500 animate-pulse';
@@ -271,6 +277,8 @@ const statusDotClass = computed(() => {
 
 const glowColorClass = computed(() => {
   if (isMuted.value) return 'bg-amber-400/10';
+  if (callState.value === 'mic-error') return 'bg-rose-400/15';
+  if (callState.value === 'reconnecting') return 'bg-amber-400/20 animate-pulse';
   if (callState.value === 'connecting') return 'bg-violet-500/25 animate-pulse';
   if (callState.value === 'listening') return 'bg-blue-500/25 animate-pulse';
   if (callState.value === 'speaking') return 'bg-sky-400/30 animate-pulse';
@@ -306,9 +314,11 @@ const orbDynamicScaleStyle = computed(() => {
 
 const mainStatusPrompt = computed(() => {
   if (isMuted.value) return 'Microphone đang tắt';
-  if (callState.value === 'connecting') return 'Đang kết nối...';
-  if (callState.value === 'listening') return 'Emma đang lắng nghe... Bạn có thể nói ngay!';
-  if (callState.value === 'speaking') return 'Emma đang trả lời... (Nói để ngắt lời bất cứ lúc nào)';
+  if (callState.value === 'mic-error') return 'Không thể truy cập Microphone (Vui lòng kiểm tra quyền mic hoặc tắt app chiếm mic như Discord/Meet)';
+  if (callState.value === 'reconnecting') return 'Đang kết nối lại với trợ lý Emma...';
+  if (callState.value === 'connecting') return 'Đang kết nối vào phòng đàm thoại...';
+  if (callState.value === 'listening') return 'Emma đang lắng nghe...';
+  if (callState.value === 'speaking') return 'Emma đang trả lời...';
   return 'Sẵn sàng đàm thoại';
 });
 
@@ -447,6 +457,22 @@ const startLiveKitSession = async () => {
       }
     });
 
+    room.on(RoomEvent.ParticipantDisconnected, (participant) => {
+      if (participant.identity !== room.localParticipant.identity) {
+        console.warn('[LiveKit] Emma agent disconnected from room');
+        callState.value = 'reconnecting';
+      }
+    });
+
+    room.on(RoomEvent.ParticipantConnected, (participant) => {
+      if (participant.identity !== room.localParticipant.identity) {
+        console.log('[LiveKit] Emma agent connected to room');
+        if (callState.value === 'reconnecting' || callState.value === 'connecting') {
+          callState.value = 'listening';
+        }
+      }
+    });
+
     room.on(RoomEvent.Disconnected, () => {
       console.log('[LiveKit] Disconnected from room');
       callState.value = 'idle';
@@ -457,8 +483,13 @@ const startLiveKitSession = async () => {
     console.log('[LiveKit] Successfully connected to room:', tokenRes.room_name);
 
     // 4. Bật microphone người dùng và phát qua WebRTC
-    await room.localParticipant.setMicrophoneEnabled(true);
-    callState.value = 'listening';
+    try {
+      await room.localParticipant.setMicrophoneEnabled(true);
+      callState.value = 'listening';
+    } catch (micErr) {
+      console.error('[LiveKit] Microphone access error:', micErr);
+      callState.value = 'mic-error';
+    }
 
     // 5. Kết nối track microphone để phân tích volume level cho Orb
     const micPub = room.localParticipant.getTrackPublication(Track.Source.Microphone);

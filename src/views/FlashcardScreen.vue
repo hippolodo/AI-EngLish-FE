@@ -135,9 +135,7 @@
         <h3 class="text-xl sm:text-2xl font-black text-slate-900 mt-2">
           Xuất sắc! Bạn đã hoàn thành lượt ôn hôm nay
         </h3>
-        <p class="text-sm sm:text-base text-slate-500 leading-relaxed">
-          Toàn bộ thẻ từ vựng đến hạn đã được cập nhật chu kỳ Spaced Repetition (Lặp lại ngắt quãng). Hãy tiếp tục duy trì thói quen học mỗi ngày nhé!
-        </p>
+  
       </div>
       <div class="flex items-center justify-center gap-3 pt-2 flex-wrap">
         <button

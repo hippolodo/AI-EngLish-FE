@@ -360,38 +360,6 @@
 
                 </p>
 
-
-
-                <!-- Quick Pillar Metrics Tags -->
-
-                <div class="flex items-center gap-2 pt-1 flex-wrap text-slate-500 text-[11px] font-semibold">
-
-                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
-
-                    <Mic class="w-3 h-3 text-blue-600" />
-
-                    4 bài nói đối thoại
-
-                  </span>
-
-                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
-
-                    <Layers class="w-3 h-3 text-emerald-600" />
-
-                    32 từ vựng IPA
-
-                  </span>
-
-                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
-
-                    <HelpCircle class="w-3 h-3 text-purple-600" />
-
-                    40 câu hỏi Quiz
-
-                  </span>
-
-                </div>
-
               </div>
 
             </div>
@@ -558,9 +526,9 @@
 
 
 
-                <!-- Card Middle: Lesson Title & Pillars -->
+                <!-- Card Middle: Lesson Title -->
 
-                <div class="space-y-2 mb-4">
+                <div class="mb-4">
 
                   <h3
 
@@ -574,53 +542,13 @@
 
                   </h3>
 
-
-
-                  <!-- 3 Pillar Mini Badges -->
-
-                  <div class="flex items-center gap-2 flex-wrap text-[11px] font-semibold text-slate-500">
-
-                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50/70 text-blue-700 border border-blue-100">
-
-                      <Mic class="w-3 h-3" />
-
-                      Hội thoại nói
-
-                    </span>
-
-                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50/70 text-emerald-700 border border-emerald-100">
-
-                      <Layers class="w-3 h-3" />
-
-                      8 Flashcards
-
-                    </span>
-
-                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-50/70 text-purple-700 border border-purple-100">
-
-                      <HelpCircle class="w-3 h-3" />
-
-                      10 câu Quiz
-
-                    </span>
-
-                  </div>
-
                 </div>
 
 
 
-                <!-- Card Bottom: Action Button & Prompt -->
+                <!-- Card Bottom: Action Button -->
 
-                <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
-
-                  <span class="text-xs font-medium text-slate-400">
-
-                    Chấm âm vị AI (CUDA)
-
-                  </span>
-
-
+                <div class="pt-3 border-t border-slate-100 flex items-center justify-end">
 
                   <button
 
@@ -904,9 +832,12 @@
 
             <div class="flex items-center gap-4">
 
-              <div class="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center shrink-0">
+              <div
+                class="w-16 h-16 rounded-2xl border flex items-center justify-center shrink-0"
+                :class="performanceTier.grade === 'A+' ? 'bg-emerald-50 border-emerald-200' : performanceTier.grade === 'A' ? 'bg-blue-50 border-blue-200' : performanceTier.grade === 'B' ? 'bg-amber-50 border-amber-200' : performanceTier.grade === 'C' ? 'bg-rose-50 border-rose-200' : 'bg-slate-100 border-slate-200'"
+              >
 
-                <span class="text-3xl">{{ performanceTier.grade === 'A+' ? '🏆' : performanceTier.grade === 'A' ? '🎉' : '📊' }}</span>
+                <span class="text-3xl">{{ performanceTier.grade === 'A+' ? '🏆' : performanceTier.grade === 'A' ? '🎉' : performanceTier.grade === '—' ? '📝' : '📊' }}</span>
 
               </div>
 
@@ -1427,12 +1358,6 @@
             </span>
 
           </div>
-
-          <p class="max-w-2xl text-base sm:text-lg text-slate-700 leading-relaxed">
-
-            Master the pronunciation, IPA transcription, and meaning of the vocabulary in this lesson before practicing sentences.
-
-          </p>
 
         </div>
 
@@ -3109,101 +3034,107 @@ const overallSummaryScore = computed(() => {
 
 
 const performanceTier = computed(() => {
+  const score = overallSummaryScore.value ?? averagePracticeScore.value;
 
-  const score = overallSummaryScore.value ?? averagePracticeScore.value ?? 80;
+  if (score === null || score === undefined) {
+    return {
+      grade: '—',
+      badge: 'Chưa hoàn thành · Incomplete',
+      title: 'Bạn chưa hoàn thành nội dung luyện tập',
+      badgeClass: 'bg-slate-100 text-slate-600 border-slate-200',
+      gradeColor: 'text-slate-400',
+      strengths: 'Chưa có dữ liệu luyện tập. Hãy bắt đầu luyện nói các câu trong bài hoặc làm bài Quiz để AI ghi nhận kết quả nhé!',
+      improvements: 'Sau khi bạn thu âm luyện nói ở bước Practice, AI sẽ phân tích chi tiết độ chuẩn âm vị (GOP) và chỉ ra các âm cần cải thiện tại đây.',
+      actionAdvice: 'Bấm chuyển sang bước "2. Practice" hoặc "3. Quiz" để bắt đầu thực hành bài học.'
+    };
+  }
+
+  const completed = completedSentencesCount.value;
+  const total = totalSentencesCount.value;
+  const isSpeaking = currentLesson.value?.type === 'SPEAKING';
+  const scoredItems = speakingScoresList.value.filter(i => i.score !== null && i.score !== undefined);
+  const lowScoreItems = scoredItems.filter(i => i.score < 75);
+  const quizScore = lessonProgress.value?.quiz_score;
 
   if (score >= 90) {
+    const strengthMsg = isSpeaking
+      ? `Xuất sắc! Bạn đã hoàn thành ${completed}/${total} câu luyện nói với điểm trung bình đạt ${score}/100. Độ chuẩn âm vị và ngữ điệu tự nhiên, rõ ràng.`
+      : `Xuất sắc! Bạn đã hoàn thành bài viết với số điểm ấn tượng ${score}/100. Cấu trúc ngữ pháp và từ vựng chuẩn xác.`;
+    const quizAddon = (quizScore !== null && quizScore !== undefined) ? ` Bài Quiz từ vựng cũng đạt kết quả rất cao (${quizScore}/100).` : '';
 
     return {
-
       grade: 'A+',
-
       badge: 'Xuất sắc · Mastered',
-
       title: 'Thành thạo xuất sắc bài học!',
-
       badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-
       gradeColor: 'text-emerald-600',
-
-      strengths: 'Phát âm rất rõ ràng, trường độ các nguyên âm chuẩn xác và nắm vững toàn bộ từ vựng trọng tâm của bài.',
-
-      improvements: 'Tiếp tục duy trì tốc độ nói tự nhiên, chú ý nối âm đuôi (linking sounds) giữa các từ liền kề để câu nói mượt mà như người bản xứ.',
-
-      actionAdvice: 'Lưu từ vựng vào Flashcards để ôn Spaced Repetition, hoặc thử trò chuyện với AI Tutor để thực hành giao tiếp phản xạ ngay!'
-
+      strengths: strengthMsg + quizAddon,
+      improvements: lowScoreItems.length > 0
+        ? `Cần lưu ý nhẹ ở câu ${lowScoreItems.map(i => '#' + i.index).join(', ')} để phát âm tròn vành rõ chữ hơn.`
+        : 'Tiếp tục duy trì tốc độ nói tự nhiên, chú ý nối âm đuôi (linking sounds) giữa các từ liền kề để câu nói mượt mà như người bản xứ.',
+      actionAdvice: (quizScore === null || quizScore === undefined)
+        ? 'Hãy bấm sang tab "3. Quiz" để hoàn thành bài kiểm tra từ vựng và ghi trọn điểm bài học!'
+        : 'Lưu từ vựng vào Flashcards để ôn Spaced Repetition, hoặc thử trò chuyện với AI Tutor để thực hành giao tiếp phản xạ ngay!'
     };
-
   }
 
   if (score >= 75) {
+    const strengthMsg = isSpeaking
+      ? `Bạn đã hoàn thành ${completed}/${total} câu với điểm phát âm đạt ${score}/100. Nắm chắc cấu trúc câu, phát âm tương đối chuẩn xác và tự tin.`
+      : `Bài viết đạt điểm khá tốt (${score}/100). Diễn đạt ý rõ ràng và sử dụng đúng cấu trúc cơ bản.`;
+    const quizAddon = (quizScore !== null && quizScore !== undefined) ? ` Điểm Quiz từ vựng: ${quizScore}/100.` : '';
 
     return {
-
       grade: 'A',
-
       badge: 'Đạt kết quả Tốt · Proficient',
-
       title: 'Hoàn thành tốt các kỹ năng bài học!',
-
       badgeClass: 'bg-blue-50 text-blue-700 border-blue-200',
-
       gradeColor: 'text-blue-600',
-
-      strengths: 'Nắm chắc từ vựng chính và cấu trúc ngữ pháp; phát âm tương đối chuẩn xác và tự tin khi hoàn thành các câu thực hành.',
-
-      improvements: 'Cần chú ý phát âm rõ các phụ âm gió và âm đuôi (/s/, /t/, /d/, /θ/); tránh ngắt hơi đột ngột ở giữa cụm danh từ.',
-
-      actionAdvice: 'Ôn tập lại các câu đạt dưới 85% bằng cách bấm "Luyện lại câu" ngay bên dưới để hoàn thiện ngữ điệu.'
-
+      strengths: strengthMsg + quizAddon,
+      improvements: lowScoreItems.length > 0
+        ? `Cần chú ý luyện lại câu ${lowScoreItems.map(i => '#' + i.index).join(', ')} (điểm dưới 75) để phát âm rõ các phụ âm gió và âm đuôi (/s/, /t/, /d/, /θ/).`
+        : completed < total
+          ? `Còn ${total - completed} câu chưa hoàn thành. Hãy luyện tập đủ tất cả các câu để làm quen đa dạng mẫu câu giao tiếp.`
+          : 'Cần chú ý phát âm rõ các phụ âm gió và âm đuôi (/s/, /t/, /d/, /θ/); tránh ngắt hơi đột ngột ở giữa cụm danh từ.',
+      actionAdvice: completed < total
+        ? `Hãy quay lại tab "2. Practice" để luyện nốt ${total - completed} câu còn lại nhằm hoàn thiện bài học.`
+        : (quizScore === null || quizScore === undefined)
+          ? 'Đừng quên làm bài Quiz ở tab "3. Quiz" để củng cố khả năng ghi nhớ từ vựng!'
+          : 'Ôn tập lại các câu đạt dưới 85% bằng cách bấm "Luyện lại câu" ngay bên dưới để hoàn thiện ngữ điệu.'
     };
-
   }
 
   if (score >= 60) {
+    const strengthMsg = isSpeaking
+      ? `Đã nỗ lực hoàn thành ${completed}/${total} câu thực hành (điểm trung bình: ${score}/100). Bạn đã nắm được ngữ cảnh giao tiếp cơ bản và phát âm được các từ khóa.`
+      : `Đã hoàn thành bài học với điểm số ${score}/100. Nắm được ý tưởng chính của bài học.`;
 
     return {
-
       grade: 'B',
-
       badge: 'Đạt yêu cầu · Developing',
-
       title: 'Đã hoàn thành, cần rèn thêm độ mượt',
-
       badgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
-
       gradeColor: 'text-amber-600',
-
-      strengths: 'Đã nỗ lực hoàn thành toàn bộ bài tập và nắm được ngữ cảnh giao tiếp cơ bản của bài học.',
-
-      improvements: 'Cần lắng nghe kỹ mẫu phát âm chuẩn, nhấn đúng trọng âm của từ (word stress) và điều chỉnh luồng hơi để âm không bị bẹt.',
-
-      actionAdvice: 'Nên dành thêm 5 phút luyện nói lại các câu trong bài trước khi bước sang bài học tiếp theo.'
-
+      strengths: strengthMsg,
+      improvements: lowScoreItems.length > 0
+        ? `Các câu ${lowScoreItems.map(i => '#' + i.index).join(', ')} cần nghe kỹ phát âm mẫu. Chú ý nhấn đúng trọng âm của từ (word stress) và mở khẩu hình rõ hơn.`
+        : 'Cần lắng nghe kỹ mẫu phát âm chuẩn, nhấn đúng trọng âm của từ (word stress) và điều chỉnh luồng hơi để âm không bị bẹt.',
+      actionAdvice: completed < total
+        ? `Nên luyện nói thêm các câu còn lại ở tab "2. Practice" để nâng cao điểm số.`
+        : 'Nên dành thêm 5 phút luyện nói lại các câu trong bài trước khi bước sang bài học tiếp theo.'
     };
-
   }
 
   return {
-
     grade: 'C',
-
     badge: 'Cần rèn luyện thêm · Needs Practice',
-
     title: 'Nên luyện tập thêm để cải thiện',
-
     badgeClass: 'bg-rose-50 text-rose-700 border-rose-200',
-
     gradeColor: 'text-rose-600',
-
-    strengths: 'Có tinh thần kiên trì học hỏi và đã hoàn thành phần luyện tập cơ bản.',
-
-    improvements: 'Nhiều từ chưa đạt chuẩn âm vị hoặc bị thiếu âm cuối; tốc độ đọc còn ngập ngừng.',
-
-    actionAdvice: 'Hãy nghe kỹ audio mẫu 2-3 lần cho từng câu rồi bấm mic thu âm lại để nâng cao điểm số.'
-
+    strengths: `Đã bắt đầu thực hành bài học (${completed}/${total} câu đã luyện, điểm: ${score}/100). Có tinh thần học hỏi và kiên trì.`,
+    improvements: 'Nhiều từ chưa đạt chuẩn âm vị hoặc bị thiếu âm cuối; tốc độ đọc còn ngập ngừng hoặc phát âm sai từ khóa.',
+    actionAdvice: 'Hãy nghe kỹ audio mẫu 2-3 lần cho từng câu ở phần Practice, sau đó bấm mic thu âm lại để nâng cao điểm số.'
   };
-
 });
 
 

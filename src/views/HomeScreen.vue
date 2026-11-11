@@ -13,7 +13,7 @@
               <span>AI Language Studio</span>
             </div>
             <h1 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">Practice Modes</h1>
-            <p class="text-base text-slate-500 mt-1">Choose an intelligent module to accelerate your English speaking fluency</p>
+            
           </div>
           <div class="hidden sm:flex items-center gap-2">
             <NotificationBell />
@@ -41,9 +41,9 @@
                 <h2 class="text-2xl sm:text-3xl font-black tracking-tight text-white group-hover:text-blue-300 transition-colors">
                   Pronunciation &amp; Speech Studio
                 </h2>
-                <p class="text-sm sm:text-base text-slate-300 leading-relaxed font-normal">
+                <!-- <p class="text-sm sm:text-base text-slate-300 leading-relaxed font-normal">
                   Phoneme-level IPA scoring with Goodness of Pronunciation (GOP) acoustic evaluation and real-time mouth-position coaching.
-                </p>
+                </p> -->
                 <div class="pt-2">
                   <span class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white text-slate-900 font-bold text-sm shadow-md group-hover:scale-105 transition-transform">
                     <span>Launch Speaking Studio</span>
@@ -80,10 +80,10 @@
                 </span>
               </div>
               <h2 class="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
-                Interactive Chat Tutor
+                Chat
               </h2>
               <p class="text-sm text-slate-500 mt-1 leading-relaxed">
-                Real-time voice and text conversation with contextual phrasing tips and natural speech feedback.
+                Enhance your language skills by chatting with our AI teacher.
               </p>
             </div>
 
@@ -116,7 +116,7 @@
                 Vocabulary Flashcards
               </h2>
               <p class="text-sm text-slate-500 mt-1 leading-relaxed">
-                3D tactile flip cards with accurate IPA phonetics, contextual examples, and personal notebook bookmarks.
+                Learn basic vocabulary with flashcards.
               </p>
             </div>
 
@@ -155,7 +155,7 @@
                 Writing Studio
               </h2>
               <p class="text-sm text-slate-500 mt-1 leading-relaxed">
-                Draft essays, emails, or paragraphs. Receive instant grammar checks, CEFR rubric scoring, and rewrite suggestions.
+                Improve your writing skills. Receive instant grammar checks, CEFR rubric scoring, and rewrite suggestions.
               </p>
             </div>
 
@@ -185,10 +185,10 @@
                 </span>
               </div>
               <h2 class="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
-                Knowledge Quiz
+                Quiz
               </h2>
               <p class="text-sm text-slate-500 mt-1 leading-relaxed">
-                Test vocabulary and grammar comprehension with immediate or end-of-test answer explanations.
+                Recover and retain your learned vocabulary and phrases with a quick interactive quiz.
               </p>
             </div>
 
@@ -218,11 +218,9 @@
                 </span>
               </div>
               <h2 class="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
-                Smart IPA Dictionary
+                Dictionary
               </h2>
-              <p class="text-sm text-slate-500 mt-1 leading-relaxed">
-                Instant vocabulary search with native audio pronunciation, contextual definitions, and one-tap flashcard saving.
-              </p>
+              
             </div>
 
             <!-- Preview item -->
