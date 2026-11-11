@@ -30,19 +30,6 @@
               <span class="px-1.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider rounded-md bg-indigo-50 text-indigo-600 border border-indigo-100">AI</span>
             </div>
           </div>
-
-          <!-- Streak Badge in Desktop Sidebar -->
-          <button
-            type="button"
-            @click="openStreakModal"
-            v-if="dashboard?.streak !== undefined"
-            class="flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-amber-50 to-orange-50 hover:from-amber-100 hover:to-orange-100 border border-amber-200/80 rounded-full text-xs font-bold text-amber-800 shadow-2xs transition-all hover:scale-105 cursor-pointer"
-            title="Xem chi tiết Chuỗi ngày học (Day Streak)"
-          >
-            <span class="inline-block transition-transform duration-200 group-hover:scale-110">🔥</span>
-            <span><AnimateCountingNumber :number="dashboard?.streak || 0" /></span>
-            <span class="text-[10px] text-amber-600 font-semibold">ngày</span>
-          </button>
         </div>
 
         <!-- Main Navigation Menu -->
@@ -117,7 +104,8 @@
         </div>
 
         <!-- Mobile Right: Streak & Profile -->
-        <div class="flex items-center gap-2.5 shrink-0">
+        <div class="flex items-center gap-2 shrink-0">
+          <NotificationBell />
           <button
             type="button"
             @click="openStreakModal"
@@ -224,15 +212,21 @@
     @close="isStreakModalOpen = false"
     @start-practice="navigateSidebar('lesson')"
   />
+  <RecentActivitiesModal
+    :is-open="isActivitiesModalOpen"
+    :dashboard="dashboard"
+    @close="isActivitiesModalOpen = false"
+  />
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick, onMounted, onUnmounted, provide } from 'vue';
+import { ref, reactive, computed, watch, nextTick, onMounted, onUnmounted, provide } from 'vue';
 import AnimateCountingNumber from './components/ui/CountingNumber.vue';
 import AnimateBadge from './components/ui/Badge.vue';
 import LessonScreen from './views/LessonScreen.vue';
 import SaveWordModal from './components/SaveWordModal.vue';
 import StreakModal from './components/StreakModal.vue';
+import RecentActivitiesModal from './components/RecentActivitiesModal.vue';
 import { learningService } from './services/learningService';
 import { useLearningJourney } from './composables/useLearningJourney';
 import HomeScreen from './views/HomeScreen.vue';
@@ -261,6 +255,7 @@ import { AudioRecorder } from './services/audioRecorder';
 import { getFullAudioUrl, getErrorMessage } from './services/api';
 import ProfileScreen from './views/ProfileScreen.vue';
 import AuthModal from './components/AuthModal.vue';
+import NotificationBell from './components/NotificationBell.vue';
 
 
 
@@ -271,6 +266,8 @@ const isAuthOpen = ref(false);
 const isOnboardingOpen = ref(false);
 const isStreakModalOpen = ref(false);
 const openStreakModal = () => { isStreakModalOpen.value = true; };
+const isActivitiesModalOpen = ref(false);
+const openActivitiesModal = () => { isActivitiesModalOpen.value = true; };
 const isAuthenticated = ref(authService.isAuthenticated());
 const currentTime = ref('');
 let sessionVersion = 0;
@@ -341,6 +338,9 @@ const navigateSidebar = tab => {
     currentLesson.value = null;
   } else if (tab === 'chat') {
     currentLesson.value = null;
+    if (chatMessages.value.length === 0 && !chatLoading.value && authService.isAuthenticated()) {
+      void startChatConversation();
+    }
   }
 
   activeTab.value = tab;
@@ -582,7 +582,7 @@ const onAuthSuccess = async (isNewAccount = false) => {
   isProfileOpen.value = false;
   if (guestDraft) essayInput.value = guestDraft;
   if (guestQuiz) { quizAnswers.value = guestQuiz.answers; selectedQuizAnswer.value = guestQuiz.selected; quizInputText.value = guestQuiz.text; currentStudyIndex.value = guestQuiz.index; }
-  await Promise.all([loadHomeData(), studyMode.value === 'flashcard' ? loadFlashcardsData() : Promise.resolve(), loadChatScenarios()]);
+  await Promise.all([loadHomeData(), studyMode.value === 'flashcard' ? loadFlashcardsData() : Promise.resolve(), loadChatScenarios(), loadFlashcardReminders()]);
   if (lessonToOpen) await startLesson(lessonToOpen);
 
   // Kiểm tra tài khoản mới hoặc chưa hoàn thành khảo sát
@@ -634,10 +634,13 @@ const topics = ref([]);
 
 const totalPracticeCount = computed(() => {
   if (!dashboard.value) return 0;
+  if (typeof dashboard.value.total_sessions === 'number') return dashboard.value.total_sessions;
   return (
     (dashboard.value.speaking?.total_sessions || 0) +
     (dashboard.value.writing?.total_essays || 0) +
-    (dashboard.value.chat?.total_conversations || 0)
+    (dashboard.value.chat?.total_conversations || 0) +
+    (dashboard.value.quiz?.total_attempts || 0) +
+    (dashboard.value.flashcard?.total_reviews || 0)
   );
 });
 
@@ -959,6 +962,7 @@ const getTopicEmoji = (title = '') => {
 const getActivityBadgeClass = (type) => {
   if (type === 'SPEAKING') return 'bg-emerald-50 text-emerald-700 border border-emerald-200';
   if (type === 'WRITING') return 'bg-indigo-50 text-indigo-700 border border-indigo-200';
+  if (type === 'QUIZ') return 'bg-amber-50 text-amber-700 border border-amber-200';
   return 'bg-purple-50 text-purple-700 border border-purple-200';
 };
 
@@ -1274,7 +1278,22 @@ const chatScrollContainer = ref(null);
 const scenarios = ref([]);
 const chatScenarioId = ref('free_chat');
 const conversationId = ref(null);
-const chatMessages = ref([]);
+
+const createStarterBotMessage = (scenarioId = 'free_chat') => {
+  const currentScen = scenarios.value.find(s => s.id === scenarioId);
+  const text = currentScen?.starter_message || "Hi! I'm Emma. How are you doing today?";
+  return reactive({
+    id: `starter-${Date.now()}`,
+    sender: 'bot',
+    message_text: text,
+    text: text,
+    translation_vi: "Xin chào! Mình là Emma. Hôm nay bạn thế nào?",
+    suggested_answer: "Hi Emma! I'm doing well, thanks. How about you?",
+    created_at: new Date().toISOString()
+  });
+};
+
+const chatMessages = ref([createStarterBotMessage('free_chat')]);
 const chatInput = ref('');
 const chatLoading = ref(false);
 const chatError = ref('');
@@ -1360,13 +1379,15 @@ const startChatConversation = async (customTopic = null) => {
   chatError.value = '';
   conversationId.value = null;
   chatSummary.value = null;
-  chatMessages.value = [];
+  chatMessages.value = [createStarterBotMessage(chatScenarioId.value)];
   isChatHistoryOpen.value = false;
   try {
-    const conv = await chatService.startConversation(chatScenarioId.value, customTopic);
+    const conv = await chatService.startConversation(chatScenarioId.value || 'free_chat', customTopic);
     if (version !== sessionVersion || requestId !== chatRequestId) return;
     conversationId.value = conv.id;
-    chatMessages.value = conv.messages || [];
+    if (conv.messages && conv.messages.length > 0) {
+      chatMessages.value = conv.messages;
+    }
     if (customTopic) {
       await loadChatScenarios();
       const matched = scenarios.value.find(s => s.title === conv.scenario_title);
@@ -1422,12 +1443,23 @@ const sendChatText = async (customText = null) => {
   // 1. Clear input immediately so user gets instant visual feedback (0ms)
   chatInput.value = '';
 
-  // 2. Optimistically push user message to chatMessages and scroll immediately
-  const userMsgObj = {
+  // Đảm bảo tin nhắn mở đầu của Emma luôn luôn tồn tại ở vị trí đầu tiên
+  const hasBotStarter = chatMessages.value.some(m => m.sender === 'bot' || m.sender === 'BOT');
+  if (!hasBotStarter) {
+    chatMessages.value.unshift(createStarterBotMessage(chatScenarioId.value));
+  }
+
+  // 2. Tạo tin nhắn người dùng với Vue reactive proxy chuẩn xác
+  const userMsgObj = reactive({
+    id: `user-${Date.now()}`,
     sender: 'user',
     message_text: text,
+    text: text,
+    isChecking: true,
+    feedback: null,
+    feedbackChecked: false,
     created_at: new Date().toISOString()
-  };
+  });
   chatMessages.value.push(userMsgObj);
   await scrollChatToBottom();
 
@@ -1451,15 +1483,20 @@ const sendChatText = async (customText = null) => {
     if (version !== sessionVersion || id !== conversationId.value) return;
 
     if (reply) {
-      if (reply.user_feedback) {
-        userMsgObj.feedback = reply.user_feedback;
-      }
+      // 1. Cập nhật kết quả phân tích ngữ pháp vào tin nhắn người dùng ngay lập tức (không kẹt loading)
+      userMsgObj.feedback = reply.user_feedback || { needs_improvement: false };
+      userMsgObj.isChecking = false;
+      userMsgObj.feedbackChecked = true;
+
+      // 2. Hiển thị câu trả lời AI và phát âm thanh ngay lập tức
       chatMessages.value.push(reply);
+      isBotTyping.value = false;
       await scrollChatToBottom();
       speakBotMessage(reply, true);
     }
     void loadHomeData();
   } catch (err) {
+    userMsgObj.isChecking = false;
     if (version === sessionVersion) {
       chatError.value = getErrorMessage(err, 'Could not send message. Please try again.');
       if (!chatInput.value) {
@@ -1580,24 +1617,27 @@ const sendChatVoice = async () => {
     // 4. Khi backend trả về, thay thế bong bóng loading bằng tin nhắn thực tế của người dùng
     const pendingIdx = chatMessages.value.findIndex(m => m.id === tempUserMsg.id);
     if (result?.user_message) {
-      const completedUserMsg = {
+      const completedUserMsg = reactive({
         ...result.user_message,
+        feedback: result.user_message.feedback || { needs_improvement: false },
+        isChecking: false,
+        feedbackChecked: true,
         audio_blob_url: audioBlobUrl // Giữ URL blob để phát lại tức thì
-      };
+      });
       if (pendingIdx !== -1) {
         chatMessages.value.splice(pendingIdx, 1, completedUserMsg);
       } else {
         chatMessages.value.push(completedUserMsg);
       }
+
+      // 5. Thêm phản hồi của Bot và phát âm thanh ngay lập tức
+      if (result?.bot_message) {
+        chatMessages.value.push(result.bot_message);
+        await scrollChatToBottom();
+        speakBotMessage(result.bot_message, true);
+      }
     } else if (pendingIdx !== -1) {
       chatMessages.value.splice(pendingIdx, 1);
-    }
-
-    // 5. Thêm phản hồi của Bot và phát âm thanh
-    if (result?.bot_message) {
-      chatMessages.value.push(result.bot_message);
-      await scrollChatToBottom();
-      speakBotMessage(result.bot_message, true);
     }
     void loadHomeData();
   } catch (err) {
@@ -1683,7 +1723,7 @@ const onStudyDeckChange = async () => {
   await loadFlashcardsData();
 };
 const setFlashcardMode = async mode => {
-  if (!['all', 'noted'].includes(mode) || mode === flashcardMode.value || studyLoading.value || isSavingCardNote.value) return;
+  if (!['all', 'noted', 'due'].includes(mode) || mode === flashcardMode.value || studyLoading.value || isSavingCardNote.value) return;
   flashcardMode.value = mode;
   await loadFlashcardsData();
 };
@@ -1743,6 +1783,24 @@ const switchStudyMode = async (mode) => {
   else restoreQuizAnswer();
 };
 
+const flashcardReminders = ref({
+  total_due: 0,
+  today_count: 0,
+  tomorrow_count: 0,
+  reminders: []
+});
+const isReviewingCard = ref(false);
+
+const loadFlashcardReminders = async () => {
+  if (!authService.isAuthenticated()) return;
+  try {
+    const data = await studyService.getReminders();
+    flashcardReminders.value = data || { total_due: 0, today_count: 0, tomorrow_count: 0, reminders: [] };
+  } catch (err) {
+    // Keep cached
+  }
+};
+
 const loadFlashcardsData = async () => {
   flashcards.value = [];
   isSavingCardNote.value = false;
@@ -1758,7 +1816,13 @@ const loadFlashcardsData = async () => {
   studyLoading.value = true;
   studyError.value = '';
   try {
-    const list = await studyService.getFlashcards(flashcardMode.value === 'noted' ? null : studyDeckId.value, flashcardMode.value === 'noted');
+    const isNoted = flashcardMode.value === 'noted';
+    const isDue = flashcardMode.value === 'due';
+    const list = await studyService.getFlashcards(
+      isNoted ? null : studyDeckId.value,
+      isNoted,
+      isDue
+    );
     if (version !== sessionVersion || requestId !== studyRequestId) return;
     flashcards.value = list || [];
     currentStudyIndex.value = 0;
@@ -1775,6 +1839,59 @@ const showFlashcardToast = (msg) => {
   if (flashcardToastTimer) clearTimeout(flashcardToastTimer);
   flashcardToast.value = msg;
   flashcardToastTimer = setTimeout(() => { flashcardToast.value = ''; }, 3500);
+};
+
+// Leitner Spaced Repetition card review (Remembered / Forgot)
+const reviewCurrentCard = async (isRemembered) => {
+  const card = currentCard.value;
+  if (!card?.id || studyLoading.value || isReviewingCard.value || !requireAuthentication()) return;
+  isReviewingCard.value = true;
+  try {
+    const progress = await studyService.reviewCard(card.id, isRemembered);
+    card.box_level = progress.box_level;
+    card.status = progress.status;
+    card.next_review_at = progress.next_review_at;
+    card.review_count = progress.review_count;
+
+    if (isRemembered) {
+      const isMastered = progress.box_level >= 5;
+      const intervalDays = [0, 1, 3, 7, 14, 30][progress.box_level] || 1;
+      showFlashcardToast(isMastered 
+        ? `Mastered! "${card.word}" reached Level 5.`
+        : `Remembered! "${card.word}" promoted to Level ${progress.box_level} (Next review in ${intervalDays} days).`
+      );
+    } else {
+      showFlashcardToast(`Review needed! "${card.word}" reset to Level 1 (Review tomorrow).`);
+    }
+
+    void loadFlashcardReminders();
+
+    // Auto flip and transition
+    setTimeout(() => {
+      isFlipped.value = false;
+      if (currentStudyIndex.value < flashcards.value.length - 1) {
+        nextFlashcard();
+      }
+    }, 450);
+  } catch (err) {
+    showFlashcardToast(getErrorMessage(err, 'Không thể cập nhật tiến độ ôn tập.'));
+  } finally {
+    isReviewingCard.value = false;
+  }
+};
+
+const openFlashcardWord = async (cardId, deckId = null) => {
+  activeTab.value = 'flashcard';
+  studyMode.value = 'flashcard';
+  flashcardMode.value = 'all';
+  if (deckId) {
+    studyDeckId.value = deckId;
+  }
+  await loadFlashcardsData();
+  const index = flashcards.value.findIndex(c => c.id === cardId);
+  if (index !== -1) {
+    jumpToFlashcard(index);
+  }
 };
 
 // Every note mutation belongs to the account and list that started it.
@@ -2006,7 +2123,7 @@ const updateClock = () => {
 
 let clockInterval = null;
 
-provide('screenContext', { practiceCustomWord, prefetchLesson: (id) => curriculumService.prefetchLesson(id), hasHistory, navigateSidebar, pushNavState, flashcardMode, setFlashcardMode, goBack, previousTab, openAuthOrProfile, isOnboardingOpen, onOnboardingCompleted, writingPickerOpen, writingPickerLoading, writingPickerError, writingPickerTopicId, writingPickerTopics, writingPickerLessons, loadWritingTasks, openWritingTaskPicker, openWritingLesson, quizFeedbackMode, quizFeedbackLoading, quizModeLocked, setQuizFeedbackMode, flashcardDecks, flashcardDecksLoading, flashcardDecksError, availableFlashcardDecks, loadFlashcardDecks, onStudyDeckChange, navigateTab, chatSummary, endChatSession, journey, selectedTopic, topicLessons, currentLesson, lessonDetail, lessonQuizzes, lessonDecks, lessonCards, lessonLoading, lessonError, lessonStep, lessonProgress, canFinishLesson, recommendedTopic, startLesson, continueLearning, beginLessonPractice, openLessonQuiz, openLessonDeck, finishLesson, nextLesson, leaveLesson, openSaveWord, savedWordMessage, openLessonChat, studyDeckId, homeError, studyError, chatError, isSavingCardNote, quizInputText, quizResult, canAnswerQuiz, previousQuizQuestion, restartQuiz, requireAuthentication, activeTab, chatConversations, chatHistoryError, chatHistoryLoading, chatInput, chatLoading, chatMessages, chatRecorder, chatScenarioId, chatScrollContainer, checkQuizAnswer, clockInterval, conversationId, copied, copyRewritten, currentCard, currentChatScenario, currentQuestion, currentSpeakingSentenceIndex, currentStudyIndex, currentTime, dashboard, essayInput, flashcards, getActivityBadgeClass, getQuizAnswerClass, getTopicColor, getTopicEmoji, getWordBg, getWordTextColor, homeLoading, isAnalyzingSpeaking, isAuthOpen, isAuthenticated, isBotTyping, isChatHistoryOpen, isChatRecording, startChatVoice, cancelChatVoice, togglePauseRecording, sendChatVoice, isRecordingPaused, recordingDuration, formattedRecordingTime, isCustomSpeakingMode, isEvaluating, isFlipped, isProfileOpen, isRecording, isSubmittingQuiz, loadChatConversations, loadChatScenarios, loadFlashcardsData, loadHomeData, loadQuizzesData, logout, nativeAudioUrl, navigateSpeakingSentence, nextQuizQuestion, onAuthSuccess, onProfileUpdated, onQuizChange, onSpeakingLessonChange, onSpeakingTopicChange, openAuthModal, openChatConversation, playNativeAudio, quizChecked, quizQuestions, quizzesList, recorder, resetChatConversation, scenarios, scrollChatToBottom, selectQuizAnswer, selectedQuizAnswer, selectedQuizId, selectedSpeakingContentId, sendChatText, speakBotMessage, speakText, speakingError, speakingLessonContents, speakingLessonId, speakingLessons, speakingLessonsLoading, speakingResult, speakingTopicId, startChatConversation, createAndSelectCustomScenario, startTopic, stopAndAnalyzeSpeaking, studyLoading, studyMode, submitWritingEvaluation, submittedQuizDetail, switchChatScenario, switchStudyMode, targetIpa, targetSpeakingText, targetTranslation, toggleChatHistory, toggleChatVoice, toggleRecording, topics, totalPracticeCount, totalStudyItems, updateClock, userAvatarUrl, userProfile, wordCount, writingError, writingResult, writingSubTab, flashcardToast, toggleCardNote, nextFlashcard, prevFlashcard, jumpToFlashcard, openStreakModal });
+provide('screenContext', { practiceCustomWord, prefetchLesson: (id) => curriculumService.prefetchLesson(id), hasHistory, navigateSidebar, pushNavState, flashcardMode, setFlashcardMode, goBack, previousTab, openAuthOrProfile, isOnboardingOpen, onOnboardingCompleted, writingPickerOpen, writingPickerLoading, writingPickerError, writingPickerTopicId, writingPickerTopics, writingPickerLessons, loadWritingTasks, openWritingTaskPicker, openWritingLesson, quizFeedbackMode, quizFeedbackLoading, quizModeLocked, setQuizFeedbackMode, flashcardDecks, flashcardDecksLoading, flashcardDecksError, availableFlashcardDecks, loadFlashcardDecks, onStudyDeckChange, navigateTab, chatSummary, endChatSession, journey, selectedTopic, topicLessons, currentLesson, lessonDetail, lessonQuizzes, lessonDecks, lessonCards, lessonLoading, lessonError, lessonStep, lessonProgress, canFinishLesson, recommendedTopic, startLesson, continueLearning, beginLessonPractice, openLessonQuiz, openLessonDeck, finishLesson, nextLesson, leaveLesson, openSaveWord, savedWordMessage, openLessonChat, studyDeckId, homeError, studyError, chatError, isSavingCardNote, quizInputText, quizResult, canAnswerQuiz, previousQuizQuestion, restartQuiz, requireAuthentication, activeTab, chatConversations, chatHistoryError, chatHistoryLoading, chatInput, chatLoading, chatMessages, chatRecorder, chatScenarioId, chatScrollContainer, checkQuizAnswer, clockInterval, conversationId, copied, copyRewritten, currentCard, currentChatScenario, currentQuestion, currentSpeakingSentenceIndex, currentStudyIndex, currentTime, dashboard, essayInput, flashcards, getActivityBadgeClass, getQuizAnswerClass, getTopicColor, getTopicEmoji, getWordBg, getWordTextColor, homeLoading, isAnalyzingSpeaking, isAuthOpen, isAuthenticated, isBotTyping, isChatHistoryOpen, isChatRecording, startChatVoice, cancelChatVoice, togglePauseRecording, sendChatVoice, isRecordingPaused, recordingDuration, formattedRecordingTime, isCustomSpeakingMode, isEvaluating, isFlipped, isProfileOpen, isRecording, isSubmittingQuiz, loadChatConversations, loadChatScenarios, loadFlashcardsData, loadHomeData, loadQuizzesData, logout, nativeAudioUrl, navigateSpeakingSentence, nextQuizQuestion, onAuthSuccess, onProfileUpdated, onQuizChange, onSpeakingLessonChange, onSpeakingTopicChange, openAuthModal, openChatConversation, playNativeAudio, quizChecked, quizQuestions, quizzesList, recorder, resetChatConversation, scenarios, scrollChatToBottom, selectQuizAnswer, selectedQuizAnswer, selectedQuizId, selectedSpeakingContentId, sendChatText, speakBotMessage, speakText, speakingError, speakingLessonContents, speakingLessonId, speakingLessons, speakingLessonsLoading, speakingResult, speakingTopicId, startChatConversation, createAndSelectCustomScenario, startTopic, stopAndAnalyzeSpeaking, studyLoading, studyMode, submitWritingEvaluation, submittedQuizDetail, switchChatScenario, switchStudyMode, targetIpa, targetSpeakingText, targetTranslation, toggleChatHistory, toggleChatVoice, toggleRecording, topics, totalPracticeCount, totalStudyItems, updateClock, userAvatarUrl, userProfile, wordCount, writingError, writingResult, writingSubTab, flashcardToast, toggleCardNote, nextFlashcard, prevFlashcard, jumpToFlashcard, openStreakModal, isActivitiesModalOpen, openActivitiesModal, flashcardReminders, loadFlashcardReminders, isReviewingCard, reviewCurrentCard, openFlashcardWord });
 
 onMounted(async () => {
   updateClock();
@@ -2021,7 +2138,7 @@ onMounted(async () => {
       // The response interceptor handles invalid sessions. Network failures keep the cached profile.
     }
   }
-  await Promise.all([loadHomeData(), loadChatScenarios(), loadFlashcardsData()]);
+  await Promise.all([loadHomeData(), loadChatScenarios(), loadFlashcardsData(), loadFlashcardReminders()]);
 });
 
 onUnmounted(() => {

@@ -385,77 +385,11 @@
 
 
         <!-- Messages Scroll Container (ChatGPT Style: Vào là chat ngay lập tức, không loading) -->
-
         <div ref="chatScrollContainer" class="flex-1 p-5 sm:p-8 space-y-6 overflow-y-auto no-scrollbar">
 
-          <!-- Starter Welcome Greeting & Pills if no messages yet -->
-
-          <div v-if="chatMessages.length === 0" class="space-y-6 max-w-2xl mx-auto py-6">
-
-            <div class="flex items-start space-x-3.5 max-w-[92%] sm:max-w-[85%] self-start">
-
-              <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-full overflow-hidden shrink-0 mt-0.5 ring-2 ring-blue-100 shadow-2xs">
-
-                <img
-
-                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80"
-
-                  alt="Emma"
-
-                  class="w-full h-full object-cover"
-
-                />
-
-              </div>
-
-              <div class="space-y-2 min-w-0 flex-1 pt-1">
-
-                <div class="reading-text text-slate-900 text-base sm:text-lg lg:text-[19px] leading-relaxed font-normal">
-
-                  Hi there! I'm Emma, your English speaking partner. Feel free to ask me anything or chat about whatever is on your mind today! How are you doing?
-
-                </div>
-
-              </div>
-
-            </div>
-
-
-
-            <!-- Quick Starter Prompt Suggestion Pills -->
-            <div class="pt-2 pl-13 flex flex-wrap gap-2.5">
-              <button
-                @click="sendChatText('Hi Emma! How are you doing today?')"
-                class="px-4.5 py-2.5 rounded-2xl bg-white hover:bg-blue-50/50 border-2 border-slate-200 hover:border-blue-500 text-slate-900 hover:text-blue-700 text-sm font-bold transition cursor-pointer shadow-2xs"
-              >
-                👋 Hi Emma! How are you doing today?
-              </button>
-              <button
-                @click="sendChatText('Can you help me practice daily English conversation?')"
-                class="px-4.5 py-2.5 rounded-2xl bg-white hover:bg-blue-50/50 border-2 border-slate-200 hover:border-blue-500 text-slate-900 hover:text-blue-700 text-sm font-bold transition cursor-pointer shadow-2xs"
-              >
-                💬 Practice daily conversation
-              </button>
-              <button
-                @click="sendChatText('Tell me an interesting fun fact in English!')"
-                class="px-4.5 py-2.5 rounded-2xl bg-white hover:bg-blue-50/50 border-2 border-slate-200 hover:border-blue-500 text-slate-900 hover:text-blue-700 text-sm font-bold transition cursor-pointer shadow-2xs"
-              >
-                ✨ Tell me an interesting fun fact
-              </button>
-            </div>
-
-          </div>
-
-
-
-          <!-- In-Session Messages Stream -->
-
-          <template v-else>
-
-              <div v-for="(msg, idx) in chatMessages" :key="idx" class="flex flex-col mb-6 sm:mb-7">
+          <div v-for="(msg, idx) in chatMessages" :key="msg.id || idx" class="flex flex-col mb-6 sm:mb-7">
 
                 <!-- Bot Message Turn -->
-
                 <div v-if="msg.sender === 'BOT' || msg.sender === 'bot'" class="flex items-start space-x-3.5 max-w-[92%] sm:max-w-[85%] self-start">
 
                   <!-- Bot Avatar -->
@@ -568,6 +502,28 @@
 
                     </div>
 
+                    <!-- Quick Starter Prompt Suggestion Pills if first message in conversation -->
+                    <div v-if="idx === 0 && chatMessages.length === 1 && (!chatScenarioId || chatScenarioId === 'free_chat')" class="pt-3 flex flex-wrap gap-2">
+                      <button
+                        @click="sendChatText('Hi Emma! How are you doing today?')"
+                        class="px-3.5 py-1.5 rounded-xl bg-white hover:bg-blue-50 border border-slate-200 hover:border-blue-400 text-slate-800 hover:text-blue-700 text-xs font-bold transition cursor-pointer shadow-2xs"
+                      >
+                        👋 Hi Emma! How are you doing today?
+                      </button>
+                      <button
+                        @click="sendChatText('Can you help me practice daily English conversation?')"
+                        class="px-3.5 py-1.5 rounded-xl bg-white hover:bg-blue-50 border border-slate-200 hover:border-blue-400 text-slate-800 hover:text-blue-700 text-xs font-bold transition cursor-pointer shadow-2xs"
+                      >
+                        💬 Practice daily conversation
+                      </button>
+                      <button
+                        @click="sendChatText('Tell me an interesting fun fact in English!')"
+                        class="px-3.5 py-1.5 rounded-xl bg-white hover:bg-blue-50 border border-slate-200 hover:border-blue-400 text-slate-800 hover:text-blue-700 text-xs font-bold transition cursor-pointer shadow-2xs"
+                      >
+                        ✨ Tell me an interesting fun fact
+                      </button>
+                    </div>
+
                   </div>
 
                 </div>
@@ -592,22 +548,34 @@
 
                   <div v-else class="flex items-end justify-end space-x-2.5 w-full">
 
-                    <!-- Feedback Status Badge: ONLY when sentence needs improvement (amber !) -->
-
-                    <button
-
-                      v-if="!msg.isVoice && msg.feedback && msg.feedback.needs_improvement"
-
-                      @click="selectFeedbackMessage(idx)"
-
-                      title="Click to view phrase & word corrections"
-
-                      class="shrink-0 mb-1 w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shadow-2xs cursor-pointer transition-transform hover:scale-115 active:scale-95 bg-amber-500 text-white ring-2 ring-amber-200"
-
+                    <!-- Feedback Status Badge: Checking (Spinner) -> Needs Improvement (Amber !) or Correct (Green check) -->
+                    <!-- 1. Checking Loading Spinner (Load xoay trong lúc đang phân tích câu) -->
+                    <div
+                      v-if="msg.isChecking"
+                      class="shrink-0 mb-1 w-6 h-6 rounded-full flex items-center justify-center bg-blue-50 text-blue-600 border border-blue-200/80 shadow-2xs"
+                      title="Analyzing grammar & natural phrasing..."
                     >
+                      <Loader2 class="w-3.5 h-3.5 text-blue-600 animate-spin" />
+                    </div>
 
-                      <span class="font-black text-xs">!</span>
+                    <!-- 2. Needs Improvement (Chấm than vàng !) -->
+                    <button
+                      v-else-if="msg.feedback && msg.feedback.needs_improvement"
+                      @click="selectFeedbackMessage(idx)"
+                      title="Click to view phrase & grammar corrections"
+                      class="shrink-0 mb-1 w-6 h-6 rounded-full flex items-center justify-center font-black text-xs shadow-2xs cursor-pointer transition-transform hover:scale-110 active:scale-95 bg-amber-500 hover:bg-amber-600 text-white ring-2 ring-amber-200 animate-in zoom-in-75 duration-200"
+                    >
+                      <span>!</span>
+                    </button>
 
+                    <!-- 3. Correct & Natural Phrasing (Tick xanh ✔) -->
+                    <button
+                      v-else-if="msg.feedback && !msg.feedback.needs_improvement"
+                      @click="selectFeedbackMessage(idx)"
+                      title="Accurate grammar & natural phrasing!"
+                      class="shrink-0 mb-1 w-6 h-6 rounded-full flex items-center justify-center bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs cursor-pointer transition-transform hover:scale-110 active:scale-95 animate-in zoom-in-75 duration-200"
+                    >
+                      <Check class="w-3.5 h-3.5 stroke-[3]" />
                     </button>
 
 
@@ -618,7 +586,7 @@
 
                       <div
 
-                        @click="msg.feedback?.needs_improvement && selectFeedbackMessage(idx)"
+                        @click="msg.feedback && selectFeedbackMessage(idx)"
 
                         class="reading-text bg-[#e8f1fd] text-slate-900 px-5 py-3.5 sm:px-6 sm:py-4 rounded-3xl rounded-tr-md shadow-2xs text-base sm:text-lg leading-relaxed font-normal transition"
 
@@ -683,7 +651,6 @@
                   <span class="ml-2 font-bold text-slate-800">Emma is typing...</span>
                 </div>
               </div>
-          </template>
         </div>
 
         <!-- Suggestion Pills (Another question & Suggest answer) -->
@@ -957,7 +924,18 @@
 
           <!-- Active Feedback Content (CHỈ HIỂN THỊ KHI CÂU CÓ LỖI SAI) -->
 
-          <template v-if="activeFeedbackMsg && activeFeedbackMsg.feedback && activeFeedbackMsg.feedback.needs_improvement">
+          <!-- Accurate Phrasing (Mobile Drawer) -->
+            <template v-if="activeFeedbackMsg && activeFeedbackMsg.feedback && !activeFeedbackMsg.feedback.needs_improvement">
+              <div class="border border-emerald-200 bg-emerald-50/60 rounded-2xl p-4 space-y-2">
+                <span class="text-xs font-bold text-emerald-700 flex items-center gap-1.5">
+                  <CheckCircle2 class="w-4 h-4 text-emerald-600" /> Accurate Phrasing
+                </span>
+                <p class="text-base font-bold text-slate-900">"{{ activeFeedbackMsg.message_text || activeFeedbackMsg.text }}"</p>
+                <p class="text-xs text-emerald-700 font-medium">Your sentence is grammatically correct and natural!</p>
+              </div>
+            </template>
+
+            <template v-else-if="activeFeedbackMsg && activeFeedbackMsg.feedback && activeFeedbackMsg.feedback.needs_improvement">
 
             <!-- Dotted/Dashed User Sentence Box -->
 
@@ -1076,6 +1054,22 @@
           </template>
 
 
+
+          <!-- Accurate Phrasing Celebration (HIỂN THỊ KHI CÂU CHUẨN, TICK XANH) -->
+          <template v-else-if="activeFeedbackMsg && activeFeedbackMsg.feedback && !activeFeedbackMsg.feedback.needs_improvement">
+            <div class="border border-emerald-200 bg-emerald-50/60 rounded-2xl p-5 shadow-2xs space-y-3 animate-in fade-in duration-200">
+              <div class="flex items-center gap-2 text-emerald-800 font-bold text-sm">
+                <CheckCircle2 class="w-5 h-5 text-emerald-600" />
+                <span>Accurate &amp; Natural Phrasing</span>
+              </div>
+              <p class="text-base sm:text-lg font-bold text-slate-900 leading-relaxed bg-white p-3.5 rounded-xl border border-emerald-100 shadow-2xs">
+                "{{ activeFeedbackMsg.message_text || activeFeedbackMsg.text }}"
+              </p>
+              <p class="text-xs sm:text-sm text-emerald-700 font-medium leading-relaxed">
+                Great job! Your sentence is grammatically correct and sounds natural in this conversation.
+              </p>
+            </div>
+          </template>
 
           <!-- Empty placeholder when no errors to display -->
 
@@ -2093,7 +2087,7 @@ const activeFeedbackMsg = computed(() => {
 
     const m = msgs[selectedFeedbackIndex.value];
 
-    if ((m.sender === 'user' || m.sender === 'USER') && m.feedback?.needs_improvement) return m;
+    if (m.sender === 'user' || m.sender === 'USER') return m;
 
   }
 

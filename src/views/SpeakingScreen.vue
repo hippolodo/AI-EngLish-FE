@@ -154,7 +154,7 @@
     </div>
 
     <!-- AI Evaluation Results (Real from API) -->
-    <div v-if="speakingResult" class="bg-white rounded-3xl p-6 sm:p-7 border border-gray-100 shadow-md space-y-6">
+    <div v-if="speakingResult" id="speaking-evaluation-card" class="bg-white rounded-3xl p-6 sm:p-7 border border-gray-100 shadow-md space-y-6">
       <!-- Header Summary with Score & Audio Comparison -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-gray-100">
         <div class="flex items-center gap-3.5">
@@ -452,6 +452,115 @@
               </p>
             </div>
           </div>
+
+          <!-- Sentence Practice History (Lịch sử các lần luyện tập câu này) -->
+          <div
+            v-if="sentenceHistory && sentenceHistory.length > 0"
+            class="mt-6 pt-6 border-t border-slate-200/80 space-y-4 animate-in fade-in duration-300"
+          >
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+                  <History class="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 class="text-sm sm:text-base font-extrabold text-slate-900 flex items-center gap-2">
+                    <span>Lịch sử luyện tập câu này</span>
+                    <span class="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-xs font-bold border border-indigo-100">
+                      {{ sentenceHistory.length }} lần
+                    </span>
+                  </h3>
+                  <p class="text-xs text-slate-500 font-medium">Xem lại điểm số, âm thanh và tiến bộ qua từng lần thử</p>
+                </div>
+              </div>
+
+              <!-- Nút Thu gọn / Mở rộng nếu > 2 lần -->
+              <button
+                v-if="sentenceHistory.length > 2"
+                @click="isHistoryExpanded = !isHistoryExpanded"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50/80 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition-all cursor-pointer border border-indigo-100"
+              >
+                <span>{{ isHistoryExpanded ? 'Thu gọn' : `Xem thêm (${sentenceHistory.length - 2} lần)` }}</span>
+                <ChevronDown v-if="!isHistoryExpanded" class="w-3.5 h-3.5" />
+                <ChevronUp v-else class="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <!-- Danh sách các lần thử -->
+            <div class="space-y-2.5">
+              <div
+                v-for="(att, idx) in displayedAttempts"
+                :key="att.id || idx"
+                class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl border transition-all duration-200"
+                :class="att.id === speakingResult?.session_id ? 'bg-indigo-50/70 border-indigo-200 ring-2 ring-indigo-500/20' : 'bg-slate-50/80 border-slate-200/80 hover:bg-white hover:border-slate-300 hover:shadow-2xs'"
+              >
+                <!-- Thông tin lần thử: Thứ tự + Thời gian + Pitch -->
+                <div class="flex items-center gap-3 min-w-0">
+                  <div
+                    class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black shrink-0 shadow-2xs"
+                    :class="idx === 0 ? 'bg-indigo-600 text-white' : 'bg-white border border-slate-200 text-slate-700'"
+                  >
+                    #{{ sentenceHistory.length - idx }}
+                  </div>
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span class="text-xs sm:text-sm font-extrabold text-slate-900">
+                        {{ idx === 0 ? 'Lần gần nhất' : `Lần thử #${sentenceHistory.length - idx}` }}
+                      </span>
+                      <span
+                        v-if="att.id === speakingResult?.session_id"
+                        class="text-[10px] px-2 py-0.5 rounded-md bg-indigo-600 text-white font-extrabold"
+                      >
+                        Đang xem
+                      </span>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs text-slate-500 mt-0.5 font-medium">
+                      <Clock class="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <span>{{ formatAttemptTime(att.created_at) }}</span>
+                      <span v-if="att.average_pitch > 0" class="text-slate-400">· Pitch: {{ Math.round(att.average_pitch) }} Hz</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Điểm số & Các thao tác -->
+                <div class="flex items-center justify-between sm:justify-end gap-2.5 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200/60 shrink-0">
+                  <!-- Điểm số phát âm -->
+                  <span
+                    class="px-3 py-1 rounded-xl text-xs sm:text-sm font-black border shadow-2xs"
+                    :class="att.overall_score >= 80 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : att.overall_score >= 60 ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-rose-50 text-rose-700 border-rose-200'"
+                  >
+                    {{ Math.round(att.overall_score) }}/100
+                  </span>
+
+                  <div class="flex items-center gap-1.5">
+                    <!-- Nút nghe lại giọng thu lần đó -->
+                    <button
+                      v-if="att.audio_user_url"
+                      @click="playHistoryAudio(att)"
+                      class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold cursor-pointer transition-all shadow-2xs"
+                      :class="playingHistoryAudioId === att.id ? 'bg-indigo-600 text-white border-indigo-600 ring-2 ring-indigo-500/20' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'"
+                      :title="playingHistoryAudioId === att.id ? 'Đang phát...' : 'Nghe lại giọng thu của lần này'"
+                    >
+                      <Volume2 v-if="playingHistoryAudioId !== att.id" class="w-3.5 h-3.5 text-indigo-600" />
+                      <Square v-else class="w-3.5 h-3.5 fill-current text-white" />
+                      <span>{{ playingHistoryAudioId === att.id ? 'Dừng' : 'Nghe lại' }}</span>
+                    </button>
+
+                    <!-- Nút xem chi tiết phân tích âm vị -->
+                    <button
+                      @click="viewPastAttemptDetail(att)"
+                      :disabled="isInspectingPastAttempt || att.id === speakingResult?.session_id"
+                      class="px-3 py-1.5 rounded-xl border text-xs font-bold cursor-pointer transition-all shadow-2xs disabled:opacity-50"
+                      :class="att.id === speakingResult?.session_id ? 'bg-indigo-100 text-indigo-800 border-indigo-200 cursor-default' : 'bg-white hover:bg-indigo-50 text-indigo-700 border-indigo-200 hover:border-indigo-300'"
+                      title="Mở lại ma trận phân tích âm vị của lần luyện tập này"
+                    >
+                      {{ att.id === speakingResult?.session_id ? 'Đang mở' : 'Xem chi tiết' }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 </template>
 
@@ -461,10 +570,14 @@ import {
   ArrowLeft,
   BookmarkPlus,
   CheckCircle2,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
+  Clock,
   Cpu,
   Headphones,
+  History,
   Info,
   Lightbulb,
   Loader2,
@@ -474,13 +587,14 @@ import {
   Volume2,
   XCircle,
 } from 'lucide-vue-next';
-import { computed, inject, ref, watch } from 'vue';
+import { computed, inject, ref, watch, onMounted } from 'vue';
 import TopicLessonDropdowns from '../components/TopicLessonDropdowns.vue';
 import AnimateButton from '../components/ui/Button.vue';
 import AnimateCard from '../components/ui/Card.vue';
 import AnimateBadge from '../components/ui/Badge.vue';
 import AnimateCountingNumber from '../components/ui/CountingNumber.vue';
 import { getFullAudioUrl } from '../services/api';
+import { pronunciationService } from '../services/pronunciationService';
 
 const ctx = inject('screenContext');
 const goBack = ctx.goBack;
@@ -756,4 +870,136 @@ const wordCount = ctx.wordCount;
 const writingError = ctx.writingError;
 const writingResult = ctx.writingResult;
 const writingSubTab = ctx.writingSubTab;
+
+// --- Lịch sử các lần luyện tập cho câu hiện tại ---
+const sentenceHistory = ref([]);
+const isHistoryLoading = ref(false);
+const isHistoryExpanded = ref(false);
+const playingHistoryAudioId = ref(null);
+const isInspectingPastAttempt = ref(false);
+let historyAudioPlayer = null;
+
+const displayedAttempts = computed(() => {
+  if (isHistoryExpanded.value) {
+    return sentenceHistory.value;
+  }
+  return sentenceHistory.value.slice(0, 2);
+});
+
+const loadSentenceHistory = async (text = null) => {
+  const queryText = (typeof text === 'string' ? text : targetSpeakingText?.value)?.trim();
+  if (!queryText || !isAuthenticated?.value) {
+    sentenceHistory.value = [];
+    return;
+  }
+  isHistoryLoading.value = true;
+  try {
+    const list = await pronunciationService.getHistory({ target_text: queryText, limit: 20 });
+    sentenceHistory.value = Array.isArray(list) ? list : [];
+  } catch (err) {
+    console.warn('Could not load sentence practice history:', err);
+  } finally {
+    isHistoryLoading.value = false;
+  }
+};
+
+const parseUtcDate = (dateStr) => {
+  if (!dateStr) return null;
+  const hasTimezone = /Z|[+-]\d{2}:?\d{2}$/i.test(dateStr);
+  const normalized = hasTimezone ? dateStr : `${dateStr}Z`;
+  return new Date(normalized);
+};
+
+const formatAttemptTime = (dateStr) => {
+  if (!dateStr) return '';
+  const d = parseUtcDate(dateStr);
+  if (!d || isNaN(d.getTime())) return '';
+  const now = new Date();
+  const diffSec = Math.floor((now - d) / 1000);
+  if (diffSec < 60) return 'Vừa xong';
+  if (diffSec < 3600) return `${Math.floor(diffSec / 60)} phút trước`;
+  if (diffSec < 86400) return `${Math.floor(diffSec / 3600)} giờ trước`;
+  const day = d.getDate().toString().padStart(2, '0');
+  const month = (d.getMonth() + 1).toString().padStart(2, '0');
+  const hours = d.getHours().toString().padStart(2, '0');
+  const mins = d.getMinutes().toString().padStart(2, '0');
+  return `${hours}:${mins} ${day}/${month}`;
+};
+
+const playHistoryAudio = (attempt) => {
+  if (!attempt?.audio_user_url) return;
+  if (historyAudioPlayer) {
+    historyAudioPlayer.pause();
+    historyAudioPlayer.currentTime = 0;
+  }
+  if (playingHistoryAudioId.value === attempt.id) {
+    playingHistoryAudioId.value = null;
+    return;
+  }
+  const fullUrl = getFullAudioUrl(attempt.audio_user_url);
+  historyAudioPlayer = new Audio(fullUrl);
+  playingHistoryAudioId.value = attempt.id;
+  historyAudioPlayer.onended = () => {
+    playingHistoryAudioId.value = null;
+  };
+  historyAudioPlayer.onerror = () => {
+    playingHistoryAudioId.value = null;
+  };
+  historyAudioPlayer.play().catch(() => {
+    playingHistoryAudioId.value = null;
+  });
+};
+
+const viewPastAttemptDetail = async (attempt) => {
+  if (!attempt?.id) return;
+  isInspectingPastAttempt.value = true;
+  try {
+    const detail = await pronunciationService.getSessionDetail(attempt.id);
+    if (detail) {
+      speakingResult.value = {
+        session_id: detail.id,
+        user_id: detail.user_id,
+        lesson_id: detail.lesson_id,
+        target_text: detail.target_text,
+        audio_user_url: detail.audio_user_url,
+        overall_score: detail.overall_score,
+        average_pitch: detail.average_pitch,
+        word_analysis: detail.pronunciation_results || [],
+        ai_feedback: `Đang xem lại phân tích chi tiết của lần luyện tập lúc ${formatAttemptTime(detail.created_at)} (Điểm: ${Math.round(detail.overall_score)}/100).`
+      };
+      const resultElem = document.getElementById('speaking-evaluation-card');
+      if (resultElem) {
+        resultElem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  } catch (err) {
+    console.error('Error loading past attempt detail:', err);
+  } finally {
+    isInspectingPastAttempt.value = false;
+  }
+};
+
+// Theo dõi khi chuyển câu luyện tập thì tải lịch sử câu mới
+watch(
+  () => targetSpeakingText?.value,
+  (newText) => {
+    if (newText && newText.trim()) {
+      isHistoryExpanded.value = false;
+      loadSentenceHistory(newText);
+    } else {
+      sentenceHistory.value = [];
+    }
+  },
+  { immediate: true }
+);
+
+// Theo dõi khi có kết quả bài nói mới (session_id thật vừa lưu) thì refresh lịch sử
+watch(
+  () => speakingResult?.value?.session_id,
+  (newSessionId) => {
+    if (newSessionId && !isInspectingPastAttempt.value) {
+      loadSentenceHistory();
+    }
+  }
+);
 </script>

@@ -33,19 +33,47 @@
       <button @click="requireAuthentication" class="w-full rounded-2xl bg-blue-600 p-4 text-base font-bold text-white shadow-md shadow-blue-600/20 cursor-pointer">Sign In / Register</button>
     </div>
     <template v-else>
-      <div class="grid grid-cols-3 gap-3 sm:gap-4 text-center">
-        <div class="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-2xs">
-          <p class="text-3xl font-black text-slate-900"><AnimateCountingNumber :number="journey.completedCount.value" /></p>
-          <p class="mt-1.5 text-xs sm:text-sm font-semibold text-slate-600">Completed Lessons</p>
+      <!-- 5-Skill Practice Grid -->
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center">
+        <div class="rounded-3xl border border-slate-200/80 bg-white p-4 shadow-2xs">
+          <p class="text-2xl sm:text-3xl font-black text-slate-900"><AnimateCountingNumber :number="journey.completedCount.value" /></p>
+          <p class="mt-1 text-xs font-semibold text-slate-600">Lessons</p>
         </div>
-        <div class="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-2xs">
-          <p class="text-3xl font-black text-slate-900"><AnimateCountingNumber :number="dashboard?.speaking?.total_sessions || 0" /></p>
-          <p class="mt-1.5 text-xs sm:text-sm font-semibold text-slate-600">Speaking Sessions</p>
+        <div class="rounded-3xl border border-slate-200/80 bg-white p-4 shadow-2xs">
+          <p class="text-2xl sm:text-3xl font-black text-emerald-700"><AnimateCountingNumber :number="dashboard?.speaking?.total_sessions || 0" /></p>
+          <p class="mt-1 text-xs font-semibold text-slate-600">Speaking</p>
         </div>
-        <div class="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-2xs">
-          <p class="text-3xl font-black text-slate-900"><AnimateCountingNumber :number="dashboard?.writing?.total_essays || 0" /></p>
-          <p class="mt-1.5 text-xs sm:text-sm font-semibold text-slate-600">Writing Submissions</p>
+        <div class="rounded-3xl border border-slate-200/80 bg-white p-4 shadow-2xs">
+          <p class="text-2xl sm:text-3xl font-black text-indigo-700"><AnimateCountingNumber :number="dashboard?.writing?.total_essays || 0" /></p>
+          <p class="mt-1 text-xs font-semibold text-slate-600">Writing</p>
         </div>
+        <div class="rounded-3xl border border-slate-200/80 bg-white p-4 shadow-2xs">
+          <p class="text-2xl sm:text-3xl font-black text-amber-700"><AnimateCountingNumber :number="dashboard?.quiz?.total_attempts || 0" /></p>
+          <p class="mt-1 text-xs font-semibold text-slate-600">Quizzes</p>
+        </div>
+        <div class="rounded-3xl border border-slate-200/80 bg-white p-4 shadow-2xs col-span-2 sm:col-span-1">
+          <p class="text-2xl sm:text-3xl font-black text-purple-700"><AnimateCountingNumber :number="dashboard?.flashcard?.total_reviews || 0" /></p>
+          <p class="mt-1 text-xs font-semibold text-slate-600">Flashcards</p>
+        </div>
+      </div>
+
+      <!-- Practice History / Timeline Shortcut -->
+      <div
+        @click="openActivitiesModal ? openActivitiesModal() : null"
+        class="flex items-center justify-between p-4 rounded-3xl bg-white border border-slate-200/80 shadow-2xs hover:border-blue-300 hover:shadow-xs transition-all cursor-pointer group"
+      >
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-base">
+            ⚡
+          </div>
+          <div>
+            <p class="text-sm font-bold text-slate-800 group-hover:text-blue-600 transition-colors">Practice History &amp; Timeline</p>
+            <p class="text-xs text-slate-500">View recent sessions across all 5 skills</p>
+          </div>
+        </div>
+        <span class="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full group-hover:bg-blue-100 transition-colors">
+          View History →
+        </span>
       </div>
       <form @submit.prevent="save" class="space-y-5 rounded-3xl border border-slate-100 bg-white p-6 sm:p-8 shadow-xs">
         <h2 class="flex items-center gap-2.5 text-base sm:text-lg font-bold text-slate-900"><Settings2 class="h-5 w-5 text-blue-600" /> Profile &amp; Study Settings</h2>
@@ -94,7 +122,7 @@ import AnimateCountingNumber from '../components/ui/CountingNumber.vue';
 import { authService } from '../services/authService';
 import { useProfileSettings } from '../composables/useProfileSettings';
 const ctx = inject('screenContext');
-const { activeTab, userProfile, userAvatarUrl, isAuthenticated, journey, dashboard, requireAuthentication, logout, goBack, navigateTab, hasHistory } = ctx;
+const { activeTab, userProfile, userAvatarUrl, isAuthenticated, journey, dashboard, requireAuthentication, logout, goBack, navigateTab, hasHistory, openActivitiesModal } = ctx;
 const { form, saving, message, error, dirty, valid, reset, save } = useProfileSettings(ctx, authService);
 const minuteOptions = computed(() => [...new Set([5, 10, 15, 20, 30, 45, 60, form.value.daily_minutes])].sort((a, b) => a - b));
 const levelLabels = { Beginner: 'Beginner', Intermediate: 'Intermediate', Advanced: 'Advanced' };

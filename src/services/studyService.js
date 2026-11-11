@@ -14,15 +14,26 @@ export const studyService = {
     return res.data;
   },
 
-  async getFlashcards(deckId = null, notedOnly = false) {
-    const key = `${deckId || 'ALL'}_${notedOnly}`;
-    if (!notedOnly && deckId && flashcardsCache.has(key)) {
+  async getFlashcards(deckId = null, notedOnly = false, dueOnly = false) {
+    const key = `${deckId || 'ALL'}_${notedOnly}_${dueOnly}`;
+    if (!notedOnly && !dueOnly && deckId && flashcardsCache.has(key)) {
       return flashcardsCache.get(key);
     }
-    const params = { noted_only: notedOnly };
+    const params = { noted_only: notedOnly, due_only: dueOnly };
     if (deckId) params.deck_id = deckId;
     const res = await apiClient.get('/flashcards/cards', { params });
-    if (!notedOnly && deckId) flashcardsCache.set(key, res.data);
+    if (!notedOnly && !dueOnly && deckId) flashcardsCache.set(key, res.data);
+    return res.data;
+  },
+
+  async reviewCard(cardId, isRemembered) {
+    flashcardsCache.clear();
+    const res = await apiClient.post(`/flashcards/cards/${cardId}/review`, { is_remembered: isRemembered });
+    return res.data;
+  },
+
+  async getReminders() {
+    const res = await apiClient.get('/flashcards/reminders');
     return res.data;
   },
 

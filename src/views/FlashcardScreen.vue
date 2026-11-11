@@ -73,20 +73,27 @@
 
     <!-- Mode Selector: All cards vs Noted cards -->
     <div v-if="isAuthenticated" class="space-y-3">
-      <div class="grid grid-cols-2 gap-3" aria-label="Flashcard list">
+      <div class="grid grid-cols-3 gap-2 sm:gap-3" aria-label="Flashcard list">
         <button
-          v-for="mode in [{ id: 'all', title: ALL_CARDS }, { id: 'noted', title: NOTED_WORDS }]"
+          v-for="mode in [
+            { id: 'due', title: DUE_CARDS, badge: ctx.flashcardReminders?.value?.today_count },
+            { id: 'all', title: ALL_CARDS },
+            { id: 'noted', title: NOTED_WORDS }
+          ]"
           :key="mode.id"
           @click="ctx.setFlashcardMode(mode.id)"
           :disabled="studyLoading || isSavingCardNote"
           :aria-pressed="ctx.flashcardMode?.value === mode.id"
-          class="rounded-2xl border px-4 py-3 font-bold transition disabled:opacity-50 cursor-pointer text-sm sm:text-base"
+          class="rounded-2xl border px-2 sm:px-4 py-3 font-bold transition disabled:opacity-50 cursor-pointer text-xs sm:text-base flex items-center justify-center gap-1.5"
           :class="ctx.flashcardMode?.value === mode.id ? 'border-blue-600 bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'"
         >
-          {{ mode.title }}
+          <span>{{ mode.title }}</span>
+          <span v-if="mode.badge" class="px-1.5 py-0.5 rounded-full text-[10px] font-black" :class="ctx.flashcardMode?.value === mode.id ? 'bg-white text-blue-700' : 'bg-rose-500 text-white'">
+            {{ mode.badge }}
+          </span>
         </button>
       </div>
-      <p class="text-sm text-slate-600 max-w-xl leading-relaxed">{{ ctx.flashcardMode?.value === 'noted' ? NOTED_HELP : ALL_HELP }}</p>
+      <p class="text-sm text-slate-600 max-w-xl leading-relaxed">{{ ctx.flashcardMode?.value === 'due' ? DUE_HELP : ctx.flashcardMode?.value === 'noted' ? NOTED_HELP : ALL_HELP }}</p>
     </div>
 
     <!-- Flashcard Toast Notification -->
@@ -141,9 +148,13 @@
           <!-- FRONT SIDE -->
           <div v-show="!isFlipped" :aria-hidden="isFlipped" :inert="isFlipped" class="flashcard-face flashcard-front absolute inset-0 bg-white rounded-3xl p-8 border border-blue-100 shadow-xl flex flex-col justify-between items-center text-center">
             <div class="w-full flex justify-between items-center">
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2 flex-wrap">
                 <span class="text-xs sm:text-sm font-bold px-3 py-1 bg-blue-50 text-blue-600 rounded-lg">Vocabulary</span>
-                <span v-if="currentCard?.is_noted" class="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-full">
+                <span class="text-xs font-bold px-2.5 py-1 rounded-lg border shadow-2xs"
+                  :class="(currentCard?.box_level || 1) >= 5 ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-indigo-50 text-indigo-700 border-indigo-200'">
+                  <span>Level {{ currentCard?.box_level || 1 }}/5 · {{ ['', 'New', 'Learning', 'Familiar', 'Strong', 'Mastered'][currentCard?.box_level || 1] }}</span>
+                </span>
+                <span v-if="currentCard?.is_noted" class="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg">
                   <Check class="w-3 h-3 text-amber-600" />
                   <span>Bookmarked</span>
                 </span>
@@ -172,8 +183,15 @@
 
           <!-- BACK SIDE -->
           <div v-show="isFlipped" :aria-hidden="!isFlipped" :inert="!isFlipped" class="flashcard-face flashcard-back absolute inset-0 bg-gradient-to-br from-blue-50/40 via-white to-amber-50/30 rounded-3xl p-8 border border-blue-200 shadow-xl flex flex-col justify-between text-left">
-            <div class="flex justify-between items-center">
-              <span class="text-xs sm:text-sm font-bold px-3 py-1 bg-blue-600 text-white rounded-lg uppercase">Definition</span>
+            <div class="flex justify-between items-center flex-wrap gap-2">
+              <div class="flex items-center gap-2">
+                <span class="text-xs sm:text-sm font-bold px-3 py-1 bg-blue-600 text-white rounded-lg uppercase">Definition</span>
+                <span class="text-xs font-bold px-2.5 py-1 rounded-lg bg-white border border-indigo-200 text-indigo-800 shadow-2xs flex items-center gap-1">
+                  <span>Level {{ currentCard?.box_level || 1 }}/5</span>
+                  <span class="text-slate-400">·</span>
+                  <span class="text-slate-600">{{ ['', 'Daily review', 'Review in 3 days', 'Review in 7 days', 'Review in 14 days', 'Mastered (30 days)'][currentCard?.box_level || 1] }}</span>
+                </span>
+              </div>
               <span v-if="currentCard?.is_noted" class="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 flex items-center gap-1">
                 <Check class="w-3.5 h-3.5" /> Bookmarked
               </span>
@@ -195,6 +213,34 @@
           </div>
         </div>
       </div>
+
+      <!-- Leitner Spaced Repetition Buttons when Flipped -->
+      <transition enter-active-class="transition duration-200 ease-out" enter-from-class="opacity-0 -translate-y-2" enter-to-class="opacity-100 translate-y-0">
+        <div v-if="isFlipped && currentCard" class="p-4 rounded-3xl bg-gradient-to-r from-rose-50/70 via-slate-50 to-emerald-50/70 border border-slate-200 shadow-sm space-y-2">
+          <div class="flex items-center justify-between text-xs font-bold text-slate-600 px-1">
+            <span>Recall Status:</span>
+            <span class="text-indigo-600 font-extrabold">Level {{ currentCard.box_level || 1 }}/5</span>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <button
+              @click="ctx.reviewCurrentCard(false)"
+              :disabled="ctx.isReviewingCard?.value"
+              class="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-white hover:bg-rose-50 border-2 border-rose-200 hover:border-rose-300 text-rose-700 font-bold text-xs sm:text-sm shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+            >
+              <RotateCcw class="w-4 h-4 text-rose-500" />
+              <span>Forgot (Reset to Lv.1)</span>
+            </button>
+            <button
+              @click="ctx.reviewCurrentCard(true)"
+              :disabled="ctx.isReviewingCard?.value"
+              class="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-emerald-600/25 transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+            >
+              <Check class="w-4 h-4 text-white" />
+              <span>Remembered (To Lv.{{ Math.min((currentCard.box_level || 1) + 1, 5) }})</span>
+            </button>
+          </div>
+        </div>
+      </transition>
 
       <!-- Controls under Card -->
       <div class="space-y-3 pt-1">
@@ -260,6 +306,9 @@
                   : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'"
             >
               <span>{{ card.word }}</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded font-mono font-bold" :class="idx === currentStudyIndex ? 'bg-blue-700 text-blue-100' : 'bg-slate-200/80 text-slate-600'">
+                Lv.{{ card.box_level || 1 }}
+              </span>
               <Check v-if="card.is_noted" class="h-3.5 w-3.5" aria-label="Bookmarked" />
             </button>
           </div>
@@ -270,7 +319,7 @@
 </template>
 
 <script setup>
-import { ArrowLeft, Check, ChevronLeft, ChevronRight, Layers, Loader2, RotateCw, Volume2, X, Bookmark, Sparkles } from 'lucide-vue-next';
+import { ArrowLeft, Check, ChevronLeft, ChevronRight, Layers, Loader2, RotateCw, RotateCcw, Volume2, X, Bookmark, Sparkles } from 'lucide-vue-next';
 import AnimateButton from '../components/ui/Button.vue';
 import AnimateCard from '../components/ui/Card.vue';
 import AnimateBadge from '../components/ui/Badge.vue';
@@ -279,7 +328,9 @@ import { inject } from 'vue';
 
 const ctx = inject('screenContext');
 const ALL_CARDS = 'All Cards';
+const DUE_CARDS = 'Due for Review';
 const NOTED_WORDS = 'Bookmarked Cards';
+const DUE_HELP = 'Cards scheduled for review today based on spaced repetition.';
 const NOTED_HELP = 'Cards you have bookmarked across all decks. Unbookmark to remove from this list.';
 const ALL_HELP = 'Flip cards to see definitions and examples. Bookmark cards you want to revisit later.';
 const NO_NOTES = 'No bookmarked cards yet';

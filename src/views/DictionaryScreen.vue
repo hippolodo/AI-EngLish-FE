@@ -232,7 +232,7 @@
               CEFR {{ selectedWord.level }}
             </AnimateBadge>
 
-            <span class="text-xs text-slate-400 font-semibold flex items-center gap-1">
+            <span class="text-xs text-slate-600 font-semibold flex items-center gap-1">
               <CheckCircle2 class="w-3.5 h-3.5 text-emerald-500" /> Verified
             </span>
           </div>
@@ -287,31 +287,31 @@
       </div>
 
       <!-- Meaning in Vietnamese -->
-      <div class="space-y-2">
-        <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-600">Definition:</h3>
-        <p class="text-xl sm:text-2xl font-extrabold text-slate-900 leading-snug">
+      <div class="space-y-1.5">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Definition:</h3>
+        <p class="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-snug tracking-tight">
           {{ selectedWord.meaning_vi }}
         </p>
       </div>
 
-      <!-- English Definition (if available - styled as accent panel, no nested card border) -->
-      <div v-if="selectedWord.definition_en" class="space-y-2 rounded-2xl bg-slate-50/80 p-5 border-l-4 border-l-slate-400">
-        <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-700">English Definition:</h3>
+      <!-- English Definition (Clean typography, no nested card, no side accent border) -->
+      <div v-if="selectedWord.definition_en" class="space-y-1.5 pt-5 border-t border-slate-100">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">English Definition:</h3>
         <p class="text-base sm:text-lg text-slate-800 font-medium leading-relaxed">
           {{ selectedWord.definition_en }}
         </p>
       </div>
 
-      <!-- Real-world Example Sentence (styled as accent panel, no nested card border) -->
-      <div v-if="selectedWord.example_sentence" class="space-y-3 rounded-2xl bg-blue-50/70 p-5 sm:p-6 border-l-4 border-l-blue-500">
-        <div class="flex items-center justify-between">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-blue-800 flex items-center gap-1.5">
-            <span>💬</span> Real-world Example:
+      <!-- Real-world Example Sentence (Clean typography, no nested card, no side accent border) -->
+      <div v-if="selectedWord.example_sentence" class="space-y-2.5 pt-5 border-t border-slate-100">
+        <div class="flex items-center justify-between gap-3 flex-wrap">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">
+            Real-world Example:
           </h3>
           <div class="flex items-center gap-2">
             <button
               @click="practiceExampleSentence"
-              class="p-1.5 px-3 rounded-xl bg-white text-emerald-700 hover:bg-emerald-50 border border-emerald-200 transition cursor-pointer shadow-2xs text-xs font-bold flex items-center gap-1.5"
+              class="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/80 transition cursor-pointer text-xs font-bold flex items-center gap-1.5 shadow-2xs"
               title="Practice speaking this example"
             >
               <Mic class="w-3.5 h-3.5 text-emerald-600" />
@@ -319,10 +319,10 @@
             </button>
             <button
               @click="speak(selectedWord.example_sentence)"
-              class="p-1.5 px-3 rounded-xl bg-white text-blue-600 hover:bg-blue-100 transition cursor-pointer shadow-2xs text-xs font-bold flex items-center gap-1"
+              class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer text-xs font-bold flex items-center gap-1 shadow-2xs"
               title="Listen to example"
             >
-              <Volume2 class="w-4 h-4" />
+              <Volume2 class="w-3.5 h-3.5" />
               <span class="hidden sm:inline">Listen</span>
             </button>
           </div>
@@ -332,8 +332,8 @@
           "{{ selectedWord.example_sentence }}"
         </p>
 
-        <p v-if="selectedWord.example_translation" class="text-sm sm:text-base text-slate-600 italic">
-          👉 {{ selectedWord.example_translation }}
+        <p v-if="selectedWord.example_translation" class="text-sm sm:text-base text-slate-600 font-medium">
+          {{ selectedWord.example_translation }}
         </p>
       </div>
 
@@ -346,12 +346,12 @@
           <History class="w-5 h-5 text-slate-600" />
           <span>Recent Search History</span>
         </h2>
-        <span v-if="searchHistory.length" class="text-xs font-bold text-slate-500">
+        <span v-if="searchHistory.length" class="text-xs font-bold text-slate-600">
           {{ searchHistory.length }} words searched
         </span>
       </div>
 
-      <div v-if="historyLoading" class="py-8 text-center text-slate-400 text-sm">
+      <div v-if="historyLoading" class="py-8 text-center text-slate-600 text-sm">
         <Loader2 class="mx-auto w-5 h-5 animate-spin mb-2" /> Loading search history...
       </div>
 

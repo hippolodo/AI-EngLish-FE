@@ -19,8 +19,8 @@ export const pronunciationService = {
     return res.data;
   },
 
-  async getHistory() {
-    const res = await apiClient.get('/pronunciation/history');
+  async getHistory(params = {}) {
+    const res = await apiClient.get('/pronunciation/history', { params });
     return res.data;
   },
 

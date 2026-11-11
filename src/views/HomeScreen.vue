@@ -6,13 +6,18 @@
       <div class="flex-1 min-w-0 space-y-8">
         
         <!-- Header Section -->
-        <div>
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-bold uppercase tracking-wider mb-2">
-            <Sparkles class="w-3.5 h-3.5 text-blue-600" />
-            <span>AI Language Studio</span>
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-bold uppercase tracking-wider mb-2">
+              <Sparkles class="w-3.5 h-3.5 text-blue-600" />
+              <span>AI Language Studio</span>
+            </div>
+            <h1 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">Practice Modes</h1>
+            <p class="text-base text-slate-500 mt-1">Choose an intelligent module to accelerate your English speaking fluency</p>
           </div>
-          <h1 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">Practice Modes</h1>
-          <p class="text-base text-slate-500 mt-1">Choose an intelligent module to accelerate your English speaking fluency</p>
+          <div class="hidden sm:flex items-center gap-2">
+            <NotificationBell />
+          </div>
         </div>
 
         <!-- Bento Grid Layout -->
@@ -115,12 +120,17 @@
               </p>
             </div>
 
-            <!-- Preview cards -->
-            <div class="mt-5 p-3.5 rounded-2xl bg-amber-50/80 flex items-center justify-between">
-              <span class="text-xs font-bold text-amber-900 flex items-center gap-1.5">
-                <span>🎴</span> 3D Flip Card System
+            <!-- Preview cards with reminder badge -->
+            <div class="mt-5 p-3.5 rounded-2xl flex items-center justify-between"
+              :class="ctx.flashcardReminders?.value?.today_count > 0 ? 'bg-rose-50/90 border border-rose-200/80 text-rose-800' : 'bg-amber-50/80 text-amber-900'">
+              <span class="text-xs font-bold flex items-center gap-1.5">
+                <span v-if="ctx.flashcardReminders?.value?.today_count > 0">{{ ctx.flashcardReminders.value.today_count }} cards due for review</span>
+                <span v-else>3D Flip Card System</span>
               </span>
-              <span class="text-xs font-mono font-semibold text-amber-700 bg-white px-2 py-0.5 rounded-md border border-amber-200/60">
+              <span v-if="ctx.flashcardReminders?.value?.today_count > 0" class="text-xs font-bold text-rose-600 bg-white px-2 py-0.5 rounded-md border border-rose-200 shadow-2xs">
+                Review now →
+              </span>
+              <span v-else class="text-xs font-mono font-semibold text-amber-700 bg-white px-2 py-0.5 rounded-md border border-amber-200/60">
                 /vəˈkæbjələri/
               </span>
             </div>
@@ -314,11 +324,20 @@
             </p>
           </div>
 
-          <!-- Total Practice Count -->
-          <div class="bg-white/90 backdrop-blur-xl rounded-3xl p-5 border border-slate-200/80 shadow-xs space-y-1">
-            <span class="text-xs font-extrabold text-slate-600 uppercase tracking-wider">Sessions</span>
+          <!-- Total Practice Count / Interactive Activities History -->
+          <div
+            @click="ctx.openActivitiesModal ? ctx.openActivitiesModal() : null"
+            class="bg-white/90 backdrop-blur-xl rounded-3xl p-5 border border-slate-200/80 shadow-xs space-y-1 hover:border-blue-300 hover:shadow-md transition-all duration-200 cursor-pointer group select-none"
+            title="Click to view recent practice activities"
+          >
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-extrabold text-slate-600 uppercase tracking-wider">Sessions</span>
+              <span class="text-[10px] font-bold text-blue-700 bg-blue-50 group-hover:bg-blue-100 px-2 py-0.5 rounded-full border border-blue-200/80 transition-colors">
+                History →
+              </span>
+            </div>
             <p class="text-2xl font-black text-slate-900 flex items-center gap-1.5">
-              <span>⚡</span>
+              <span class="group-hover:scale-110 transition-transform">⚡</span>
               <AnimateCountingNumber :number="totalPracticeCount || 0" />
             </p>
             <p class="text-xs text-slate-500 font-medium">Completed</p>
@@ -352,6 +371,7 @@ import AnimateButton from '../components/ui/Button.vue';
 import AnimateCard from '../components/ui/Card.vue';
 import AnimateBadge from '../components/ui/Badge.vue';
 import AnimateCountingNumber from '../components/ui/CountingNumber.vue';
+import NotificationBell from '../components/NotificationBell.vue';
 
 const ctx = inject('screenContext');
 const {
@@ -380,7 +400,11 @@ const openReview = () => {
   ctx.studyDeckId.value = null;
   ctx.studyMode.value = 'flashcard';
   ctx.activeTab.value = 'flashcard';
-  void ctx.loadFlashcardsData();
+  if (ctx.flashcardReminders?.value?.today_count > 0 && ctx.setFlashcardMode) {
+    void ctx.setFlashcardMode('due');
+  } else {
+    void ctx.loadFlashcardsData();
+  }
 };
 
 const openQuizMode = () => {
