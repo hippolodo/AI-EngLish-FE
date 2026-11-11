@@ -1,13 +1,13 @@
 <template>
   <section v-if="activeTab === 'dictionary'" class="w-full max-w-6xl mx-auto space-y-7 pb-28">
     
-    <!-- Top Back Button (Only visible when navigated from another screen) -->
-    <div v-if="hasHistory">
+    <!-- Top Back Button -->
+    <div>
       <AnimateButton
         variant="outline"
         size="sm"
         @click="goBack"
-        class="group"
+        class="group hover:bg-slate-50"
       >
         <template #prefix>
           <ArrowLeft class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
@@ -54,6 +54,7 @@
         <div class="relative flex-1" ref="searchContainerRef">
           <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
           <input
+            ref="searchInputRef"
             v-model="searchQuery"
             type="text"
             placeholder="Enter an English word or phrase (e.g. resilient, fluency, inspire...)"
@@ -401,7 +402,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, inject } from 'vue';
+import { ref, computed, onMounted, onUnmounted, inject, watch, nextTick } from 'vue';
 import {
   ArrowLeft, Search, Sparkles, Loader2, Volume2, BookmarkPlus,
   Mic, CheckCircle2, History, BookOpen, Lightbulb
@@ -419,6 +420,7 @@ const {
   isCustomSpeakingMode, targetSpeakingText, hasHistory
 } = ctx;
 
+const searchInputRef = ref(null);
 const searchQuery = ref('');
 const loading = ref(false);
 const errorMessage = ref('');
@@ -507,6 +509,8 @@ const clearSearch = () => {
   searchResults.value = [];
   showDropdown.value = false;
   highlightedIndex.value = -1;
+  selectedWord.value = null;
+  errorMessage.value = '';
 };
 
 const onKeyDown = () => {
@@ -769,6 +773,23 @@ onMounted(() => {
   loadHistory();
   document.addEventListener('click', handleClickOutside);
 });
+
+// Khi chuyển sang tab Từ điển: tự động reset màn hình sạch sẽ, sẵn sàng gõ từ mới
+watch(
+  () => activeTab?.value,
+  (newTab, oldTab) => {
+    if (newTab === 'dictionary' && oldTab && oldTab !== 'dictionary') {
+      searchQuery.value = '';
+      selectedWord.value = null;
+      errorMessage.value = '';
+      showDropdown.value = false;
+      loadHistory();
+      nextTick(() => {
+        searchInputRef.value?.focus();
+      });
+    }
+  }
+);
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside);

@@ -1,12 +1,12 @@
 <template>
   <div v-if="activeTab === 'flashcard'" class="space-y-6 pb-28 w-full max-w-6xl mx-auto">
-    <!-- Top Back Button (Only visible when navigated from a lesson or another screen) -->
-    <div v-if="hasHistory">
+    <!-- Top Back Button -->
+    <div>
       <AnimateButton
         variant="outline"
         size="sm"
         @click="goBack"
-        class="group"
+        class="group hover:bg-slate-50"
       >
         <template #prefix>
           <ArrowLeft class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
@@ -118,6 +118,41 @@
     <div v-if="studyLoading" class="py-16 text-center space-y-3">
       <Loader2 class="w-8 h-8 animate-spin text-blue-600 mx-auto" />
       <p class="text-base text-gray-500">Loading vocabulary cards...</p>
+    </div>
+
+    <!-- Celebration / Due Complete State -->
+    <div
+      v-else-if="ctx.isDueCompleted?.value || (ctx.flashcardMode?.value === 'due' && (!flashcards || flashcards.length === 0))"
+      class="p-8 sm:p-12 bg-white rounded-3xl border border-blue-100 text-center space-y-5 shadow-sm animate-in fade-in zoom-in-95 duration-200"
+    >
+      <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-gradient-to-tr from-amber-400 to-amber-500 text-white flex items-center justify-center mx-auto shadow-lg shadow-amber-500/25">
+        <Award class="w-8 h-8 sm:w-10 sm:h-10" />
+      </div>
+      <div class="space-y-1.5 max-w-md mx-auto">
+        <span class="inline-block text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+          Tất cả đã hoàn thành
+        </span>
+        <h3 class="text-xl sm:text-2xl font-black text-slate-900 mt-2">
+          Xuất sắc! Bạn đã hoàn thành lượt ôn hôm nay
+        </h3>
+        <p class="text-sm sm:text-base text-slate-500 leading-relaxed">
+          Toàn bộ thẻ từ vựng đến hạn đã được cập nhật chu kỳ Spaced Repetition (Lặp lại ngắt quãng). Hãy tiếp tục duy trì thói quen học mỗi ngày nhé!
+        </p>
+      </div>
+      <div class="flex items-center justify-center gap-3 pt-2 flex-wrap">
+        <button
+          @click="goBack"
+          class="px-5 py-3 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs sm:text-sm shadow-xs transition cursor-pointer"
+        >
+          ← Quay về Trang chủ
+        </button>
+        <button
+          @click="ctx.setFlashcardMode('all')"
+          class="px-5 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-blue-600/25 transition cursor-pointer"
+        >
+          Xem toàn bộ từ vựng (All Cards) →
+        </button>
+      </div>
     </div>
 
     <!-- Empty Cards State -->
@@ -290,7 +325,14 @@
         <!-- Word Quick-Jump List (All flashcards visible) -->
         <div class="mt-3 rounded-2xl border border-slate-200 bg-white p-4 space-y-2.5 shadow-2xs">
           <div class="flex items-center justify-between text-xs sm:text-sm font-bold text-slate-700">
-            <span>All cards in this deck ({{ flashcards?.length || 0 }} cards):</span>
+            <span>
+              {{ ctx.flashcardMode?.value === 'due'
+                ? `Cards due for review (${flashcards?.length || 0} cards):`
+                : ctx.flashcardMode?.value === 'noted'
+                  ? `Bookmarked cards (${flashcards?.length || 0} cards):`
+                  : `All cards in this deck (${flashcards?.length || 0} cards):`
+              }}
+            </span>
             <span class="text-xs text-slate-400">Click a card to jump</span>
           </div>
           <div class="flex items-center gap-2 overflow-x-auto pb-1 pt-0.5 no-scrollbar">
@@ -319,7 +361,7 @@
 </template>
 
 <script setup>
-import { ArrowLeft, Check, ChevronLeft, ChevronRight, Layers, Loader2, RotateCw, RotateCcw, Volume2, X, Bookmark, Sparkles } from 'lucide-vue-next';
+import { ArrowLeft, Check, ChevronLeft, ChevronRight, Layers, Loader2, RotateCw, RotateCcw, Volume2, X, Bookmark, Sparkles, Award } from 'lucide-vue-next';
 import AnimateButton from '../components/ui/Button.vue';
 import AnimateCard from '../components/ui/Card.vue';
 import AnimateBadge from '../components/ui/Badge.vue';

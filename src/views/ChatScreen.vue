@@ -8,24 +8,14 @@
 
       <div class="flex items-center space-x-3 sm:space-x-4 min-w-0">
 
-        <!-- Back Button (Only visible when navigated from a lesson or another screen) -->
-
+        <!-- Back Button -->
         <button
-
-          v-if="hasHistory"
-
           @click="goBack"
-
           class="flex items-center gap-1.5 px-3 py-2 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-blue-600 font-bold text-xs sm:text-sm transition shadow-2xs cursor-pointer shrink-0"
-
           title="Back"
-
         >
-
           <ArrowLeft class="w-4 h-4" />
-
-          <span class="hidden md:inline">{{ ctx.currentLesson.value ? 'Back to Lesson' : 'Back' }}</span>
-
+          <span class="hidden md:inline">{{ ctx.currentLesson?.value ? 'Back to Lesson' : 'Back' }}</span>
         </button>
 
 

@@ -1,12 +1,12 @@
 <template>
   <div v-if="activeTab === 'quiz'" class="space-y-6 pb-28 w-full max-w-6xl mx-auto">
-    <!-- Top Back Button (Only visible when navigated from a lesson or another screen) -->
-    <div v-if="hasHistory">
+    <!-- Top Back Button -->
+    <div>
       <AnimateButton
         variant="outline"
         size="sm"
         @click="goBack"
-        class="group"
+        class="group hover:bg-slate-50"
       >
         <template #prefix>
           <ArrowLeft class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />

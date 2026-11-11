@@ -191,18 +191,33 @@ const toggleDropdown = () => {
 
 const onSelectCard = (item) => {
   isOpen.value = false;
+  if (ctx?.pushNavState) ctx.pushNavState();
   if (ctx?.openFlashcardWord) {
-    ctx.openFlashcardWord(item.card_id, item.deck_id);
+    const mode = item.due_type === 'TODAY' ? 'due' : 'all';
+    ctx.openFlashcardWord(item.card_id, item.deck_id, mode);
   }
 };
 
 const openDueTab = () => {
   isOpen.value = false;
+  if (ctx?.pushNavState) ctx.pushNavState();
+  if (ctx?.studyDeckId) {
+    ctx.studyDeckId.value = null; // Bỏ lọc deck đơn lẻ để xem tất cả thẻ đến hạn
+  }
+  if (ctx?.currentStudyIndex) {
+    ctx.currentStudyIndex.value = 0;
+  }
+  if (ctx?.isFlipped) {
+    ctx.isFlipped.value = false;
+  }
   if (ctx?.navigateTab) {
     ctx.navigateTab('flashcard');
   }
   if (ctx?.setFlashcardMode) {
     ctx.setFlashcardMode('due');
+  }
+  if (ctx?.loadFlashcardsData && ctx?.flashcardMode?.value === 'due') {
+    void ctx.loadFlashcardsData();
   }
 };
 

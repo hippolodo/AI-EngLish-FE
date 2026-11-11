@@ -326,16 +326,29 @@ const navigateSidebar = tab => {
     lessonCards.value = [];
   } else if (tab === 'speaking') {
     currentLesson.value = null;
+    isCustomSpeakingMode.value = false;
+    speakingResult.value = null;
+    speakingError.value = '';
+    if (speakingLessonContents.value.length > 0) {
+      selectSpeakingSentence(speakingLessonContents.value[0]);
+    } else if (topics.value.length > 0) {
+      speakingTopicId.value = topics.value[0].id;
+      void onSpeakingTopicChange();
+    }
   } else if (tab === 'writing') {
     currentLesson.value = null;
-    writingPickerOpen.value = false;
   } else if (tab === 'study' || tab === 'flashcard') {
     currentLesson.value = null;
     studyDeckId.value = null;
     studyLessonId.value = null;
     studyTopicId.value = null;
+    currentStudyIndex.value = 0;
+    isFlipped.value = false;
   } else if (tab === 'quiz') {
     currentLesson.value = null;
+    if (quizResult.value) {
+      restartQuiz();
+    }
   } else if (tab === 'chat') {
     currentLesson.value = null;
     if (chatMessages.value.length === 0 && !chatLoading.value && authService.isAuthenticated()) {
@@ -381,27 +394,41 @@ const navigateTab = tab => {
     return;
   }
   if (tab === activeTab.value && !currentLesson.value) return;
-  if (currentLesson.value && (tab === 'study' || tab === 'flashcard' || tab === 'quiz')) {
+  if (currentLesson.value && tab !== 'lesson') {
     leaveLesson(false);
   }
   if (activeTab.value !== tab) {
     pushNavState();
     previousTab.value = activeTab.value;
+    if (tab === 'flashcard' || tab === 'study') {
+      currentStudyIndex.value = 0;
+      isFlipped.value = false;
+    }
+    if (tab === 'speaking' && !currentLesson.value) {
+      isCustomSpeakingMode.value = false;
+      speakingResult.value = null;
+      speakingError.value = '';
+      if (speakingLessonContents.value.length > 0) {
+        selectSpeakingSentence(speakingLessonContents.value[0]);
+      } else if (topics.value.length > 0) {
+        speakingTopicId.value = topics.value[0].id;
+        void onSpeakingTopicChange();
+      }
+    }
+    if (tab === 'quiz' && !currentLesson.value && quizResult.value) {
+      restartQuiz();
+    }
   }
   activeTab.value = tab;
   if (tab === 'study') void (studyMode.value === 'quiz' ? loadQuizzesData() : loadFlashcardsData());
   else if (tab === 'flashcard') void loadFlashcardsData();
-  else if (tab === 'quiz') void loadQuizzesData();
+  else if (tab === 'quiz') {
+    if (quizzesList.value.length === 0 || quizResult.value) void loadQuizzesData();
+  }
 };
 
 const goBack = () => {
-  // 1. Nếu đang mở bảng chọn đề viết trong WritingScreen, đóng bảng chọn trước
-  if (activeTab.value === 'writing' && writingPickerOpen.value) {
-    writingPickerOpen.value = false;
-    return;
-  }
-
-  // 2. Nếu có lịch sử trong navHistory stack, pop và khôi phục chính xác
+  // 1. Nếu có lịch sử trong navHistory stack, pop và khôi phục chính xác
   while (navHistory.value.length > 0) {
     const prev = navHistory.value.pop();
     const isSameAsCurrent =
@@ -529,12 +556,6 @@ const resetPersonalData = () => {
   essayInput.value = '';
   writingResult.value = null;
   writingError.value = '';
-  writingPickerRequestId += 1;
-  writingPickerOpen.value = false;
-  writingPickerLoading.value = false;
-  writingPickerError.value = '';
-  writingTaskCatalog.value = [];
-  writingPickerTopicId.value = null;
   copied.value = false;
   conversationId.value = null;
   chatMessages.value = [];
@@ -1162,67 +1183,7 @@ const writingResult = ref(null);
 const writingSubTab = ref('grammar');
 const copied = ref(false);
 const writingError = ref('');
-const writingPickerOpen = ref(false);
-const writingPickerLoading = ref(false);
-const writingPickerError = ref('');
-const writingTaskCatalog = ref([]);
-const writingPickerTopicId = ref(null);
-let writingPickerRequestId = 0;
-const writingPickerTopics = computed(() => topics.value.filter(topic => writingTaskCatalog.value.some(lesson => lesson.topic_id === topic.id)));
-const writingPickerLessons = computed(() => writingPickerTopicId.value === null ? writingTaskCatalog.value : writingTaskCatalog.value.filter(lesson => lesson.topic_id === writingPickerTopicId.value));
-
-const loadWritingTasks = async () => {
-  const requestId = ++writingPickerRequestId;
-  const version = sessionVersion;
-  writingPickerLoading.value = true;
-  writingPickerError.value = '';
-  try {
-    const [allTopics, lessons] = await Promise.all([
-      topics.value.length ? Promise.resolve(topics.value) : curriculumService.getTopics(),
-      curriculumService.getLessons('WRITING')
-    ]);
-    if (version !== sessionVersion || requestId !== writingPickerRequestId) return;
-    topics.value = allTopics || [];
-    writingTaskCatalog.value = (lessons || []).filter(lesson => lesson.type === 'WRITING');
-    if (!writingPickerTopics.value.some(topic => topic.id === writingPickerTopicId.value)) writingPickerTopicId.value = null;
-  } catch (err) {
-    if (version === sessionVersion && requestId === writingPickerRequestId) writingPickerError.value = getErrorMessage(err, 'Could not load writing topics. Please try again.');
-  } finally {
-    if (version === sessionVersion && requestId === writingPickerRequestId) writingPickerLoading.value = false;
-  }
-};
-
-const openWritingTaskPicker = async () => {
-  if (isEvaluating.value) return;
-  writingPickerOpen.value = true;
-  if (!writingTaskCatalog.value.length || writingPickerError.value) await loadWritingTasks();
-};
-
-const openWritingLesson = async lesson => {
-  if (isEvaluating.value || writingPickerLoading.value || lesson.type !== 'WRITING') return;
-  const topic = writingPickerTopics.value.find(item => item.id === lesson.topic_id);
-  if (!topic) return;
-  const version = sessionVersion;
-  writingPickerError.value = '';
-  writingPickerLoading.value = true;
-  try {
-    await startTopic(topic);
-    if (version !== sessionVersion || activeTab.value !== 'lesson' || selectedTopic.value?.id !== topic.id) return;
-    if (lessonError.value) { writingPickerError.value = lessonError.value; activeTab.value = 'writing'; return; }
-    await startLesson(lesson);
-    if (version !== sessionVersion || activeTab.value !== 'lesson') return;
-    if (isAuthOpen.value && !currentLesson.value) { activeTab.value = 'writing'; return; }
-    if (currentLesson.value?.id === lesson.id && currentLesson.value.type === 'WRITING') {
-      writingPickerOpen.value = false;
-      beginLessonPractice();
-    } else {
-      writingPickerError.value = lessonError.value || 'Could not load prompt. Please try again.';
-      activeTab.value = 'writing';
-    }
-  } finally {
-    if (version === sessionVersion) writingPickerLoading.value = false;
-  }
-};
+const activeWritingPrompt = ref(null);
 
 const wordCount = computed(() => {
   if (!essayInput.value.trim()) return 0;
@@ -1238,7 +1199,9 @@ const submitWritingEvaluation = async () => {
   const lessonId = currentLesson.value?.type === 'WRITING' ? currentLesson.value.id : null;
   const submittedText = essayInput.value.trim();
   try {
-    const prompt = lessonId ? lessonDetail.value?.contents?.map(item => [item.target_text, item.task_guidance].filter(Boolean).join('\n')).join('\n') || currentLesson.value.title : null;
+    const prompt = lessonId
+      ? lessonDetail.value?.contents?.map(item => [item.target_text, item.task_guidance].filter(Boolean).join('\n')).join('\n') || currentLesson.value.title
+      : (activeWritingPrompt.value ? [activeWritingPrompt.value.title, activeWritingPrompt.value.prompt, activeWritingPrompt.value.guidance ? `Guidance: ${activeWritingPrompt.value.guidance}` : null].filter(Boolean).join('\n') : null);
     const res = await writingService.evaluateEssay(submittedText, lessonId, prompt);
     const activeWritingLesson = currentLesson.value?.type === 'WRITING' ? currentLesson.value.id : null;
     if (version !== sessionVersion || activeWritingLesson !== lessonId || essayInput.value.trim() !== submittedText) return;
@@ -1723,7 +1686,13 @@ const onStudyDeckChange = async () => {
   await loadFlashcardsData();
 };
 const setFlashcardMode = async mode => {
-  if (!['all', 'noted', 'due'].includes(mode) || mode === flashcardMode.value || studyLoading.value || isSavingCardNote.value) return;
+  if (!['all', 'noted', 'due'].includes(mode) || studyLoading.value || isSavingCardNote.value) return;
+  isDueCompleted.value = false;
+  if (mode === flashcardMode.value) {
+    currentStudyIndex.value = 0;
+    isFlipped.value = false;
+    return;
+  }
   flashcardMode.value = mode;
   await loadFlashcardsData();
 };
@@ -1790,6 +1759,7 @@ const flashcardReminders = ref({
   reminders: []
 });
 const isReviewingCard = ref(false);
+const isDueCompleted = ref(false);
 
 const loadFlashcardReminders = async () => {
   if (!authService.isAuthenticated()) return;
@@ -1803,6 +1773,7 @@ const loadFlashcardReminders = async () => {
 
 const loadFlashcardsData = async () => {
   flashcards.value = [];
+  isDueCompleted.value = false;
   isSavingCardNote.value = false;
   clearTimeout(flashcardToastTimer);
   flashcardToast.value = '';
@@ -1871,6 +1842,8 @@ const reviewCurrentCard = async (isRemembered) => {
       isFlipped.value = false;
       if (currentStudyIndex.value < flashcards.value.length - 1) {
         nextFlashcard();
+      } else if (flashcardMode.value === 'due') {
+        isDueCompleted.value = true;
       }
     }, 450);
   } catch (err) {
@@ -1880,17 +1853,27 @@ const reviewCurrentCard = async (isRemembered) => {
   }
 };
 
-const openFlashcardWord = async (cardId, deckId = null) => {
+const openFlashcardWord = async (cardId, deckId = null, mode = 'due') => {
+  pushNavState();
   activeTab.value = 'flashcard';
   studyMode.value = 'flashcard';
-  flashcardMode.value = 'all';
-  if (deckId) {
+  flashcardMode.value = mode;
+  if (mode === 'due') {
+    studyDeckId.value = null; // Hiển thị toàn bộ các thẻ đến hạn từ mọi deck
+  } else if (deckId) {
     studyDeckId.value = deckId;
   }
   await loadFlashcardsData();
   const index = flashcards.value.findIndex(c => c.id === cardId);
   if (index !== -1) {
     jumpToFlashcard(index);
+  } else if (mode === 'due') {
+    // Nếu từ chưa đến hạn ôn hôm nay, fallback mở theo All Cards của deck đó
+    flashcardMode.value = 'all';
+    if (deckId) studyDeckId.value = deckId;
+    await loadFlashcardsData();
+    const idx2 = flashcards.value.findIndex(c => c.id === cardId);
+    if (idx2 !== -1) jumpToFlashcard(idx2);
   }
 };
 
@@ -2123,7 +2106,7 @@ const updateClock = () => {
 
 let clockInterval = null;
 
-provide('screenContext', { practiceCustomWord, prefetchLesson: (id) => curriculumService.prefetchLesson(id), hasHistory, navigateSidebar, pushNavState, flashcardMode, setFlashcardMode, goBack, previousTab, openAuthOrProfile, isOnboardingOpen, onOnboardingCompleted, writingPickerOpen, writingPickerLoading, writingPickerError, writingPickerTopicId, writingPickerTopics, writingPickerLessons, loadWritingTasks, openWritingTaskPicker, openWritingLesson, quizFeedbackMode, quizFeedbackLoading, quizModeLocked, setQuizFeedbackMode, flashcardDecks, flashcardDecksLoading, flashcardDecksError, availableFlashcardDecks, loadFlashcardDecks, onStudyDeckChange, navigateTab, chatSummary, endChatSession, journey, selectedTopic, topicLessons, currentLesson, lessonDetail, lessonQuizzes, lessonDecks, lessonCards, lessonLoading, lessonError, lessonStep, lessonProgress, canFinishLesson, recommendedTopic, startLesson, continueLearning, beginLessonPractice, openLessonQuiz, openLessonDeck, finishLesson, nextLesson, leaveLesson, openSaveWord, savedWordMessage, openLessonChat, studyDeckId, homeError, studyError, chatError, isSavingCardNote, quizInputText, quizResult, canAnswerQuiz, previousQuizQuestion, restartQuiz, requireAuthentication, activeTab, chatConversations, chatHistoryError, chatHistoryLoading, chatInput, chatLoading, chatMessages, chatRecorder, chatScenarioId, chatScrollContainer, checkQuizAnswer, clockInterval, conversationId, copied, copyRewritten, currentCard, currentChatScenario, currentQuestion, currentSpeakingSentenceIndex, currentStudyIndex, currentTime, dashboard, essayInput, flashcards, getActivityBadgeClass, getQuizAnswerClass, getTopicColor, getTopicEmoji, getWordBg, getWordTextColor, homeLoading, isAnalyzingSpeaking, isAuthOpen, isAuthenticated, isBotTyping, isChatHistoryOpen, isChatRecording, startChatVoice, cancelChatVoice, togglePauseRecording, sendChatVoice, isRecordingPaused, recordingDuration, formattedRecordingTime, isCustomSpeakingMode, isEvaluating, isFlipped, isProfileOpen, isRecording, isSubmittingQuiz, loadChatConversations, loadChatScenarios, loadFlashcardsData, loadHomeData, loadQuizzesData, logout, nativeAudioUrl, navigateSpeakingSentence, nextQuizQuestion, onAuthSuccess, onProfileUpdated, onQuizChange, onSpeakingLessonChange, onSpeakingTopicChange, openAuthModal, openChatConversation, playNativeAudio, quizChecked, quizQuestions, quizzesList, recorder, resetChatConversation, scenarios, scrollChatToBottom, selectQuizAnswer, selectedQuizAnswer, selectedQuizId, selectedSpeakingContentId, sendChatText, speakBotMessage, speakText, speakingError, speakingLessonContents, speakingLessonId, speakingLessons, speakingLessonsLoading, speakingResult, speakingTopicId, startChatConversation, createAndSelectCustomScenario, startTopic, stopAndAnalyzeSpeaking, studyLoading, studyMode, submitWritingEvaluation, submittedQuizDetail, switchChatScenario, switchStudyMode, targetIpa, targetSpeakingText, targetTranslation, toggleChatHistory, toggleChatVoice, toggleRecording, topics, totalPracticeCount, totalStudyItems, updateClock, userAvatarUrl, userProfile, wordCount, writingError, writingResult, writingSubTab, flashcardToast, toggleCardNote, nextFlashcard, prevFlashcard, jumpToFlashcard, openStreakModal, isActivitiesModalOpen, openActivitiesModal, flashcardReminders, loadFlashcardReminders, isReviewingCard, reviewCurrentCard, openFlashcardWord });
+provide('screenContext', { activeWritingPrompt, practiceCustomWord, prefetchLesson: (id) => curriculumService.prefetchLesson(id), hasHistory, navigateSidebar, pushNavState, flashcardMode, setFlashcardMode, isDueCompleted, goBack, previousTab, openAuthOrProfile, isOnboardingOpen, onOnboardingCompleted, quizFeedbackMode, quizFeedbackLoading, quizModeLocked, setQuizFeedbackMode, flashcardDecks, flashcardDecksLoading, flashcardDecksError, availableFlashcardDecks, loadFlashcardDecks, onStudyDeckChange, navigateTab, chatSummary, endChatSession, journey, selectedTopic, topicLessons, currentLesson, lessonDetail, lessonQuizzes, lessonDecks, lessonCards, lessonLoading, lessonError, lessonStep, lessonProgress, canFinishLesson, recommendedTopic, startLesson, continueLearning, beginLessonPractice, openLessonQuiz, openLessonDeck, finishLesson, nextLesson, leaveLesson, openSaveWord, savedWordMessage, openLessonChat, studyDeckId, homeError, studyError, chatError, isSavingCardNote, quizInputText, quizResult, canAnswerQuiz, previousQuizQuestion, restartQuiz, requireAuthentication, activeTab, chatConversations, chatHistoryError, chatHistoryLoading, chatInput, chatLoading, chatMessages, chatRecorder, chatScenarioId, chatScrollContainer, checkQuizAnswer, clockInterval, conversationId, copied, copyRewritten, currentCard, currentChatScenario, currentQuestion, currentSpeakingSentenceIndex, currentStudyIndex, currentTime, dashboard, essayInput, flashcards, getActivityBadgeClass, getQuizAnswerClass, getTopicColor, getTopicEmoji, getWordBg, getWordTextColor, homeLoading, isAnalyzingSpeaking, isAuthOpen, isAuthenticated, isBotTyping, isChatHistoryOpen, isChatRecording, startChatVoice, cancelChatVoice, togglePauseRecording, sendChatVoice, isRecordingPaused, recordingDuration, formattedRecordingTime, isCustomSpeakingMode, isEvaluating, isFlipped, isProfileOpen, isRecording, isSubmittingQuiz, loadChatConversations, loadChatScenarios, loadFlashcardsData, loadHomeData, loadQuizzesData, logout, nativeAudioUrl, navigateSpeakingSentence, nextQuizQuestion, onAuthSuccess, onProfileUpdated, onQuizChange, onSpeakingLessonChange, onSpeakingTopicChange, openAuthModal, openChatConversation, playNativeAudio, quizChecked, quizQuestions, quizzesList, recorder, resetChatConversation, scenarios, scrollChatToBottom, selectQuizAnswer, selectedQuizAnswer, selectedQuizId, selectedSpeakingContentId, sendChatText, speakBotMessage, speakText, speakingError, speakingLessonContents, speakingLessonId, speakingLessons, speakingLessonsLoading, speakingResult, speakingTopicId, startChatConversation, createAndSelectCustomScenario, startTopic, stopAndAnalyzeSpeaking, studyLoading, studyMode, submitWritingEvaluation, submittedQuizDetail, switchChatScenario, switchStudyMode, targetIpa, targetSpeakingText, targetTranslation, toggleChatHistory, toggleChatVoice, toggleRecording, topics, totalPracticeCount, totalStudyItems, updateClock, userAvatarUrl, userProfile, wordCount, writingError, writingResult, writingSubTab, flashcardToast, toggleCardNote, nextFlashcard, prevFlashcard, jumpToFlashcard, openStreakModal, isActivitiesModalOpen, openActivitiesModal, flashcardReminders, loadFlashcardReminders, isReviewingCard, reviewCurrentCard, openFlashcardWord });
 
 onMounted(async () => {
   updateClock();

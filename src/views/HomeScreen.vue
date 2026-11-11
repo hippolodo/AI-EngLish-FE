@@ -400,8 +400,14 @@ const openReview = () => {
   ctx.studyDeckId.value = null;
   ctx.studyMode.value = 'flashcard';
   ctx.activeTab.value = 'flashcard';
+  if (ctx.currentStudyIndex) ctx.currentStudyIndex.value = 0;
+  if (ctx.isFlipped) ctx.isFlipped.value = false;
   if (ctx.flashcardReminders?.value?.today_count > 0 && ctx.setFlashcardMode) {
-    void ctx.setFlashcardMode('due');
+    if (ctx.flashcardMode?.value === 'due') {
+      void ctx.loadFlashcardsData();
+    } else {
+      void ctx.setFlashcardMode('due');
+    }
   } else {
     void ctx.loadFlashcardsData();
   }
@@ -412,7 +418,9 @@ const openQuizMode = () => {
   ctx.leaveLesson(false);
   ctx.studyMode.value = 'quiz';
   ctx.activeTab.value = 'quiz';
-  void ctx.loadQuizzesData();
+  if (ctx.quizResult?.value || !ctx.quizzesList?.value?.length) {
+    void ctx.loadQuizzesData();
+  }
 };
 
 const userLevelPercent = computed(() => {

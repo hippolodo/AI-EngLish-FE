@@ -3,7 +3,6 @@
     <header class="flex items-center justify-between">
       <div class="flex items-center gap-3">
         <button
-          v-if="hasHistory"
           @click="goBack"
           class="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl border border-slate-200 bg-white text-slate-700 font-bold text-sm hover:bg-slate-50 hover:text-blue-600 transition shadow-2xs cursor-pointer group"
           title="Back"

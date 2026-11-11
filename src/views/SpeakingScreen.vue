@@ -1,17 +1,17 @@
 <template>
   <div v-if="activeTab === 'speaking' && isAuthenticated" class="space-y-6 pb-28 w-full max-w-6xl mx-auto">
-    <!-- Top Back Button (Only visible when navigated from a lesson or another screen) -->
-    <div v-if="hasHistory">
+    <!-- Top Back Button -->
+    <div>
       <AnimateButton
         variant="outline"
         size="sm"
         @click="goBack"
-        class="group"
+        class="group hover:bg-slate-50"
       >
         <template #prefix>
           <ArrowLeft class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
         </template>
-        <span>{{ ctx.currentLesson.value ? 'Back to Lesson' : 'Back' }}</span>
+        <span>{{ ctx.currentLesson?.value ? 'Back to Lesson' : 'Back' }}</span>
       </AnimateButton>
     </div>
 
@@ -999,6 +999,28 @@ watch(
   (newSessionId) => {
     if (newSessionId && !isInspectingPastAttempt.value) {
       loadSentenceHistory();
+    }
+  }
+);
+
+// Khi người dùng chuyển sang màn hình Speaking: reset trạng thái xem lịch sử và dừng audio đang phát
+watch(
+  () => ctx.activeTab?.value,
+  (tab, oldTab) => {
+    if (tab === 'speaking' && oldTab && oldTab !== 'speaking') {
+      isInspectingPastAttempt.value = false;
+      isHistoryExpanded.value = false;
+      selectedWordIndex.value = 0;
+      if (userAudioPlayer) {
+        userAudioPlayer.pause();
+        userAudioPlayer = null;
+        isPlayingUserAudio.value = false;
+      }
+      if (historyAudioPlayer) {
+        historyAudioPlayer.pause();
+        historyAudioPlayer = null;
+        playingHistoryAudioId.value = null;
+      }
     }
   }
 );
